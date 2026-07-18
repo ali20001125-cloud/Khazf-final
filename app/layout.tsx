@@ -18,7 +18,7 @@ const FALLBACK: SiteConfig = {
     { bags: 5, rewardType: "FREE_DELIVERY" },
     { bags: 6, rewardType: "GIFT" },
   ],
-  topBarMessages: [], instagram: "khazf.roaster",
+  topBarMessages: [], instagram: "khazf.roaster", logoUrl: null,
 };
 
 const EMPTY_CATALOG: CatalogData = { coffees: [], tools: [], places: [], boxGiftNames: [], banners: [] };
@@ -31,6 +31,13 @@ async function loadCatalog(): Promise<CatalogData> {
   }
 }
 
+async function loadAnalytics() {
+  try {
+    const st = await getSettings();
+    return { pixel: st.metaPixelId ?? null, ga: st.gaId ?? null };
+  } catch { return { pixel: null, ga: null }; }
+}
+
 async function loadConfig(): Promise<SiteConfig> {
   try {
     const st = await getSettings();
@@ -41,6 +48,7 @@ async function loadConfig(): Promise<SiteConfig> {
       boxTiers: st.boxTiers,
       topBarMessages: st.topBarMessages,
       instagram: st.instagram,
+      logoUrl: st.logoUrl ?? null,
     };
   } catch {
     return FALLBACK; // القاعدة غير متاحة (بناء/عطل) — المتجر يبقى واقفاً
@@ -55,7 +63,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [config, catalog] = await Promise.all([loadConfig(), loadCatalog()]);
+  const [config, catalog, analytics] = await Promise.all([loadConfig(), loadCatalog(), loadAnalytics()]);
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
@@ -95,6 +103,15 @@ export default async function RootLayout({
           </Smooth>
         </StoreProvider>
         </CatalogProvider>
+        {analytics.ga && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga}`} />
+            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${analytics.ga}');` }} />
+          </>
+        )}
+        {analytics.pixel && (
+          <script dangerouslySetInnerHTML={{ __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${analytics.pixel}');fbq('track','PageView');` }} />
+        )}
       </body>
     </html>
   );

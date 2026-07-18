@@ -51,9 +51,6 @@ export default function Footer() {
             <p className="text-3xl font-bold" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>
               خزف
             </p>
-            <p className="mt-3 max-w-[220px] text-[13px] leading-relaxed opacity-55">
-              قهوةٌ صُنعت بصبر، لمن يعرف قيمة التوقّف.
-            </p>
             <a
               href="https://instagram.com/khazf.roaster"
               target="_blank"

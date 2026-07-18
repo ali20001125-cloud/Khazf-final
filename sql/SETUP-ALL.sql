@@ -317,7 +317,7 @@ CREATE INDEX "products_active_idx" ON "products" USING btree ("active");--> stat
 CREATE INDEX "products_type_idx" ON "products" USING btree ("type");--> statement-breakpoint
 CREATE INDEX "reviews_product_idx" ON "reviews" USING btree ("product_id","status");
 -- تسلسل رقم الطلب المضمون التفرّد (KHZ-1001, KHZ-1002…)
-CREATE SEQUENCE IF NOT EXISTS khazf_order_seq START 1001;
+CREATE SEQUENCE IF NOT EXISTS khazf_order_seq START 1100;
 
 -- تحديث updated_at تلقائياً على المنتجات
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger AS $$
@@ -460,3 +460,8 @@ INSERT INTO banners (text, sort, active) VALUES ('محاصيلنا',0,true);
 INSERT INTO settings (id, top_bar_messages) VALUES
  (1, ARRAY['توصيل لكل محافظات العراق — ٣٬٠٠٠ د.ع','نحمّص باستمرار · الدفع عند الاستلام']);
 INSERT INTO settings_internal (id) VALUES (1);
+
+-- إضافات الإصدار ب
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS logo_url text;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS meta_pixel_id text;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS ga_id text;

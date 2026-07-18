@@ -1,0 +1,4 @@
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS logo_url text;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS meta_pixel_id text;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS ga_id text;
+ALTER SEQUENCE khazf_order_seq RESTART WITH 1100;

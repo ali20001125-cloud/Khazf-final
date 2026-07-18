@@ -14,8 +14,6 @@ const tabs = [
   { key: "orders", label: "الطلبات", Icon: Package },
   { key: "fav", label: "المفضلة", Icon: Heart },
   { key: "cashback", label: "الكاش باك", Icon: Wallet },
-  { key: "addresses", label: "العناوين", Icon: MapPin },
-  { key: "settings", label: "البيانات الشخصية", Icon: Settings },
 ];
 
 function AccountInner() {
@@ -135,43 +133,9 @@ function AccountInner() {
           </div>
         )}
 
-        {tab === "addresses" && (
-          <div className="reveal-group space-y-3">
-            <div className="flex items-start justify-between rounded-[16px] border-2 border-olive bg-card p-5">
-              <div>
-                <p className="text-sm font-bold">البيت <span className="ms-2 rounded-full bg-olive px-2.5 py-0.5 text-[10px] text-olive-text">الافتراضي</span></p>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted">بغداد · الكرادة · شارع ٦٢ · قرب مصرف الرافدين</p>
-              </div>
-              <button onClick={() => showToast("نسخة عرض — التعديل قريباً")} className="text-[12px] font-bold text-muted hover:text-accent">تعديل</button>
-            </div>
-            <div className="flex items-start justify-between rounded-[16px] border border-line bg-card p-5">
-              <div>
-                <p className="text-sm font-bold">العمل</p>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted">بغداد · المنصور · عمارة النخيل · ط٣</p>
-              </div>
-              <button onClick={() => showToast("نسخة عرض — التعديل قريباً")} className="text-[12px] font-bold text-muted hover:text-accent">تعديل</button>
-            </div>
-            <button onClick={() => showToast("نسخة عرض — الإضافة قريباً")} className="w-full rounded-[16px] border border-dashed border-line py-4 text-[13px] font-bold text-muted transition-colors hover:border-accent hover:text-accent">
-              + إضافة عنوان جديد
-            </button>
-          </div>
-        )}
+        
 
-        {tab === "settings" && (
-          <div className="reveal space-y-3 rounded-[22px] border border-line bg-card p-6">
-            {[
-              { l: "الاسم", v: "علي الخزفي" },
-              { l: "الهاتف", v: "0770 123 4567" },
-              { l: "الإيميل", v: "ali@khazf.coffee" },
-            ].map((x) => (
-              <div key={x.l} className="flex items-center justify-between border-b border-line pb-3 last:border-0 last:pb-0">
-                <span className="text-[13px] text-muted">{x.l}</span>
-                <span className="font-num text-sm font-bold" dir="ltr">{x.v}</span>
-              </div>
-            ))}
-            <button onClick={() => showToast("نسخة عرض — التعديل قريباً")} className="btn btn-ghost w-full !py-3 text-sm">تعديل البيانات</button>
-          </div>
-        )}
+        
       </div>
     </div>
   );

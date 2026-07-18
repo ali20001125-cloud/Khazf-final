@@ -1,5 +1,5 @@
 -- تسلسل رقم الطلب المضمون التفرّد (KHZ-1001, KHZ-1002…)
-CREATE SEQUENCE IF NOT EXISTS khazf_order_seq START 1001;
+CREATE SEQUENCE IF NOT EXISTS khazf_order_seq START 1100;
 
 -- تحديث updated_at تلقائياً على المنتجات
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger AS $$

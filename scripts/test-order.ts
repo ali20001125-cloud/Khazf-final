@@ -54,9 +54,8 @@ async function main() {
   const r2 = await createOrder({ ...base, phone: "07709999999", usePoints: true,
     items: [{ slug: "antigua", variant: "G250", qty: 1 }] });
   const [o2] = await db.select().from(s.orders).where(eq(s.orders.id, r2.orderId));
-  ok(o2.totalRaw === 21320, `الخام 21,320 (20k−1,680+3k): ${o2.totalRaw}`);
-  ok(r2.total === 21500, `المقرَّب 21,500: ${r2.total}`);
-  ok(o2.pointsUsed === 1680, `نقاط مستخدمة 1,680 د: ${o2.pointsUsed}`);
+  ok(o2.pointsUsed === 1500, `استُخدم 1,500 فقط (يطابق ورقة ٢٥٠) والباقي 6 نقاط محفوظ: ${o2.pointsUsed}`);
+  ok(o2.totalRaw === 21500 && r2.total === 21500, `الإجمالي 21,500 قابل للدفع تماماً بلا تقريب: ${r2.total}`);
 
   console.log("── ٣) بوكس ٣ أكياس (خصم ١٠٪) ──");
   const r3 = await createOrder({ ...base, phone: "07702222222",

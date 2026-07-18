@@ -11,6 +11,7 @@ export interface SiteConfig {
   boxTiers: BoxTier[];
   topBarMessages: string[];
   instagram: string | null;
+  logoUrl: string | null;
 }
 const SiteConfigContext = createContext<SiteConfig | null>(null);
 export const useSiteConfig = () => {

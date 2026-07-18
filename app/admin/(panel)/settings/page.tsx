@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { PageTitle, Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
 import { savePublicSettings, saveInternalSettings, addAdmin } from "./actions";
+import ImageUpload from "@/components/admin/ImageUpload";
 import { supabaseConfigured } from "@/lib/server/admin-auth";
 import type { BoxTier } from "@/lib/server/db/schema";
 
@@ -34,6 +35,15 @@ export default async function SettingsPage() {
             <select name="featuredMode" defaultValue={pub.featuredMode} className={inputCls}>
               <option value="manual">يدوي (أنت تختار)</option><option value="auto">تلقائي من المبيعات</option>
             </select>
+          </Field>
+          <Field label="لوغو خزف (يظهر بالهيرو)" hint="ارفعه من جهازك — أو اتركه فارغاً فيظهر الاسم كتابةً">
+            <ImageUpload name="logoUrl" initial={pub.logoUrl} />
+          </Field>
+          <Field label="Meta Pixel ID" hint="من Facebook Events Manager — يفعّل تتبع الإعلانات">
+            <input name="metaPixelId" defaultValue={pub.metaPixelId ?? ""} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
+          <Field label="Google Analytics ID" hint="مثل G-XXXXXXX — يعطيك الزيارات لحظياً">
+            <input name="gaId" defaultValue={pub.gaId ?? ""} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
           <div className="sm:col-span-2">
             <Field label="رسائل الشريط العلوي" hint="سطر لكل رسالة — تتناوب بالمتجر">

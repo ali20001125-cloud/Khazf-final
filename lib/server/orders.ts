@@ -177,15 +177,12 @@ export async function createOrder(input: CheckoutInput) {
       }
     }
 
-    /* ── ٥) رصيد النقاط (باختيار الزبون — يُطرح كاملاً بسقف المتبقي) ── */
+    /* ── ٥) رصيد النقاط — منطق العملة العراقية (أصغر ورقة = ٢٥٠):
+       نستخدم أكبر جزء من الرصيد يجعل الإجمالي النهائي رقماً قابلاً للدفع تماماً،
+       والباقي يبقى بحساب الزبون · أي كسر متبقٍ يُقرَّب لأعلى بصمت (لا خسارة على المتجر) ── */
     let pointsUsedDinars = 0,
       pointsUsedCount = 0;
     const afterDiscounts = itemsSubtotal - couponDiscount - journeyDiscount;
-    if (input.usePoints && customer && customer.pointsBalance > 0) {
-      const maxDinars = Math.min(customer.pointsBalance * settings.pointValue, Math.max(0, afterDiscounts));
-      pointsUsedCount = Math.floor(maxDinars / settings.pointValue);
-      pointsUsedDinars = pointsUsedCount * settings.pointValue;
-    }
 
     /* ── ٦) التوصيل: سعر موحّد للزبون · التكلفة حسب المحافظة (داخلي) ── */
     const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon;
@@ -193,6 +190,22 @@ export async function createOrder(input: CheckoutInput) {
     const isBasra = input.governorate.includes("بصرة");
     const deliveryCost = isBasra ? internal.deliveryCostBasra : internal.deliveryCostOther;
     const deliveryNet = deliveryCharged - deliveryCost;
+
+    /* استخدام النقاط على الإجمالي شامل التوصيل — حتى يهبط لرقم يُدفع بالورق */
+    if (input.usePoints && customer && customer.pointsBalance > 0) {
+      const preTotal = Math.max(0, afterDiscounts) + deliveryCharged;
+      const budget = Math.min(customer.pointsBalance * settings.pointValue, preTotal);
+      const step = settings.pointValue; // النقطة لا تتجزأ
+      let d = Math.floor(budget / step) * step;
+      let best = -1;
+      while (d >= 0) {
+        if ((preTotal - d) % 250 === 0) { best = d; break; }
+        d -= step;
+      }
+      // إن تعذّرت المطابقة التامة: خذ الأقصى والكسر يتقرّب لأعلى بصمت
+      pointsUsedDinars = best >= 0 ? best : Math.floor(budget / step) * step;
+      pointsUsedCount = pointsUsedDinars / step;
+    }
 
     /* ── ٧) الإجمالي + التقريب لأعلى ٢٥٠ (مخفي عن الزبون) ── */
     const totalRaw = afterDiscounts - pointsUsedDinars + deliveryCharged;

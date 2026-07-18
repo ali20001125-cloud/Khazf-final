@@ -13,6 +13,7 @@ import {
   Cherry, Citrus, Flower2, Cookie, Nut, Coffee as CoffeeIcon,
   Droplet, Flame, Layers, Sparkles, Sun, Droplets, Globe, Mountain,
   Filter, FlaskConical, Timer, CupSoda,
+  ArrowLeft,
 } from "lucide-react";
 import { formatIQD, productFaq,
   type Coffee, type Tool,
@@ -380,13 +381,6 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             </button>
           </div>
 
-          <button
-            onClick={buyNow}
-            className="pv-in btn btn-olive mt-3 flex w-full items-center justify-center gap-2 !py-3.5 text-sm opacity-0 active:scale-[0.98]"
-          >
-            <Zap size={15} /> اشتر الآن — يتجاوز السلة
-          </button>
-
           {/* المشاركة */}
           <div className="pv-in mt-5 flex items-center gap-2 opacity-0">
             <span className="text-[12px] font-semibold text-muted">شارك:</span>
@@ -457,51 +451,15 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             </div>
           </div>
 
-          {/* ٣) طرق التحضير */}
-          <div data-chips="2" className="reveal">
-            <p className="font-num mb-3 text-[10px] tracking-[0.35em] text-muted">BREW</p>
-            <h2 className="text-2xl font-bold">طرق التحضير المناسبة</h2>
-            <div className="mt-4 flex flex-wrap gap-2 md:hidden">
-              {groups[2].map((ch) => (
-                <span key={ch.label} className="flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-[12px] font-bold">
-                  <ch.Icon size={13} className="text-accent" /> {ch.label}
-                </span>
-              ))}
-            </div>
-            <div className="mt-5 space-y-3">
-              {coffee.brew.map((b) => (
-                <div key={b.name} className="flex items-center justify-between rounded-[14px] border border-line bg-card px-5 py-3.5">
-                  <span className="text-sm font-bold">{b.name}</span>
-                  <span className="font-num text-[12px] text-muted">{b.nums}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ٤) قصة المحصول — تظهر فقط إذا كتبها المالك */}
-          {coffee.story && (
-          <div className="reveal rounded-[20px] bg-olive p-7 text-olive-text">
-            <p className="font-num text-[10px] tracking-[0.35em] opacity-60">THE STORY</p>
-            <h2 className="mt-2 text-2xl font-bold">قصة المحصول</h2>
-            <p className="mt-2 flex items-center gap-1.5 text-[13px] font-bold text-gold">
-              <MapPin size={13} /> {coffee.farm} · {coffee.region}
-            </p>
-            <p className="mt-4 text-[14px] leading-[2.1] opacity-85">{coffee.story}</p>
-            <div className="mt-5 grid grid-cols-3 gap-3 border-t border-olive-text/12 pt-4 text-center">
-              {[
-                { l: "الدولة", v: coffee.country },
-                { l: "الارتفاع", v: coffee.altitude },
-                { l: "المعالجة", v: coffee.process },
-              ].map((x) => (
-                <div key={x.l}>
-                  <p className="text-[10px] opacity-55">{x.l}</p>
-                  <p className="mt-0.5 text-[13px] font-bold">{x.v}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-center text-[11px] opacity-50">صور وفيديو من المزرعة — قريباً</p>
-          </div>
-          )}
+          {/* ٣) طرق التحضير → صفحة الوصفات المتخصصة */}
+          <Link href="/recipes/"
+            className="reveal flex items-center justify-between rounded-[20px] border border-line bg-card px-6 py-5 transition-all hover:-translate-y-0.5">
+            <span>
+              <span className="block text-[15px] font-bold">شلون أحضّرها؟</span>
+              <span className="mt-0.5 block text-[12px] text-muted">وصفات V60 والإسبريسو والفرنش برس خطوة بخطوة</span>
+            </span>
+            <ArrowLeft size={17} className="text-accent" />
+          </Link>
         </div>
       </section>
 

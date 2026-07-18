@@ -51,12 +51,7 @@ export default function Header() {
   const { cart, bump, favorites } = useStore();
   const { topBarMessages } = useSiteConfig();
   const { coffees, tools } = useCatalog();
-  const [msgIdx, setMsgIdx] = useState(0);
-  useEffect(() => {
-    if (topBarMessages.length < 2) return;
-    const t = setInterval(() => setMsgIdx((i) => (i + 1) % topBarMessages.length), 5000);
-    return () => clearInterval(t);
-  }, [topBarMessages.length]);
+
   const count = cart.reduce((s, i) => s + i.qty, 0);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -113,12 +108,13 @@ export default function Header() {
       <header ref={ref} className="site-header fixed inset-x-0 top-0 z-50">
         {/* Top Bar — يظهر فقط عند وجود حملة */}
         {topBarMessages.length > 0 && (
-          <Link
-            href="/shipping/"
-            className="topbar block truncate px-4 text-center text-[12px] font-bold text-gold"
-            style={{ background: "var(--deep)" }}
-          >
-            {topBarMessages[msgIdx % topBarMessages.length]}
+          <Link href="/shipping/" className="topbar block overflow-hidden text-[12px] font-bold text-gold"
+            style={{ background: "var(--deep)" }}>
+            <span className="marquee-track">
+              {[...topBarMessages, ...topBarMessages, ...topBarMessages].map((m, i) => (
+                <span key={i} className="mx-8">{m}</span>
+              ))}
+            </span>
           </Link>
         )}
 

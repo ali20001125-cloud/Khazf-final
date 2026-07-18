@@ -371,6 +371,9 @@ export const settings = pgTable("settings", {
   contactPhone: text("contact_phone"),
   instagram: text("instagram").default("khazf.roaster"),
   whatsapp: text("whatsapp"),
+  logoUrl: text("logo_url"),
+  metaPixelId: text("meta_pixel_id"),
+  gaId: text("ga_id"),
   maintenanceMode: boolean("maintenance_mode").notNull().default(false),
 });
 

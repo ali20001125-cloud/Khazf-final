@@ -29,6 +29,9 @@ export async function savePublicSettings(f: FormData) {
     instagram: String(f.get("instagram") ?? "").trim() || null,
     contactPhone: String(f.get("contactPhone") ?? "").trim() || null,
     featuredMode: String(f.get("featuredMode")) === "auto" ? "auto" : "manual",
+    logoUrl: String(f.get("logoUrl") ?? "").trim() || null,
+    metaPixelId: String(f.get("metaPixelId") ?? "").trim() || null,
+    gaId: String(f.get("gaId") ?? "").trim() || null,
   }).where(eq(s.settings.id, 1));
   revalidatePath("/admin/settings"); revalidatePath("/");
 }

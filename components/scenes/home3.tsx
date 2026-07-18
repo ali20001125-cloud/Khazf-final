@@ -8,6 +8,7 @@ import { useGSAP } from "@gsap/react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
+import { useSiteConfig } from "@/lib/store";
 import { reduced } from "@/lib/motion";
 import BagArt from "@/components/BagArt";
 
@@ -15,6 +16,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 /* ═══════════ ١) الهيرو — خزف بسطر واحد، والمنتجات تبدأ فوراً ═══════════ */
 export function Hero() {
+  const { logoUrl } = useSiteConfig();
   const scope = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -41,17 +43,19 @@ export function Hero() {
   return (
     <section
       ref={scope}
-      className="flex min-h-[58svh] flex-col items-center justify-center px-6 pb-10 pt-28 text-center md:min-h-[64svh]"
+      className="flex min-h-[46svh] flex-col items-center justify-center px-6 pb-8 pt-28 text-center md:min-h-[52svh]"
     >
-      <p className="hr-in font-num text-[10px] tracking-[0.55em] text-muted opacity-0">
-        KHAZF
-      </p>
-      <h1
-        className="hr-in mt-4 text-6xl font-bold opacity-0 md:text-8xl"
-        style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-      >
-        خزف
-      </h1>
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoUrl} alt="خزف" className="hr-in h-16 w-auto opacity-0 md:h-20" />
+      ) : (
+        <h1
+          className="hr-in text-4xl font-bold opacity-0 md:text-5xl"
+          style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+        >
+          خزف
+        </h1>
+      )}
       <p className="hr-in mt-6 text-[15px] font-semibold text-muted opacity-0 md:text-[17px]">
         قهوة مختصة
         <span className="mx-2.5 text-line">·</span>

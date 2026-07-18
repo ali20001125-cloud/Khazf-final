@@ -169,17 +169,14 @@ function ShopInner() {
         </p>
         <div className="flex items-center gap-3 text-[13px]">
           <span className="text-muted">ترتيب:</span>
-          {sorts.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => go({ sort: s.key })}
-              className={`font-bold transition-colors ${
-                sort === s.key ? "text-accent" : "text-muted hover:text-ink"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+          <select
+            value={sort}
+            onChange={(e) => go({ sort: e.target.value as Sort })}
+            aria-label="ترتيب حسب"
+            className="rounded-full border border-line bg-card px-4 py-2 text-[12.5px] font-bold outline-none"
+          >
+            {sorts.map((x) => <option key={x.key} value={x.key}>ترتيب: {x.label}</option>)}
+          </select>
         </div>
       </div>
 

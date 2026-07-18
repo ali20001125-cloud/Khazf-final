@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, HandCoins, Gift, Sparkles, ArrowLeft } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
@@ -24,6 +24,20 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
   const [showEmail, setShowEmail] = useState(false);
+
+  /* الزبون المعروف: بياناته تتعبأ لحالها */
+  useEffect(() => {
+    fetch("/api/customer/me/").then((r) => r.json()).then((me) => {
+      if (me?.guest) return;
+      setForm((f) => ({
+        ...f,
+        name: f.name || me.name || "",
+        phone: f.phone || me.phone || "",
+        governorate: f.governorate || me.governorate || "",
+        address: f.address || me.address || "",
+      }));
+    }).catch(() => {});
+  }, []);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<Success | null>(null);
 

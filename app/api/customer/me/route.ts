@@ -26,7 +26,7 @@ export async function GET() {
     .limit(10);
   return NextResponse.json({
     googleSession: !!authUser, linked,
-    phone: c.phone, name: c.name,
+    phone: c.phone, name: c.name, governorate: c.governorate, address: c.address,
     pointsBalance: balance, pointsValueDinars: balance * 30,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
     orders,
