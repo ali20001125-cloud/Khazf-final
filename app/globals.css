@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #fdfcfa;
+  --bg-alt: #f0efec;
+  --bg-card: #f7f6f3;
+  --line: #eceae5;
+  --ink: #332b24;
+  --muted: #8a7f70;
+  --olive: #505445;
+  --olive-text: #faf7f0;
+  --accent: #a66a4c;
+  --accent-soft: #c08a6e;
+  --gold: #c9a961;
+  --ok: #5b8a4e;
+  --deep: #241f1b;
+  --deep-2: #2a2622;
+}
+
+/* ── الوضع الليلي: نفس الروح الدافئة، مو مجرد قلب ألوان ── */
+.dark {
+  --bg: #1b1815;
+  --bg-alt: #242019;
+  --bg-card: #282320;
+  --line: #38312a;
+  --ink: #ede7dd;
+  --muted: #a3968a;
+  --olive: #5a5f4e;
+  --olive-text: #faf7f0;
+  --accent: #c08a6e;
+  --accent-soft: #d3a084;
+  --gold: #d4b26a;
+  --ok: #7fae70;
+  --deep: #141210;
+  --deep-2: #1a1714;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+body,
+.site-header,
+.card,
+input,
+textarea,
+select {
+  transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-card: var(--bg-card);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-olive: var(--olive);
+  --color-olive-text: var(--olive-text);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-gold: var(--gold);
+  --color-ok: var(--ok);
+  --color-deep: var(--deep);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Tajawal", sans-serif;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: "IBM Plex Sans Arabic", sans-serif;
+  font-weight: 700;
+}
+
+.font-num {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--olive-text);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* ── حبيبات فيلم خفيفة فوق كل شي ── */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 90;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── سطور الهيرو (تنكشف من قناع) ── */
+.hero-line { display: block; overflow: hidden; }
+.hero-line > span { display: inline-block; will-change: transform; }
+
+/* ── الهيدر: شفاف ثم صلب ── */
+.site-header {
+  transition: background-color 0.4s ease, border-color 0.4s ease,
+    backdrop-filter 0.4s ease;
+  border-bottom: 1px solid transparent;
+}
+.site-header.solid {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-color: var(--line);
+}
+
+/* ── أزرار ── */
+.btn {
+  display: inline-block;
+  border-radius: 16px;
+  padding: 16px 40px;
+  font-weight: 700;
+  font-size: 15px;
+  will-change: transform;
+  transition: opacity 0.25s ease;
+}
+.btn:hover { opacity: 0.92; }
+.btn-olive { background: var(--olive); color: var(--olive-text); }
+.btn-clay { background: var(--accent); color: var(--olive-text); }
+.btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+
+/* ── التوست ── */
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(50%, 16px) scale(0.96); }
+  to { opacity: 1; transform: translate(50%, 0) scale(1); }
+}
+.toast-in { animation: toast-in 0.3s ease both; }
+
+/* ── مؤشر التمرير بالهيرو ── */
+.scroll-cue::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 40px;
+  margin: 10px auto 0;
+  background: var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-line > span { transform: none !important; }
+}
+
+/* ── هيدر ينكمش عند التمرير: 80px ← 64px ── */
+.header-row {
+  height: 80px;
+  transition: height 0.35s ease;
+}
+.site-header.shrunk .header-row {
+  height: 64px;
+}
+.site-header.shrunk {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar {
+  line-height: 34px;
+  height: 34px;
+  overflow: hidden;
+  transition: height 0.35s ease, line-height 0.35s ease, opacity 0.3s ease;
+}
+.site-header.shrunk .topbar {
+  height: 0;
+  line-height: 0;
+  opacity: 0;
+}
+
+/* ── سلايدر الجرعة ── */
+.dose-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--bg-alt);
+  outline: none;
+}
+.dose-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 4px solid var(--bg);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.dose-slider::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+}
+.dose-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 4px solid var(--bg);
+  cursor: pointer;
+}
