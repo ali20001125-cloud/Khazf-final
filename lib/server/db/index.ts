@@ -7,9 +7,13 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
+const url = process.env.DATABASE_URL ?? "";
+const needsSSL = url.includes("supabase.co") || url.includes("pooler.supabase.com");
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: url,
   max: 10,
+  ssl: needsSSL ? { rejectUnauthorized: false } : undefined, // Supabase يفرض SSL
 });
 
 export const db = drizzle(pool, { schema });
