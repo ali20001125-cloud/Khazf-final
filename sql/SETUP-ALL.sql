@@ -1,4 +1,11 @@
--- ═══ خزف: ملف الإعداد الكامل — لصقة واحدة وتشغيل ═══
+-- ═══ خزف: الإعداد الكامل (نسخة ذاتية التصفير — آمنة للإعادة دائماً) ═══
+-- تصفير كامل للمخطط (قاعدة جديدة — لا بيانات تُفقد)
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON SCHEMA public TO postgres, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO anon, authenticated;
 
 CREATE TYPE "public"."coupon_type" AS ENUM('PERCENT', 'FIXED', 'FREE_DELIVERY');--> statement-breakpoint
 CREATE TYPE "public"."ledger_type" AS ENUM('EARN', 'USE', 'EXPIRE', 'MANUAL');--> statement-breakpoint
