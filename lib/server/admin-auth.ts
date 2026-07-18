@@ -38,7 +38,7 @@ export async function getAdmin(): Promise<{ name: string; email: string | null }
     );
     const { data } = await sb.auth.getUser();
     const u = data.user;
-    if (!u) return null;
+    if (u) {
     let [row] = await db.select().from(s.admins).where(eq(s.admins.email, u.email ?? ""));
     if (!row) {
       /* أول دخول والجدول فارغ = المالك المؤسِّس (مرة واحدة فقط) */
@@ -52,15 +52,18 @@ export async function getAdmin(): Promise<{ name: string; email: string | null }
     if (!row.authUserId)
       await db.update(s.admins).set({ authUserId: u.id }).where(eq(s.admins.id, row.id));
     return { name: row.name, email: row.email };
+    }
   }
 
-  /* الوضع المحلي */
-  const v = verify(jar.get(COOKIE)?.value);
-  return v === "owner" ? { name: "المالك", email: null } : null;
+  /* كلمة المرور — تعمل ما دام ADMIN_PASSWORD مضبوطاً (احذفه بعد تفعيل Google لفرض Google حصراً) */
+  if (process.env.ADMIN_PASSWORD) {
+    const v = verify(jar.get(COOKIE)?.value);
+    if (v === "owner") return { name: "المالك", email: null };
+  }
+  return null;
 }
 
 export async function devLogin(password: string): Promise<boolean> {
-  if (supabaseConfigured()) return false;
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected || password !== expected) return false;
   (await cookies()).set(COOKIE, sign("owner"), {
