@@ -15,9 +15,11 @@ function rootMsg(e: unknown): string {
 }
 
 export async function GET() {
-  const url = process.env.DATABASE_URL ?? "";
+  const url = process.env.KHAZF_DATABASE_URL ?? process.env.DATABASE_URL ?? "";
+  const source = process.env.KHAZF_DATABASE_URL ? "KHAZF_DATABASE_URL" : "DATABASE_URL";
   const userPart = url.replace("postgresql://", "").split(":")[0] ?? "—";
   const env = {
+    var_used: source,
     user_as_server_sees_it: userPart,
     user_ok: userPart.includes(".") ? "منقّط صحيح ✓" : "⚠️ ناقص — لازم postgres.rpymiqhanmlqfzpxzesy",
     url_shape: url.startsWith("postgresql://") ? "صيغة صحيحة ✓" : "⚠️ لا يبدأ بـ postgresql://",
