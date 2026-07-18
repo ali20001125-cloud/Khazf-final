@@ -1,26 +1,34 @@
-/** فحص ذاتي — يشخّص الاتصال بالقاعدة بلا كشف أسرار */
+/** فحص ذاتي عميق — يكشف السبب الجذري للاتصال */
 import { NextResponse } from "next/server";
-import { sql } from "drizzle-orm";
-import { db } from "@/lib/server/db";
+import { Pool } from "pg";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function rootMsg(e: unknown): string {
+  let cur: unknown = e, msg = "";
+  for (let i = 0; i < 5 && cur; i++) {
+    if (cur instanceof Error) { msg = cur.message; cur = (cur as Error & { cause?: unknown }).cause; }
+    else { msg = String(cur); break; }
+  }
+  return msg.slice(0, 250);
+}
+
 export async function GET() {
   const url = process.env.DATABASE_URL ?? "";
   const env = {
-    DATABASE_URL: url ? (url.includes("[YOUR-PASSWORD]") ? "⚠️ نسيت تبدّل [YOUR-PASSWORD]" : "موجود ✓") : "❌ مفقود",
-    AUTH_SECRET: process.env.AUTH_SECRET ? "موجود ✓" : "❌ مفقود",
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ? "موجود ✓" : "❌ مفقود",
+    url_shape: url.startsWith("postgresql://") ? "صيغة صحيحة ✓" : "⚠️ لا يبدأ بـ postgresql://",
+    placeholder: url.includes("[YOUR-PASSWORD]") ? "⚠️ نسيت تبدّل [YOUR-PASSWORD]" : "الكلمة مبدّلة ✓",
     host: url.split("@")[1]?.split(":")[0] ?? "—",
+    port: url.split(":").pop()?.split("/")[0] ?? "—",
   };
+  const pool = new Pool({ connectionString: url, max: 1, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 8000 });
   try {
-    const r = await db.execute(sql`SELECT count(*)::int n FROM products`);
-    return NextResponse.json({ db: "متصل ✓", products: (r.rows[0] as { n: number }).n, env });
+    const r = await pool.query("SELECT count(*)::int n FROM products");
+    await pool.end();
+    return NextResponse.json({ db: "OK", products: r.rows[0].n, env });
   } catch (e) {
-    return NextResponse.json(
-      { db: "فشل ✗", error: e instanceof Error ? e.message.slice(0, 200) : "unknown", env },
-      { status: 500 }
-    );
+    await pool.end().catch(() => {});
+    return NextResponse.json({ db: "FAIL", cause: rootMsg(e), env }, { status: 500 });
   }
 }
