@@ -82,6 +82,7 @@ function coffeeFromRow(
     reviewsCount: agg?.count ?? 0,
     brew: BREW_DEFAULT,
     isNew: isNew || p.badge === "جديد",
+    soldOut: soldOut || undefined,
     stockLow:
       !soldOut && p.stockThreshold > 0 && grams <= p.stockThreshold
         ? bagsLeft

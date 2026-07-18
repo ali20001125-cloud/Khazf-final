@@ -44,7 +44,7 @@ export default function TrackPage() {
         <input value={num} onChange={(e) => setNum(e.target.value)} placeholder="رقم الطلب — KHZ-1001" dir="ltr"
           className="font-num w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-end text-sm outline-none focus:border-accent" />
         <div className="flex gap-2">
-          <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="رقم هاتف الطلب" dir="ltr" maxLength={11}
+          <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="رقم هاتف الطلب" inputMode="tel" dir="ltr" maxLength={11}
             className="font-num w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-end text-sm outline-none focus:border-accent" />
           <button type="submit" disabled={busy} className="btn btn-olive shrink-0 !px-6 !py-3.5 text-sm disabled:opacity-50">
             <PackageSearch size={16} />

@@ -266,6 +266,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
           </h1>
 
           <div className="pv-in mt-3 flex items-center gap-2.5 opacity-0">
+            {coffee.soldOut && (
+              <span className="rounded-full bg-accent/12 px-3 py-1 text-[11px] font-bold text-accent">نفد مؤقتاً — يرجع قريباً</span>
+            )}
             {coffee.reviewsCount > 0 ? (
               <>
                 <Stars value={coffee.rating} size={15} />
@@ -399,7 +402,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
           </div>
 
           <p className="pv-in mt-4 text-[12px] text-muted opacity-0">
-            توصيل ٢–٤ أيام لكل المحافظات · دفع عند الاستلام
+            توصيل ١–٢ يوم لكل المحافظات · دفع عند الاستلام
           </p>
         </div>
       </section>

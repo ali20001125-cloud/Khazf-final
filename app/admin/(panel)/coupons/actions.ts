@@ -3,9 +3,11 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
+import { flashSaved } from "@/lib/server/flash";
 
 export async function createCoupon(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const n = (k: string) => { const v = Number(String(f.get(k) ?? "").trim()); return Number.isFinite(v) && String(f.get(k)).trim() !== "" ? Math.round(v) : null; };
   const exp = String(f.get("expiresAt") ?? "").trim();
   await db.insert(s.coupons).values({
@@ -22,6 +24,7 @@ export async function createCoupon(f: FormData) {
 
 export async function toggleCoupon(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const code = String(f.get("code"));
   const [c] = await db.select({ a: s.coupons.active }).from(s.coupons).where(eq(s.coupons.code, code));
   await db.update(s.coupons).set({ active: !c.a }).where(eq(s.coupons.code, code));

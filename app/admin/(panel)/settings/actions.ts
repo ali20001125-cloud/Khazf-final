@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
+import { flashSaved } from "@/lib/server/flash";
 import type { BoxTier } from "@/lib/server/db/schema";
 
 const n = (f: FormData, k: string, d = 0) => {
@@ -12,6 +13,7 @@ const n = (f: FormData, k: string, d = 0) => {
 
 export async function savePublicSettings(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const tiers: BoxTier[] = [1, 2, 3, 4].map((i) => ({
     bags: n(f, `tier${i}_bags`),
     rewardType: String(f.get(`tier${i}_type`)) as BoxTier["rewardType"],
@@ -33,6 +35,7 @@ export async function savePublicSettings(f: FormData) {
 
 export async function saveInternalSettings(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   await db.update(s.settingsInternal).set({
     deliveryCostBasra: n(f, "deliveryCostBasra"),
     deliveryCostOther: n(f, "deliveryCostOther"),
@@ -47,6 +50,7 @@ export async function saveInternalSettings(f: FormData) {
 
 export async function addAdmin(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const email = String(f.get("email") ?? "").trim().toLowerCase();
   const name = String(f.get("name") ?? "").trim() || "مدير";
   if (email) await db.insert(s.admins).values({ email, name }).onConflictDoNothing();

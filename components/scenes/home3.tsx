@@ -223,15 +223,6 @@ export function CropsRail() {
               </Link>
             ))}
 
-            {/* بطاقة المتجر الكامل */}
-            <Link
-              href="/products/"
-              className="group flex w-[60vw] max-w-[260px] shrink-0 flex-col items-center justify-center gap-4 rounded-[22px] bg-olive p-6 text-center text-olive-text transition-transform duration-300 hover:-translate-y-1"
-            >
-              <span className="text-2xl font-bold">+١٢ أداة تحضير</span>
-              <span className="text-[13px] opacity-80">مطاحن · أقماع · موازين · عدّة الإسبريسو</span>
-              <span className="btn btn-clay !px-7 !py-3 text-[13px]">تصفّح المتجر</span>
-            </Link>
           </div>
         </div>
       </div>

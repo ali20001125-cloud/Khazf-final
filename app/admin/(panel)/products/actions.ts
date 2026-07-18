@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
+import { flashSaved } from "@/lib/server/flash";
 
 const num = (v: FormDataEntryValue | null) => {
   const n = Number(String(v ?? "").trim());
@@ -58,6 +59,7 @@ async function syncPlaces(productId: number, f: FormData) {
 
 export async function createProduct(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const data = parseProduct(f);
   const [row] = await db.insert(s.products).values(data).returning({ id: s.products.id });
   await syncPlaces(row.id, f);
@@ -67,6 +69,7 @@ export async function createProduct(f: FormData) {
 
 export async function updateProduct(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const id = Number(f.get("id"));
   await db.update(s.products).set(parseProduct(f)).where(eq(s.products.id, id));
   await syncPlaces(id, f);
@@ -76,6 +79,7 @@ export async function updateProduct(f: FormData) {
 
 export async function toggleProduct(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const id = Number(f.get("id"));
   const [p] = await db.select({ a: s.products.active }).from(s.products).where(eq(s.products.id, id));
   await db.update(s.products).set({ active: !p.a }).where(eq(s.products.id, id));

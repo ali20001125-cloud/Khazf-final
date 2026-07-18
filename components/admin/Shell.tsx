@@ -63,6 +63,23 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   useEffect(() => setOpen(false), [pathname]);
 
+  /* إشعار الحفظ (من كوكي الإجراءات) + كيبورد أرقام لكل الحقول الرقمية */
+  const [flash, setFlash] = useState<string | null>(null);
+  useEffect(() => {
+    const m = document.cookie.match(/khz_flash=([^;]+)/);
+    if (m) {
+      setFlash(decodeURIComponent(m[1]));
+      document.cookie = "khz_flash=; path=/; max-age=0";
+      const t = setTimeout(() => setFlash(null), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [pathname]);
+  useEffect(() => {
+    document.querySelectorAll<HTMLInputElement>("input.font-num:not([type=password])").forEach((el) => {
+      if (!el.getAttribute("inputmode")) el.setAttribute("inputmode", "numeric");
+    });
+  }, [pathname, flash]);
+
   const logout = async () => {
     await fetch("/api/admin/logout/", { method: "POST" });
     router.push("/admin/login/");
@@ -132,6 +149,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       )}
 
       <main className="min-w-0 px-4 pb-20 pt-6 lg:px-8 lg:pt-8">{children}</main>
+      {flash && (
+        <div className="fixed bottom-6 start-1/2 z-[80] -translate-x-1/2 rounded-full bg-ok px-6 py-3 text-sm font-bold text-olive-text shadow-xl rtl:translate-x-1/2">
+          {flash}
+        </div>
+      )}
     </div>
   );
 }

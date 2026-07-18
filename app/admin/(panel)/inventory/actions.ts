@@ -4,37 +4,73 @@ import { revalidatePath } from "next/cache";
 import { asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
+import { flashSaved } from "@/lib/server/flash";
 
-/** إضافة وجبة استلام (قهوة: تكاليف/كيلو · أداة: تكلفة/قطعة) */
-export async function addBatch(f: FormData) {
+/**
+ * وجبة شحنة — منطق علي:
+ * تدخل كل منتج بالكيلو + سعر استيراده للكيلو، وتوصيل الشحنة الإجمالي + تغليف/كيلو
+ * → التوصيل يتوزع تلقائياً على مجموع الكيلوات، والتخزين بالغرام داخلياً
+ */
+export async function addShipment(f: FormData) {
   await requireAdmin();
-  const productId = Number(f.get("productId"));
-  const qty = Math.round(Number(f.get("qty")));
-  if (!productId || !qty || qty <= 0) throw new Error("بيانات ناقصة");
-  const n = (k: string) => {
-    const v = Number(String(f.get(k) ?? "").trim());
-    return Number.isFinite(v) && String(f.get(k)).trim() !== "" ? Math.round(v) : null;
-  };
+  const packPerKilo = Math.round(Number(f.get("packPerKilo") || 0));
+  const shipTotal = Math.round(Number(f.get("shipTotal") || 0));
+  const note = String(f.get("note") ?? "").trim() || null;
+  const rows: { productId: number; kg: number; importPerKilo: number }[] = [];
+  for (let i = 1; i <= 4; i++) {
+    const productId = Number(f.get(`p${i}_product`));
+    const kg = Number(String(f.get(`p${i}_kg`) ?? "").trim());
+    const imp = Math.round(Number(f.get(`p${i}_import`) || 0));
+    if (productId && kg > 0) rows.push({ productId, kg, importPerKilo: imp });
+  }
+  if (!rows.length) throw new Error("أدخل منتجاً واحداً على الأقل بكميته");
+  const totalKg = rows.reduce((t, r) => t + r.kg, 0);
+  const shipPerKilo = totalKg > 0 ? Math.round(shipTotal / totalKg) : 0;
+
+  await flashSaved(`أُضيفت الشحنة ✓ (${totalKg} كغ · توصيل ${shipPerKilo.toLocaleString("en")}/كغ)`);
   await db.transaction(async (tx) => {
-    const [b] = await tx.insert(s.inventoryBatches).values({
-      productId, qtyReceived: qty, qtyRemaining: qty,
-      importCostPerKilo: n("importCost"), shipCostPerKilo: n("shipCost"),
-      packCostPerKilo: n("packCost"), costPerPiece: n("costPerPiece"),
-      note: String(f.get("note") ?? "").trim() || null,
-    }).returning({ id: s.inventoryBatches.id });
-    await tx.insert(s.inventoryMovements).values({
-      productId, batchId: b.id, type: "IN", qtyDelta: qty, reason: "وجبة جديدة",
-    });
+    for (const r of rows) {
+      const grams = Math.round(r.kg * 1000);
+      const [b] = await tx.insert(s.inventoryBatches).values({
+        productId: r.productId, qtyReceived: grams, qtyRemaining: grams,
+        importCostPerKilo: r.importPerKilo, shipCostPerKilo: shipPerKilo,
+        packCostPerKilo: packPerKilo, note,
+      }).returning({ id: s.inventoryBatches.id });
+      await tx.insert(s.inventoryMovements).values({
+        productId: r.productId, batchId: b.id, type: "IN", qtyDelta: grams, reason: "شحنة جديدة",
+      });
+    }
   });
   revalidatePath("/admin/inventory");
   revalidatePath("/");
 }
 
-/** تعديل يدوي: موجب = وجبة تصحيح بلا تكلفة · سالب = خصم FIFO */
+/** أداة واحدة (بالقطعة) — منفصلة تماماً عن شحنات القهوة */
+export async function addToolBatch(f: FormData) {
+  await requireAdmin();
+  await flashSaved();
+  const productId = Number(f.get("productId"));
+  const qty = Math.round(Number(f.get("qty")));
+  const cost = Math.round(Number(f.get("costPerPiece") || 0));
+  if (!productId || qty <= 0) throw new Error("بيانات ناقصة");
+  await db.transaction(async (tx) => {
+    const [b] = await tx.insert(s.inventoryBatches).values({
+      productId, qtyReceived: qty, qtyRemaining: qty, costPerPiece: cost,
+    }).returning({ id: s.inventoryBatches.id });
+    await tx.insert(s.inventoryMovements).values({ productId, batchId: b.id, type: "IN", qtyDelta: qty, reason: "أدوات" });
+  });
+  revalidatePath("/admin/inventory");
+  revalidatePath("/");
+}
+
+/** تعديل يدوي بالأكياس (كيس=٢٥٠غ) للقهوة، وبالقطعة للأدوات */
 export async function adjustStock(f: FormData) {
   await requireAdmin();
-  const productId = Number(f.get("productId"));
-  const delta = Math.round(Number(f.get("delta")));
+  await flashSaved();
+  const [pid, unit] = String(f.get("productKey") ?? "").split("|");
+  const productId = Number(pid);
+  const raw = Math.round(Number(f.get("delta")));
+  const delta = unit === "COFFEE" ? raw * 250 : raw;
   const reason = String(f.get("reason") ?? "").trim() || "تعديل يدوي";
   if (!productId || !delta) throw new Error("بيانات ناقصة");
 

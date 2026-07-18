@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { eq, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
+import { flashSaved } from "@/lib/server/flash";
 
 export async function saveNotes(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const phone = String(f.get("phone"));
   await db.update(s.customers).set({ adminNotes: String(f.get("notes") ?? "").trim() || null })
     .where(eq(s.customers.phone, phone));
@@ -16,6 +18,7 @@ export async function saveNotes(f: FormData) {
 /** نقاط يدوية ± (قيد MANUAL — السجل مصدر الحقيقة) */
 export async function manualPoints(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const phone = String(f.get("phone"));
   const pts = Math.round(Number(f.get("points")));
   const note = String(f.get("note") ?? "").trim() || "تعديل إداري";
@@ -34,6 +37,7 @@ export async function manualPoints(f: FormData) {
 
 export async function toggleJourney(f: FormData) {
   await requireAdmin();
+  await flashSaved();
   const phone = String(f.get("phone"));
   const [c] = await db.select({ a: s.customers.journeyActive }).from(s.customers).where(eq(s.customers.phone, phone));
   await db.update(s.customers).set({ journeyActive: !c.a }).where(eq(s.customers.phone, phone));

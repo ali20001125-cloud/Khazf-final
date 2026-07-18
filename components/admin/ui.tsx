@@ -54,11 +54,4 @@ export function Field({ label, children, hint }: { label: string; children: Reac
   );
 }
 
-export function SubmitBtn({ children, danger = false }: { children: ReactNode; danger?: boolean }) {
-  return (
-    <button type="submit"
-      className={`rounded-[12px] px-5 py-2.5 text-[13px] font-bold text-olive-text transition-transform active:scale-[0.97] ${danger ? "bg-accent" : "bg-olive"}`}>
-      {children}
-    </button>
-  );
-}
+export { default as SubmitBtn } from "./SubmitBtn";

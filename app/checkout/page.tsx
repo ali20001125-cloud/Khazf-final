@@ -22,10 +22,8 @@ export default function CheckoutPage() {
   const config = useSiteConfig();
   const { cart, clearCart, coupon, useCashback, boxGiftChoice, showToast } = useStore();
 
-  const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "بغداد", address: "", note: "" });
-  const [marketing, setMarketing] = useState(false);
-  const [giftWrap, setGiftWrap] = useState(false);
-  const [giftMsg, setGiftMsg] = useState("");
+  const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
+  const [showEmail, setShowEmail] = useState(false);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<Success | null>(null);
 
@@ -37,10 +35,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (cart.length === 0) return;
     setSending(true);
-    const note = [
-      form.note.trim(),
-      giftWrap ? `🎁 تغليف هدية${giftMsg.trim() ? ` — «${giftMsg.trim()}»` : ""}` : "",
-    ].filter(Boolean).join(" | ");
+    const note = form.note.trim();
     try {
       const r = await fetch("/api/checkout", {
         method: "POST",
@@ -49,7 +44,6 @@ export default function CheckoutPage() {
           name: form.name.trim(),
           phone: form.phone.trim(),
           email: form.email.trim() || null,
-          marketingOptIn: marketing,
           governorate: form.governorate,
           address: form.address.trim(),
           note: note || null,
@@ -97,7 +91,7 @@ export default function CheckoutPage() {
           )}
         </div>
         <p className="reveal mt-5 text-[13px] leading-relaxed text-muted">
-          راح نتصل بيك لتأكيد الطلب، والتوصيل خلال ٢–٤ أيام عمل.
+          راح نتصل بيك لتأكيد الطلب، والتوصيل خلال ١–٢ يوم عمل.
         </p>
         <div className="reveal mt-7 flex justify-center gap-3">
           <Link href="/track/" className="btn btn-olive !px-6 !py-3 text-sm">تتبع الطلب</Link>
@@ -125,16 +119,24 @@ export default function CheckoutPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <input required placeholder="الاسم الكامل" value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-              <input required type="tel" dir="ltr" placeholder="07XX XXX XXXX" value={form.phone}
+              <input required type="tel" inputMode="tel" dir="ltr" placeholder="07XX XXX XXXX" value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
                 className={`${inputCls} text-end font-num`} maxLength={11} />
-              <select value={form.governorate}
+              <select required value={form.governorate}
                 onChange={(e) => setForm({ ...form, governorate: e.target.value })}
-                className={`${inputCls} appearance-none`}>
-                {governorates.map((g) => <option key={g}>{g}</option>)}
+                className={`${inputCls} appearance-none ${form.governorate ? "" : "text-muted"}`}>
+                <option value="" disabled>اختر محافظتك</option>
+                {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
-              <input type="email" dir="ltr" placeholder="الإيميل (اختياري)" value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
+              {showEmail ? (
+                <input type="email" dir="ltr" placeholder="الإيميل" autoFocus value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
+              ) : (
+                <button type="button" onClick={() => setShowEmail(true)}
+                  className="rounded-[14px] border border-dashed border-line px-4 py-3.5 text-start text-[13px] font-semibold text-muted">
+                  + إضافة إيميل (اختياري)
+                </button>
+              )}
               <input required placeholder="العنوان: المنطقة، أقرب نقطة دالة" value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
@@ -142,10 +144,6 @@ export default function CheckoutPage() {
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
             </div>
-            <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-[12.5px] text-muted">
-              <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="h-4 w-4 accent-[#a66a4c]" />
-              أوافق على وصول عروض خزف على رقمي أو إيميلي
-            </label>
           </section>
 
           <section className="reveal">
@@ -158,21 +156,6 @@ export default function CheckoutPage() {
               </div>
               <Check size={18} className="ms-auto text-ok" />
             </div>
-          </section>
-
-          <section className="reveal">
-            <h2 className="mb-4 text-lg font-bold">هدية؟</h2>
-            <label className="flex cursor-pointer items-center gap-3 rounded-[16px] border border-line bg-card p-4 transition-colors has-[:checked]:border-gold">
-              <input type="checkbox" checked={giftWrap} onChange={(e) => setGiftWrap(e.target.checked)} className="h-4 w-4 accent-[#c9a961]" />
-              <Gift size={18} className="text-gold" />
-              <span className="text-sm font-bold">تغليف هدية</span>
-              <span className="ms-auto rounded-full bg-gold/12 px-3 py-1 text-[11px] font-bold text-gold">مجاناً</span>
-            </label>
-            {giftWrap && (
-              <textarea value={giftMsg} onChange={(e) => setGiftMsg(e.target.value)} maxLength={140} rows={3}
-                placeholder="رسالتك مع الهدية — نكتبها بخط اليد على بطاقة خزف (اختياري)"
-                className={`${inputCls} mt-3`} />
-            )}
           </section>
         </div>
 
