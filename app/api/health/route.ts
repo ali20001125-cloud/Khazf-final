@@ -25,6 +25,9 @@ export async function GET() {
     url_shape: url.startsWith("postgresql://") ? "صيغة صحيحة ✓" : "⚠️ لا يبدأ بـ postgresql://",
     placeholder: url.includes("[YOUR-PASSWORD]") ? "⚠️ نسيت تبدّل [YOUR-PASSWORD]" : "الكلمة مبدّلة ✓",
     host: url.split("@")[1]?.split(":")[0] ?? "—",
+    supabase_url_public: (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) ? "URL_OK" : "URL_MISSING",
+    supabase_anon_public: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_API_KEY || process.env.SUPABASE_ANON_KEY) ? "ANON_OK" : "ANON_MISSING",
+    google_login_ready: ((process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_API_KEY || process.env.SUPABASE_ANON_KEY)) ? "READY ✓" : "زر Google مخفي — مفاتيح ناقصة",
     service_key: (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SECRET_KEY || process.env.SERVICE_ROLE_KEY) ? "SERVICE_KEY_OK" : "SERVICE_KEY_MISSING",
     port: url.split(":").pop()?.split("/")[0] ?? "—",
   };
