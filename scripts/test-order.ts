@@ -38,7 +38,7 @@ async function main() {
   console.log("── ١) طلب بسيط: كالدي ربع ──");
   const r1 = await createOrder({ ...base, phone: "07701234567",
     items: [{ slug: "kaldi", variant: "G250", qty: 1, grind: "V60" }] });
-  ok(r1.orderNumber === "KHZ-1001", `رقم تسلسلي: ${r1.orderNumber}`);
+  ok(/^KHZ-\d+$/.test(r1.orderNumber) && typeof r1.seqNo === "number", `رقمان: فاتورة ${r1.orderNumber} · داخلي #${r1.seqNo}`);
   ok(r1.total === 29000, `الإجمالي 29,000 (26k+3k): ${r1.total}`);
   ok((await stockOf("kaldi")) === 4750, `المخزون خُصم FIFO: ${await stockOf("kaldi")}`);
   const [o1] = await db.select().from(s.orders).where(eq(s.orders.id, r1.orderId));
