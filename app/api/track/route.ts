@@ -16,9 +16,18 @@ export async function POST(req: Request) {
     .from(s.orders)
     .where(and(eq(s.orders.orderNumber, orderNumber.trim().toUpperCase()), eq(s.orders.phone, phone.trim())));
   if (!o) return NextResponse.json({ error: "لم نجد طلباً بهذه البيانات" }, { status: 404 });
+  /* المرحلة المعروضة تُشتق من الوقت — دون تدخل يدوي:
+     مؤكَّد فوراً · بالطريق بعد ٨سا · مُسلَّم تلقائياً بعد ٧٢سا (ما لم يُلغَ أو يُسلَّم يدوياً) */
+  const ageH = (Date.now() - new Date(o.createdAt).getTime()) / 3600_000;
+  let stage: "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" = o.status as any;
+  if (o.status === "CONFIRMED") {
+    if (ageH >= 72) stage = "DELIVERED";
+    else if (ageH >= 8) stage = "SHIPPED";
+  }
   return NextResponse.json({
     orderNumber: o.orderNumber,
     status: o.status,
+    stage,
     total: o.total,
     createdAt: o.createdAt,
     deliveredAt: o.deliveredAt,

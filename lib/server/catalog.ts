@@ -179,7 +179,7 @@ export async function getCatalog(): Promise<CatalogData> {
   return {
     coffees,
     tools,
-    places: placesRows.filter((p) => p.showInNav).map((p) => ({ slug: p.slug, name: p.name })),
+    places: placesRows.map((p) => ({ slug: p.slug, name: p.name })),
     boxGiftNames: gifts.map((g) => g.name),
     banners: bannerRows
       .filter((b) => (!b.startsAt || b.startsAt <= now) && (!b.endsAt || b.endsAt >= now))

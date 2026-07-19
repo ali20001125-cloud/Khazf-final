@@ -6,7 +6,20 @@ import { Package, Wallet, AlertTriangle, Star } from "@/components/admin/Icons";
 
 export const dynamic = "force-dynamic";
 
+async function runDueDeliveries() {
+  try {
+    const { and, eq, lt } = await import("drizzle-orm");
+    const { db, schema } = await import("@/lib/server/db");
+    const { deliverOrder } = await import("@/lib/server/orders-admin");
+    const cutoff = new Date(Date.now() - 72 * 3600_000);
+    const due = await db.select({ id: schema.orders.id }).from(schema.orders)
+      .where(and(eq(schema.orders.status, "CONFIRMED"), lt(schema.orders.createdAt, cutoff))).limit(20);
+    for (const o of due) await deliverOrder(o.id).catch(() => {});
+  } catch {}
+}
+
 async function stats() {
+  await runDueDeliveries();
   const q = async (x: string) => Number((await db.execute(sql.raw(x))).rows[0].v ?? 0);
   return {
     pending: await q(`SELECT count(*) v FROM orders WHERE status='CONFIRMED'`),

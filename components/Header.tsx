@@ -11,24 +11,6 @@ import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
 
 /* القائمة — مجمّعة حسب الوظيفة، بفواصل، بلا أيقونات */
-const menuGroups: { label: string; href: string }[][] = [
-  [
-    { label: "المتجر", href: "/products/?cat=all" },
-    { label: "القهوة", href: "/products/?cat=coffee" },
-    { label: "بناء البوكس", href: "/box/" },
-    { label: "أدوات الإسبريسو", href: "/products/?cat=espresso" },
-    { label: "أدوات التقطير", href: "/products/?cat=drip" },
-  ],
-  [
-    { label: "الوصفات", href: "/recipes/" },
-    { label: "المدونة", href: "/journal/" },
-  ],
-  [
-    { label: "من نحن", href: "/about/" },
-    { label: "تواصل معنا", href: "/contact/" },
-  ],
-  [{ label: "حسابي", href: "/account/" }],
-];
 
 const desktopNav = [
   { label: "المتجر", href: "/products/" },
@@ -50,6 +32,25 @@ export default function Header() {
   const router = useRouter();
   const { cart, bump, favorites } = useStore();
   const { topBarMessages, logoUrl } = useSiteConfig();
+  const { activePlaces } = useCatalog();
+  const menuGroups: { label: string; href: string }[][] = [
+  [
+    { label: "المتجر", href: "/products/?cat=all" },
+    { label: "القهوة", href: "/products/?cat=coffee" },
+    { label: "بناء البوكس", href: "/box/" },
+    ...(activePlaces.includes("espresso_tools") ? [{ label: "أدوات الإسبريسو", href: "/products/?cat=espresso" }] : []),
+    ...(activePlaces.includes("drip_tools") ? [{ label: "أدوات التقطير", href: "/products/?cat=drip" }] : []),
+  ],
+  [
+    { label: "الوصفات", href: "/recipes/" },
+    { label: "المدونة", href: "/journal/" },
+  ],
+  [
+    { label: "من نحن", href: "/about/" },
+    { label: "تواصل معنا", href: "/contact/" },
+  ],
+  [{ label: "حسابي", href: "/account/" }],
+  ];
   const { coffees, tools } = useCatalog();
 
   const count = cart.reduce((s, i) => s + i.qty, 0);

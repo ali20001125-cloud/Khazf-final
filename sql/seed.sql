@@ -40,8 +40,12 @@ INSERT INTO product_places (product_id, place_id)
 SELECT p.id, pl.id FROM products p CROSS JOIN places pl WHERE pl.slug IN ('home','coffee','box');
 
 INSERT INTO journey_levels (level, reward_type, value, gift_name) VALUES
- (1,'PERCENT',5,NULL),(2,'FREE_DELIVERY',0,NULL),(3,'GIFT',750,'توت باج'),
- (4,'GIFT',1500,'فلاتر V60'),(5,'GIFT',2000,'كوب فخّاري'),(6,'GIFT',0,'كيس قهوة مجاني');
+ (1,'GIFT',750,'توت باج'),
+ (2,'PERCENT',10,NULL),
+ (3,'FREE_DELIVERY',0,NULL),
+ (4,'GIFT',1500,'فلاتر V60'),
+ (5,'GIFT',2000,'كوب فخّاري'),
+ (6,'GIFT',0,'كيس قهوة مجاني');
 
 INSERT INTO box_gifts (name, sort) VALUES ('كوب فخّاري',1),('فلاتر V60',2);
 INSERT INTO banners (text, sort, active) VALUES ('محاصيلنا',0,true);

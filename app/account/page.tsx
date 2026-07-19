@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { User, Package, Heart, Wallet, MapPin, Settings, LogOut, RotateCcw } from "lucide-react";
+import { User, Package, Heart, Wallet, MapPin, Settings, RotateCcw } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
 import { useStore } from "@/lib/store";
@@ -49,9 +49,6 @@ type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: s
           <h1 className="text-xl font-bold">{me.name ?? "زائر"}</h1>
           <p className="font-num text-[12px] text-muted" dir="ltr">{me.phone ?? "سجّل بطلبك الأول"}</p>
         </div>
-        <Link href="/login/" className="flex items-center gap-1.5 text-[13px] font-bold text-muted transition-colors hover:text-accent">
-          <LogOut size={14} /> تسجيل الخروج
-        </Link>
       </div>
 
       {/* بطاقة الولاء — النقاط والرحلة بمكان واحد واضح */}

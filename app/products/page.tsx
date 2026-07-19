@@ -13,11 +13,11 @@ import { useMotion, reduced } from "@/lib/motion";
 type Tab = "all" | "coffee" | "espresso" | "drip";
 type Sort = "new" | "best" | "price";
 
-const tabs: { key: Tab; label: string }[] = [
+const tabs: { key: Tab; label: string; place?: string }[] = [
   { key: "all", label: "الكل" },
   { key: "coffee", label: "القهوة" },
-  { key: "espresso", label: "أدوات الإسبريسو" },
-  { key: "drip", label: "أدوات التقطير" },
+  { key: "espresso", label: "أدوات الإسبريسو", place: "espresso_tools" },
+  { key: "drip", label: "أدوات التقطير", place: "drip_tools" },
 ];
 const tabCat: Record<"espresso" | "drip", ToolCat> = { espresso: "إسبريسو", drip: "تقطير" };
 const sorts: { key: Sort; label: string }[] = [
@@ -29,7 +29,7 @@ const sorts: { key: Sort; label: string }[] = [
 type Item = ({ kind: "c" } & Coffee) | ({ kind: "t" } & Tool);
 
 function ShopInner() {
-  const { coffees, tools, toolsEnabled } = useCatalog();
+  const { coffees, tools, toolsEnabled, activePlaces } = useCatalog();
   const params = useSearchParams();
   const router = useRouter();
   const scope = useMotion();
@@ -124,7 +124,7 @@ function ShopInner() {
 
       {/* التبويبات الرئيسية */}
       <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">
-        {tabs.map((t) => (
+        {tabs.filter((t) => !t.place || activePlaces.includes(t.place)).map((t) => (
           <button
             key={t.key}
             onClick={() => go({ cat: t.key, type: "الكل" })}

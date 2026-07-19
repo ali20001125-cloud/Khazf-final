@@ -91,6 +91,7 @@ export default async function RootLayout({
             boxGiftNames: catalog.boxGiftNames,
             banners: catalog.banners,
             toolsEnabled: catalog.tools.length > 0,
+            activePlaces: catalog.places.map((pl) => pl.slug),
           }}
         >
         <StoreProvider config={config}>

@@ -5,7 +5,8 @@ import { PackageSearch, Check, Truck, Home, XCircle } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useMotion } from "@/lib/motion";
 
-type Result = { orderNumber: string; status: "CONFIRMED" | "DELIVERED" | "CANCELLED"; total: number };
+type Stage = "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+type Result = { orderNumber: string; status: string; stage: Stage; total: number };
 
 export default function TrackPage() {
   const scope = useMotion();

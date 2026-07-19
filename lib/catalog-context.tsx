@@ -11,6 +11,7 @@ export interface CatalogValue {
   boxGiftNames: string[];
   banners: PromoBanner[];
   toolsEnabled: boolean;
+  activePlaces: string[]; // slugs المفعّلة
 }
 
 const Ctx = createContext<CatalogValue | null>(null);

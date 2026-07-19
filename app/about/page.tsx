@@ -1,132 +1,49 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
-import { useMotion, reduced } from "@/lib/motion";
+import { ArrowLeft } from "lucide-react";
+import { useMotion } from "@/lib/motion";
 
-gsap.registerPlugin(ScrollTrigger, useGSAP);
-
-const steps = [
-  { t: "المزرعة", n: "٢٢٠٠م فوق سطح البحر", x: "12%", y: "6%" },
-  { t: "القطف", n: "يدوياً · الكرز الناضج فقط", x: "58%", y: "22%" },
-  { t: "المعالجة", n: "تجفيف طبيعي · أسرّة مرفوعة", x: "14%", y: "40%" },
-  { t: "التحميص", n: "١٢ دقيقة · ٢٠٥°", x: "60%", y: "57%" },
-  { t: "التعبئة", n: "صمام أحادي · نيتروجين", x: "13%", y: "73%" },
-  { t: "إلى بابك", n: "كل محافظات العراق", x: "56%", y: "89%" },
+const values = [
+  { t: "ننتقي، لا نزرع", d: "خزف مو مزرعة — إحنا نختار. نتذوّق محاصيل من أفضل مناطق العالم (إثيوبيا، البرازيل، كولومبيا) ونوقف عند اللي يستاهل يوصلك. شغلنا هو الاختيار الصعب حتى يصير كوبك سهل." },
+  { t: "نحمّص باستمرار", d: "ما نخزّن أكياساً تنتظر شهوراً على الرف. نحمّص بدفعات متقاربة، حتى اللي يوصلك يكون قريباً من تاريخ تحميصه — وتلقى التاريخ مطبوعاً على الكيس نفسه." },
+  { t: "الوضوح قبل التسويق", d: "نكتب الأصل والمعالجة والإيحاءات بصدق، بلا مبالغة. تعرف بالضبط شنو تشرب ومن وين جا — لأن القهوة المختصة تبدأ بالمعرفة." },
+  { t: "من الكيس لباب بيتك", d: "نغلّف بعناية ونوصل لكل محافظات العراق خلال يوم إلى يومين. تجربة بسيطة وسريعة — تطلب، ونوصلك، وتستمتع." },
 ];
 
 export default function AboutPage() {
   const scope = useMotion();
-  const sceneRef = useRef<HTMLElement>(null);
-
-  useGSAP(
-    () => {
-      if (reduced()) return;
-      const root = sceneRef.current!;
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: root,
-          start: "top top",
-          end: "+=2800",
-          pin: true,
-          scrub: 1,
-        },
-      });
-
-      tl.fromTo(
-        ".ab-path",
-        { strokeDashoffset: 1 },
-        { strokeDashoffset: 0, duration: 6, ease: "none" }
-      );
-
-      gsap.utils.toArray<HTMLElement>(".ab-step", root).forEach((el, i) => {
-        tl.fromTo(
-          el,
-          { autoAlpha: 0, scale: 0.85 },
-          { autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" },
-          0.25 + i * 0.95
-        );
-      });
-    },
-    { scope: sceneRef }
-  );
-
   return (
-    <div ref={scope}>
-      {/* مقدمة */}
-      <section className="px-6 pb-8 pt-32 text-center">
-        <p className="reveal font-num text-[10px] tracking-[0.4em] text-muted">
-          OUR STORY
-        </p>
-        <h1 className="reveal mt-4 text-4xl font-bold md:text-6xl">قصتنا</h1>
-        <p className="reveal mx-auto mt-4 max-w-md text-[15px] leading-loose text-muted">
-          من مزرعة على ارتفاع ٢٢٠٠ متر… إلى باب بيتك.
-          <br />
-          مرّر، وخلّي الرحلة تتكشّف.
-        </p>
-      </section>
-
-      {/* الرحلة المثبّتة */}
-      <section ref={sceneRef} className="relative overflow-hidden bg-bg">
-        <div className="relative mx-auto flex min-h-[100svh] max-w-4xl flex-col px-6 pt-20">
-          <div className="relative w-full flex-1" style={{ minHeight: "72vh" }}>
-            <svg
-              className="absolute inset-0 h-full w-full"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              fill="none"
-            >
-              <path
-                d="M 16 4 C 60 8 88 16 62 24 C 36 32 4 34 18 42 C 32 50 84 50 62 59 C 40 68 6 68 18 76 C 30 84 76 82 60 91"
-                stroke="var(--line)"
-                strokeWidth="0.55"
-              />
-              <path
-                className="ab-path"
-                d="M 16 4 C 60 8 88 16 62 24 C 36 32 4 34 18 42 C 32 50 84 50 62 59 C 40 68 6 68 18 76 C 30 84 76 82 60 91"
-                stroke="var(--accent)"
-                strokeWidth="0.85"
-                pathLength={1}
-                strokeDasharray={1}
-                strokeDashoffset={1}
-                strokeLinecap="round"
-              />
-            </svg>
-
-            {steps.map((s, i) => (
-              <div
-                key={s.t}
-                className="ab-step absolute flex flex-col gap-1"
-                style={{ insetInlineStart: s.x, top: s.y }}
-              >
-                <span className="font-num text-[10px] tracking-[0.25em] text-accent" dir="ltr">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="text-xl font-bold md:text-2xl">{s.t}</span>
-                <span className="font-num text-[11px] text-muted">{s.n}</span>
-              </div>
-            ))}
+    <div ref={scope} className="mx-auto max-w-3xl px-5 pb-24 pt-32 md:px-8">
+      <p className="reveal font-num text-[11px] font-bold tracking-[0.3em] text-accent">قصتنا</p>
+      <h1 className="reveal mt-4 text-4xl font-bold leading-[1.25] md:text-5xl">
+        قهوة مختارة بعناية،
+        <br />
+        <span className="text-accent">لمن يعرف قيمة الكوب الجيّد</span>
+      </h1>
+      <p className="reveal mt-6 text-[15px] leading-loose text-muted md:text-[16px]">
+        بدأت خزف بسؤال بسيط: ليش نكتفي بقهوة عادية وإحنا نقدر نوصل الأفضل؟ إحنا مو مزرعة ولا وسيط —
+        إحنا مُنتقون ومحمّصون، مهمتنا نختصر لك المسافة بين أجود محاصيل العالم وفنجانك في العراق.
+      </p>
+      <div className="mt-14 space-y-10">
+        {values.map((v, i) => (
+          <div key={v.t} className="reveal flex gap-5">
+            <span className="font-num shrink-0 text-2xl font-bold text-line">{String(i + 1).padStart(2, "0")}</span>
+            <div>
+              <h2 className="text-xl font-bold">{v.t}</h2>
+              <p className="mt-2 text-[14.5px] leading-loose text-muted">{v.d}</p>
+            </div>
           </div>
+        ))}
+      </div>
+      <div className="reveal mt-16 rounded-[24px] bg-olive p-8 text-center text-olive-text md:p-10">
+        <p className="text-xl font-bold md:text-2xl">جرّب الفرق بنفسك</p>
+        <p className="mt-2 text-[14px] opacity-85">ابدأ بمحصول واحد، أو ابنِ بوكسك ووفّر</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/products/?cat=coffee" className="rounded-full bg-gold px-6 py-3 text-[14px] font-bold text-olive">تسوّق القهوة</Link>
+          <Link href="/box/" className="flex items-center gap-1.5 rounded-full border border-olive-text/25 px-6 py-3 text-[14px] font-bold">ابنِ بوكسك <ArrowLeft size={15} /></Link>
         </div>
-      </section>
-
-      {/* خاتمة */}
-      <section className="px-6 py-24 text-center">
-        <h2 className="reveal text-2xl font-bold md:text-4xl">
-          قهوةٌ صُنعت بصبر،
-          <br />
-          <span className="text-accent">لمن يعرف قيمة التوقّف</span>
-        </h2>
-        <div className="reveal mt-8">
-          <Link href="/product/" className="btn btn-olive magnetic" data-strength="22">
-            تسوّق المحاصيل
-          </Link>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
