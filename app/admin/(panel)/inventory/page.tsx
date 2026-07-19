@@ -15,8 +15,16 @@ export default async function InventoryPage() {
     GROUP BY p.id ORDER BY p.type, p.name`)).rows as unknown as
     { id: number; name: string; type: string; stock_threshold: number; stock: number }[];
 
-  const shipmentsList = await db.select().from(s.shipments).orderBy(desc(s.shipments.receivedAt)).limit(12);
-  const batches0 = await db
+  let shipmentsList: (typeof s.shipments.$inferSelect)[] = [];
+  let needsUpgrade = false;
+  try {
+    shipmentsList = await db.select().from(s.shipments).orderBy(desc(s.shipments.receivedAt)).limit(12);
+  } catch { needsUpgrade = true; }
+  type BRow = { id: number; productId: number; qtyReceived: number; qtyRemaining: number;
+    importC: number | null; shipC: number | null; packC: number | null; pieceC: number | null;
+    note: string | null; receivedAt: Date; shipmentId: number | null; pname: string };
+  let batches0: BRow[] = [];
+  try { batches0 = await db
     .select({
       id: s.inventoryBatches.id, productId: s.inventoryBatches.productId,
       qtyReceived: s.inventoryBatches.qtyReceived, qtyRemaining: s.inventoryBatches.qtyRemaining,
@@ -29,7 +37,7 @@ export default async function InventoryPage() {
     .from(s.inventoryBatches)
     .innerJoin(s.products, sql`${s.products.id} = ${s.inventoryBatches.productId}`)
     .orderBy(desc(s.inventoryBatches.receivedAt))
-    .limit(60);
+    .limit(60); } catch { needsUpgrade = true; }
   const batches = batches0;
 
   const moves = await db
@@ -47,7 +55,12 @@ export default async function InventoryPage() {
 
   return (
     <div>
-      <PageTitle title="المخزون والوجبات" sub="القهوة بالغرام · الأدوات بالقطعة · التكلفة تعيش مع الوجبة" />
+      <PageTitle title="المخزون والشحنات" sub="القهوة بالأكياس · كل شحنة وحدة محفوظة بتفاصيلها" />
+      {needsUpgrade && (
+        <Card className="mb-5 border-accent/40 bg-accent/5 p-4 text-[13px] font-bold text-accent">
+          ⚠️ قاعدة بياناتك تحتاج سطرَي تحديث (جدول الشحنات) — انسخهما من رسالة كلود والصقهما بـ Supabase ثم حدّث الصفحة
+        </Card>
+      )}
 
       {/* الرصيد الحالي */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

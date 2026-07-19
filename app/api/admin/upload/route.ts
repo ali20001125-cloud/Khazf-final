@@ -8,7 +8,7 @@ const BUCKET = "khazf";
 export async function POST(req: Request) {
   if (!(await getAdmin())) return NextResponse.json({ error: "غير مصرّح" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE ?? process.env.SUPABASE_SECRET_KEY ?? process.env.SERVICE_ROLE_KEY;
   if (!url || !key)
     return NextResponse.json({ error: "الرفع يتفعّل بعد ضبط SUPABASE_SERVICE_ROLE_KEY" }, { status: 400 });
   const form = await req.formData();

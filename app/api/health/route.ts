@@ -25,6 +25,7 @@ export async function GET() {
     url_shape: url.startsWith("postgresql://") ? "صيغة صحيحة ✓" : "⚠️ لا يبدأ بـ postgresql://",
     placeholder: url.includes("[YOUR-PASSWORD]") ? "⚠️ نسيت تبدّل [YOUR-PASSWORD]" : "الكلمة مبدّلة ✓",
     host: url.split("@")[1]?.split(":")[0] ?? "—",
+    service_key: (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SECRET_KEY || process.env.SERVICE_ROLE_KEY) ? "SERVICE_KEY_OK" : "SERVICE_KEY_MISSING",
     port: url.split(":").pop()?.split("/")[0] ?? "—",
   };
   const pool = new Pool({ connectionString: url, max: 1, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 8000 });

@@ -371,13 +371,14 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               </button>
             </div>
             <button
-              onClick={buy}
+              onClick={coffee.soldOut ? undefined : buy}
+              disabled={coffee.soldOut}
               className={`buy-btn btn magnetic flex-1 !px-6 !py-4 text-[15px] transition-colors duration-300 active:scale-[0.98] ${
-                added ? "!bg-ok text-olive-text" : "btn-clay"
+                coffee.soldOut ? "cursor-not-allowed !bg-bg-alt !text-muted" : added ? "!bg-ok text-olive-text" : "btn-clay"
               }`}
               data-strength="14"
             >
-              {added ? "أُضيف للسلة ✓" : `أضف للسلة — ${formatIQD(unit * qty)}`}
+              {coffee.soldOut ? "نفذ مؤقتاً — يرجع قريباً" : added ? "أُضيف للسلة ✓" : `أضف للسلة — ${formatIQD(unit * qty)}`}
             </button>
           </div>
 
@@ -499,12 +500,13 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             <p className="font-num text-[13px] text-muted">{formatIQD(unit * qty)}</p>
           </div>
           <button
-            onClick={buy}
+            onClick={coffee.soldOut ? undefined : buy}
+            disabled={coffee.soldOut}
             className={`btn shrink-0 !px-7 !py-3 text-sm transition-colors duration-300 active:scale-[0.97] ${
-              added ? "!bg-ok text-olive-text" : "btn-clay"
+              coffee.soldOut ? "cursor-not-allowed !bg-bg-alt !text-muted" : added ? "!bg-ok text-olive-text" : "btn-clay"
             }`}
           >
-            {added ? "✓ أُضيف" : "أضف للسلة"}
+            {coffee.soldOut ? "نفذ مؤقتاً" : added ? "✓ أُضيف" : "أضف للسلة"}
           </button>
         </div>
       </div>
