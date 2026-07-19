@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createOrder, type CheckoutInput } from "@/lib/server/orders";
 import { setCustomerCookie } from "@/lib/server/customer-session";
-import { notifyTelegram } from "@/lib/server/telegram";
+import { notifyOrderTelegram } from "@/lib/server/telegram";
 import { emailNewOrderAdmin, emailOrderCustomer } from "@/lib/server/email";
 import { getSupabaseUser } from "@/lib/server/customer-identity";
 import { and, sql } from "drizzle-orm";
@@ -47,15 +47,12 @@ export async function POST(req: Request) {
     const invoiceUrl = `${site}/invoice/?n=${result.orderNumber}&p=${encodeURIComponent(phone)}`;
     emailNewOrderAdmin({ orderNumber: result.orderNumber, name: body.name?.trim() || "زبون خزف", phone, governorate: body.governorate, total: result.total, invoiceUrl }).catch(() => {});
     emailOrderCustomer({ email: body.email?.trim() || null, orderNumber: result.orderNumber, name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl }).catch(() => {});
-
-    /* إشعار تيليجرام — أفضل جهد، لا يوقف النجاح */
-    const lines = body.items.map((i) => `• ${i.slug} ${i.variant}×${i.qty}`).join("\n");
-    notifyTelegram(
-      `🛎 <b>طلب جديد ${result.orderNumber}</b>\n${body.name} — ${body.phone}\n${body.governorate}\n${lines}\n<b>الإجمالي: ${result.total.toLocaleString("en")} د.ع</b>`
-    ).then(async (sent) => {
-      if (sent)
-        await db.update(s.orders).set({ notifiedTelegram: true }).where(eq(s.orders.id, result.orderId));
-    });
+    notifyOrderTelegram({
+      orderNumber: result.orderNumber, seqNo: result.seqNo, name: body.name?.trim() || "زبون خزف",
+      phone, governorate: body.governorate, address: body.address,
+      total: result.total, invoiceUrl,
+      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal })) ?? [],
+    }).catch(() => {});
 
     return NextResponse.json(result);
   } catch (e) {

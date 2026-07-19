@@ -215,8 +215,14 @@ export async function createOrder(input: CheckoutInput) {
     const pointsEarned = Math.floor(Math.max(0, afterDiscounts) / settings.cashbackPerAmount);
 
     /* ── ٩) رقم الطلب التسلسلي + إدراج الطلب ── */
-    const seq = await tx.execute(sql`SELECT nextval('khazf_order_seq')::int AS n`);
-    const orderNumber = `KHZ-${(seq.rows[0] as { n: number }).n}`;
+    /* رقم داخلي متسلسل (للمالك) */
+    const seqRow = await tx.execute(sql`SELECT nextval('khazf_internal_seq')::int AS n`);
+    const seqNo = (seqRow.rows[0] as { n: number }).n;
+    /* رقم فاتورة قافز (للزبون) — يقفز ١٣..٤٧ فوق آخر رقم، يبدأ من ١٠٠٠+ */
+    const lastRow = await tx.execute(sql`SELECT COALESCE(MAX((regexp_replace(order_number,'\\D','','g'))::int),1000) AS m FROM orders`);
+    const lastInv = (lastRow.rows[0] as { m: number }).m;
+    const jump = 13 + Math.floor(Math.random() * 35);
+    const orderNumber = `KHZ-${lastInv + jump}`;
 
     /* upsert الزبون + تقدّم الرحلة + تجديد الصلاحية */
     const validity = new Date(Date.now() + settings.loyaltyValidityDays * 86400_000);
@@ -246,7 +252,7 @@ export async function createOrder(input: CheckoutInput) {
     const [order] = await tx
       .insert(s.orders)
       .values({
-        orderNumber, customerPhone: phone,
+        orderNumber, seqNo, customerPhone: phone,
         name: input.name, phone, email: input.email || null,
         governorate: input.governorate, address: input.address, note: input.note || null,
         itemsSubtotal, quantityDiscount,
@@ -345,6 +351,8 @@ export async function createOrder(input: CheckoutInput) {
     return {
       orderId: order.id,
       orderNumber,
+      seqNo,
+      items: lines.map((l) => ({ nameSnapshot: l.name, qty: l.qty, lineTotal: l.lineTotal })),
       total,
       pointsEarned,
       pointsUsedDinars,

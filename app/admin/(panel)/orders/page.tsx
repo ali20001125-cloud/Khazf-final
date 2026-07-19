@@ -59,7 +59,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           <tbody className="divide-y divide-line">
             {rows.map((o) => (
               <tr key={o.id} className="transition-colors hover:bg-bg-alt/50">
-                <Td><Link href={`/admin/orders/${o.id}/`} className="font-num font-bold text-accent">{o.orderNumber}</Link></Td>
+                <Td>
+                  <Link href={`/admin/orders/${o.id}/`} className="font-num font-bold text-accent">#{o.seqNo ?? "—"}</Link>
+                  <p className="font-num text-[10px] text-muted">{o.orderNumber}</p>
+                </Td>
                 <Td>
                   <p className="font-semibold">{o.name}</p>
                   <p className="font-num text-[11px] text-muted" dir="ltr">{o.phone}</p>

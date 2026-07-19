@@ -476,3 +476,7 @@ INSERT INTO banners (text, sort, active) VALUES ('محاصيلنا',0,true);
 INSERT INTO settings (id, top_bar_messages) VALUES
  (1, ARRAY['توصيل لكل محافظات العراق — ٣٬٠٠٠ د.ع','نحمّص باستمرار · الدفع عند الاستلام']);
 INSERT INTO settings_internal (id) VALUES (1);
+
+-- ترقيم مزدوج
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS seq_no integer;
+CREATE SEQUENCE IF NOT EXISTS khazf_internal_seq START 1;

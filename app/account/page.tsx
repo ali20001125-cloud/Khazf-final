@@ -24,8 +24,8 @@ function AccountInner() {
   type JL = { level: number; rewardType: string; value: number; giftName: string | null };
 type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: string; phone?: string; journeyLevels?: JL[]; pointsBalance?: number; pointsValueDinars?: number;
     journeyOrders?: number; orders?: { orderNumber: string; status: string; total: number; createdAt: string }[] };
-  const [me, setMe] = useState<Me>({ guest: true });
-  useEffect(() => { fetch("/api/customer/me").then((r) => r.json()).then(setMe).catch(() => {}); }, []);
+  const [me, setMe] = useState<Me | null>(null);
+  useEffect(() => { fetch("/api/customer/me/").then((r) => r.json()).then(setMe).catch(() => setMe({ guest: true })); }, []);
   const [tab, setTab] = useState(params.get("tab") === "fav" ? "fav" : "orders");
 
   const favItems = favorites
@@ -34,6 +34,14 @@ type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: s
       return k === "c" ? coffees.find((c) => c.slug === slug) : tools.find((t) => t.slug === slug);
     })
     .filter(Boolean);
+
+  if (!me) return (
+    <div className="mx-auto max-w-5xl px-4 pb-28 pt-28 md:px-8">
+      <div className="h-24 animate-pulse rounded-[22px] bg-bg-alt" />
+      <div className="mt-4 h-40 animate-pulse rounded-[22px] bg-bg-alt" />
+      <div className="mt-6 h-64 animate-pulse rounded-[22px] bg-bg-alt" />
+    </div>
+  );
 
   return (
     <div ref={scope} className="mx-auto max-w-5xl px-4 pb-24 pt-28 md:px-8 md:pt-32">

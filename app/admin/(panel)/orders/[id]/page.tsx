@@ -35,8 +35,8 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   return (
     <div>
       <PageTitle
-        title={o.orderNumber}
-        sub={dateAr(o.createdAt)}
+        title={`طلب #${o.seqNo ?? "?"}`}
+        sub={`فاتورة ${o.orderNumber} · ${dateAr(o.createdAt)}`}
         action={<StatusBadge status={o.status} />}
       />
 

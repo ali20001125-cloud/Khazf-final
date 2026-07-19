@@ -208,7 +208,8 @@ export const orders = pgTable(
   "orders",
   {
     id: serial("id").primaryKey(),
-    orderNumber: text("order_number").notNull().unique(), // KHZ-1001 (تسلسل قاعدة بيانات)
+    orderNumber: text("order_number").notNull().unique(), // فاتورة الزبون — قافزة عشوائية
+  seqNo: integer("seq_no"), // رقم داخلي متسلسل للمالك (1،2،3)
     customerPhone: text("customer_phone").notNull().references(() => customers.phone, { onDelete: "restrict" }),
     /* لقطة بيانات التوصيل وقت الطلب */
     name: text("name").notNull(),
