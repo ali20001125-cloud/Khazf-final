@@ -41,13 +41,15 @@ export async function POST(req: Request) {
   const v = await db.execute(sql`
     SELECT 1 FROM orders o JOIN order_items i ON i.order_id = o.id
     WHERE o.customer_phone = ${phone} AND o.status = 'DELIVERED' AND i.product_id = ${p.id} LIMIT 1`);
+  if ((v.rowCount ?? 0) === 0)
+    return NextResponse.json({ error: "التقييم يتفعّل بعد استلام طلبك لهذا المحصول — حتى تبقى كل الآراء من مجرّبين حقيقيين" }, { status: 403 });
   const [c] = await db.select({ name: s.customers.name }).from(s.customers).where(eq(s.customers.phone, phone));
 
   await db.insert(s.reviews).values({
     productId: p.id, customerPhone: phone,
     customerName: (name?.trim() || c?.name || "زبون خزف").slice(0, 40),
     rating: r, comment: comment?.trim()?.slice(0, 600) || null,
-    verified: (v.rowCount ?? 0) > 0, status: "PENDING",
+    verified: true, status: "PENDING",
   });
   return NextResponse.json({ ok: true, message: "شكراً! تقييمك قيد المراجعة وسيظهر بعد الموافقة" });
 }

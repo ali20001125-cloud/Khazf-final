@@ -9,7 +9,7 @@ export default async function BannersPage() {
   const rows = await db.select().from(s.banners).orderBy(asc(s.banners.sort));
   return (
     <div>
-      <PageTitle title="البنرات" sub="نصوص وحملات — تُدار من هنا وتظهر بالمتجر (الربط الكامل مع الرئيسية بالدفعة ٤)" />
+      <PageTitle title="البنرات" sub="حملة = جملة + زر + رابط · تظهر بطاقةً بارزة تحت هيرو الرئيسية فور تفعيلها" />
       <Card className="mb-6 p-5">
         <form action={addBanner} className="grid gap-3 sm:grid-cols-4">
           <Field label="النص"><input name="text" required className={inputCls} /></Field>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { eq, desc } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getCustomerIdentity } from "@/lib/server/customer-identity";
+import { getSettings } from "@/lib/server/settings";
 import { settleLoyalty } from "@/lib/server/loyalty";
 
 export const runtime = "nodejs";
@@ -27,7 +28,7 @@ export async function GET() {
   return NextResponse.json({
     googleSession: !!authUser, linked,
     phone: c.phone, name: c.name, governorate: c.governorate, address: c.address,
-    pointsBalance: balance, pointsValueDinars: balance * 30,
+    pointsBalance: balance, pointsValueDinars: balance * (await getSettings()).pointValue,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
     orders,
   });

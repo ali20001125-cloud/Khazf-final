@@ -1,5 +1,6 @@
 /** نموذج المنتج المشترك (إنشاء/تعديل) — خادمي بالكامل */
 import { Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
+import ImageUpload from "@/components/admin/ImageUpload";
 import { schema as s } from "@/lib/server/db";
 
 type P = Partial<typeof s.products.$inferSelect>;
@@ -94,8 +95,8 @@ export default function ProductForm({
         <Field label="قصة المحصول (اختياري)" hint="تظهر بصفحة المنتج فقط إذا كُتبت">
           <textarea name="story" rows={3} defaultValue={p.story ?? ""} className={inputCls} />
         </Field>
-        <Field label="الصور (روابط، سطر لكل صورة)" hint="رفع مباشر إلى Supabase Storage — يُفعَّل عند النشر">
-          <textarea name="images" rows={2} defaultValue={(p.images ?? []).join("\n")} className={`${inputCls} font-num`} dir="ltr" />
+        <Field label="صورة المنتج" hint="ترفعها من جهازك — تظهر ببطاقته وصفحته">
+          <ImageUpload name="images" initial={p.images?.[0] ?? null} />
         </Field>
       </Card>
 

@@ -8,7 +8,7 @@ import { useGSAP } from "@gsap/react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
-import { useSiteConfig } from "@/lib/store";
+import { useSiteConfig, useStore } from "@/lib/store";
 import { reduced } from "@/lib/motion";
 import BagArt from "@/components/BagArt";
 
@@ -149,6 +149,7 @@ export function StatementBanner() {
 /* ═══════════ ٣) المحاصيل — Horizontal Scroll (الـ Pin الوحيد بالصفحة) ═══════════ */
 export function CropsRail() {
   const { coffees } = useCatalog();
+  const { addToCart } = useStore();
   const scope = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -220,9 +221,18 @@ export function CropsRail() {
                     {formatIQD(c.prices.g250)}
                   </span>
                 </div>
-                <span className="mt-4 flex items-center gap-1.5 text-[13px] font-bold text-accent">
-                  اعرف أكثر
-                  <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
+                <span
+                  role="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (c.soldOut) return;
+                    addToCart({ slug: c.slug, variant: "G250", grind: "حبوب كاملة", name: c.name, meta: "٢٥٠غ · حبوب كاملة", priceShown: c.prices.g250 });
+                  }}
+                  className={`mt-4 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-[13px] font-bold ${
+                    c.soldOut ? "cursor-default bg-bg-alt text-muted" : "bg-olive text-olive-text active:scale-95"
+                  }`}
+                >
+                  {c.soldOut ? "نفذ مؤقتاً" : "أضف للسلة"}
                 </span>
               </Link>
             ))}

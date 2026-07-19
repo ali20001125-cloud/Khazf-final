@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, HandCoins, Gift, Sparkles, ArrowLeft } from "lucide-react";
+import { Check, HandCoins, Gift, Sparkles, ArrowLeft , ChevronDown } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { useMotion } from "@/lib/motion";
@@ -23,7 +23,7 @@ export default function CheckoutPage() {
   const { cart, clearCart, coupon, useCashback, boxGiftChoice, showToast } = useStore();
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
-  const [showEmail, setShowEmail] = useState(false);
+  const [extrasOpen, setExtrasOpen] = useState(false);
 
   /* الزبون المعروف: بياناته تتعبأ لحالها */
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name.trim(),
+          name: form.name.trim() || "زبون خزف",
           phone: form.phone.trim(),
           email: form.email.trim() || null,
           governorate: form.governorate,
@@ -131,32 +131,35 @@ export default function CheckoutPage() {
           <section className="reveal">
             <h2 className="mb-4 text-lg font-bold">بيانات التوصيل</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <input required placeholder="الاسم الكامل" value={form.name}
+              {extrasOpen && (<>
+              <input placeholder="الاسم الكامل (اختياري)" value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
               <input required type="tel" inputMode="tel" dir="ltr" placeholder="07XX XXX XXXX" value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
                 className={`${inputCls} text-end font-num`} maxLength={11} />
+              <div className="relative">
               <select required value={form.governorate}
                 onChange={(e) => setForm({ ...form, governorate: e.target.value })}
                 className={`${inputCls} appearance-none ${form.governorate ? "" : "text-muted"}`}>
                 <option value="" disabled>اختر محافظتك</option>
                 {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
-              {showEmail ? (
-                <input type="email" dir="ltr" placeholder="الإيميل" autoFocus value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
-              ) : (
-                <button type="button" onClick={() => setShowEmail(true)}
-                  className="rounded-[14px] border border-dashed border-line px-4 py-3.5 text-start text-[13px] font-semibold text-muted">
-                  + إضافة إيميل (اختياري)
-                </button>
-              )}
+              <ChevronDown size={16} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-muted" />
+              </div>
+              <input type="email" dir="ltr" placeholder="الإيميل (اختياري)" value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
               <input required placeholder="العنوان: المنطقة، أقرب نقطة دالة" value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
-              <textarea rows={2} placeholder="ملاحظات للطلب (اختياري)" value={form.note}
+              <textarea rows={2} placeholder="ملاحظات للطلب" value={form.note}
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
+              </>)}
+              <button type="button" onClick={() => setExtrasOpen((v) => !v)}
+                className="flex items-center justify-between rounded-[14px] border border-dashed border-line px-4 py-3.5 text-[13px] font-semibold text-muted sm:col-span-2">
+                بيانات إضافية — الاسم، الإيميل، ملاحظات (اختياري)
+                <ChevronDown size={15} className={`transition-transform ${extrasOpen ? "rotate-180" : ""}`} />
+              </button>
             </div>
           </section>
 

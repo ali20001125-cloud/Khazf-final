@@ -4,7 +4,6 @@ import PromoBanners from "@/components/scenes/PromoBanners";
 import { useMotion } from "@/lib/motion";
 import {
   Hero,
-  InfoBar,
   StatementBanner,
   CropsRail,
   BoxTeaser,
@@ -22,7 +21,6 @@ export default function Home() {
     <div ref={scope}>
       <Hero />
       <PromoBanners />
-      <InfoBar />
       <CropsRail />
       <BoxTeaser />
       <ToolsSection

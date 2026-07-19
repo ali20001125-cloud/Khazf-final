@@ -5,6 +5,7 @@ import { asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
 import { flashSaved } from "@/lib/server/flash";
+import { toNum } from "@/lib/num";
 
 /**
  * وجبة شحنة — منطق علي:
@@ -13,17 +14,21 @@ import { flashSaved } from "@/lib/server/flash";
  */
 export async function addShipment(f: FormData) {
   await requireAdmin();
-  const packPerKilo = Math.round(Number(f.get("packPerKilo") || 0));
-  const shipTotal = Math.round(Number(f.get("shipTotal") || 0));
+  try {
+  const packPerKilo = Math.round(toNum(f.get("packPerKilo")) || 0);
+  const shipTotal = Math.round(toNum(f.get("shipTotal")) || 0);
   const note = String(f.get("note") ?? "").trim() || null;
   const rows: { productId: number; kg: number; importPerKilo: number }[] = [];
   for (let i = 1; i <= 4; i++) {
     const productId = Number(f.get(`p${i}_product`));
-    const kg = Number(String(f.get(`p${i}_kg`) ?? "").trim());
-    const imp = Math.round(Number(f.get(`p${i}_import`) || 0));
+    const kg = toNum(f.get(`p${i}_kg`));
+    const imp = Math.round(toNum(f.get(`p${i}_import`)) || 0);
     if (productId && kg > 0) rows.push({ productId, kg, importPerKilo: imp });
   }
-  if (!rows.length) throw new Error("أدخل منتجاً واحداً على الأقل بكميته");
+  if (!rows.length || rows.some((r) => !Number.isFinite(r.kg))) {
+    await flashSaved("⚠️ أدخل محصولاً واحداً على الأقل مع كميته بالكيلو");
+    return;
+  }
   const totalKg = rows.reduce((t, r) => t + r.kg, 0);
   const shipPerKilo = totalKg > 0 ? Math.round(shipTotal / totalKg) : 0;
 
@@ -43,16 +48,18 @@ export async function addShipment(f: FormData) {
   });
   revalidatePath("/admin/inventory");
   revalidatePath("/");
+  } catch (e) { await flashSaved("⚠️ " + (e instanceof Error ? e.message : "خطأ غير متوقع")); }
 }
 
 /** أداة واحدة (بالقطعة) — منفصلة تماماً عن شحنات القهوة */
 export async function addToolBatch(f: FormData) {
   await requireAdmin();
+  try {
   await flashSaved();
   const productId = Number(f.get("productId"));
-  const qty = Math.round(Number(f.get("qty")));
-  const cost = Math.round(Number(f.get("costPerPiece") || 0));
-  if (!productId || qty <= 0) throw new Error("بيانات ناقصة");
+  const qty = Math.round(toNum(f.get("qty")));
+  const cost = Math.round(toNum(f.get("costPerPiece")) || 0);
+  if (!productId || !Number.isFinite(qty) || qty <= 0) { await flashSaved("⚠️ بيانات ناقصة"); return; }
   await db.transaction(async (tx) => {
     const [b] = await tx.insert(s.inventoryBatches).values({
       productId, qtyReceived: qty, qtyRemaining: qty, costPerPiece: cost,
@@ -61,18 +68,20 @@ export async function addToolBatch(f: FormData) {
   });
   revalidatePath("/admin/inventory");
   revalidatePath("/");
+  } catch (e) { await flashSaved("⚠️ " + (e instanceof Error ? e.message : "خطأ غير متوقع")); }
 }
 
 /** تعديل يدوي بالأكياس (كيس=٢٥٠غ) للقهوة، وبالقطعة للأدوات */
 export async function adjustStock(f: FormData) {
   await requireAdmin();
+  try {
   await flashSaved();
   const [pid, unit] = String(f.get("productKey") ?? "").split("|");
   const productId = Number(pid);
-  const raw = Math.round(Number(f.get("delta")));
+  const raw = Math.round(toNum(f.get("delta")));
   const delta = unit === "COFFEE" ? raw * 250 : raw;
   const reason = String(f.get("reason") ?? "").trim() || "تعديل يدوي";
-  if (!productId || !delta) throw new Error("بيانات ناقصة");
+  if (!productId || !Number.isFinite(delta) || !delta) { await flashSaved("⚠️ بيانات ناقصة"); return; }
 
   await db.transaction(async (tx) => {
     if (delta > 0) {
@@ -99,4 +108,5 @@ export async function adjustStock(f: FormData) {
   });
   revalidatePath("/admin/inventory");
   revalidatePath("/");
+  } catch (e) { await flashSaved("⚠️ " + (e instanceof Error ? e.message : "خطأ غير متوقع")); }
 }

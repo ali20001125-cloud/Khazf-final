@@ -12,7 +12,7 @@ import {
   Minus, Plus, Check, Award, ChevronDown, Share2, Send, LinkIcon, Zap, MapPin, Gift,
   Cherry, Citrus, Flower2, Cookie, Nut, Coffee as CoffeeIcon,
   Droplet, Flame, Layers, Sparkles, Sun, Droplets, Globe, Mountain,
-  Filter, FlaskConical, Timer, CupSoda,
+  Filter, FlaskConical, Timer,
   ArrowLeft,
 } from "lucide-react";
 import { formatIQD, productFaq,
@@ -33,7 +33,7 @@ const chipIcon: Record<string, IconT> = {
   "قوام كامل": CoffeeIcon, كراميل: Droplet, توابل: Flame, تعقيد: Layers,
   "حلاوة نظيفة": Sparkles, طبيعية: Sun, مغسولة: Droplets,
   V60: Filter, كيمكس: FlaskConical, أيروبرس: Timer,
-  إسبريسو: CoffeeIcon, "فرنش برس": CupSoda,
+  إسبريسو: CoffeeIcon,
 };
 
 /* مجموعات الـ Chips الثلاث لكل محصول: نكهة → معالجة/منشأ → تحضير */
@@ -63,7 +63,7 @@ const weights = [
 ] as const;
 type WeightKey = (typeof weights)[number]["k"];
 
-const grinds = ["حبوب كاملة", "V60", "إسبريسو", "فرنش برس"] as const;
+const grinds = ["حبوب كاملة", "V60", "إسبريسو"] as const;
 
 /* ════════════════ عرض القهوة ════════════════ */
 function CoffeeView({ coffee }: { coffee: Coffee }) {

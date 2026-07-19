@@ -49,7 +49,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { cart, bump, favorites } = useStore();
-  const { topBarMessages } = useSiteConfig();
+  const { topBarMessages, logoUrl } = useSiteConfig();
   const { coffees, tools } = useCatalog();
 
   const count = cart.reduce((s, i) => s + i.qty, 0);

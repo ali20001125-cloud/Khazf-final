@@ -103,23 +103,24 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
         {coffee.isNew && <Badge label="جديد" />}
         <FavBtn id={`c:${coffee.slug}`} />
       </Link>
-      <div className="p-4">
+      <Link href={`/product/?c=${coffee.slug}`} className="block p-4">
         <p className="text-[11px] text-muted">{coffee.country}</p>
-        <Link href={`/product/?c=${coffee.slug}`}>
-          <h3 className="mt-0.5 text-lg font-bold">{coffee.name}</h3>
-        </Link>
-        <div className="mt-1 flex items-center gap-2">
-          <Stars value={coffee.rating} />
-          <span className="font-num text-[11px] text-muted">
-            ({coffee.reviewsCount})
-          </span>
-        </div>
+        <h3 className="mt-0.5 text-lg font-bold">{coffee.name}</h3>
+        {coffee.reviewsCount > 0 && (
+          <div className="mt-1 flex items-center gap-2">
+            <Stars value={coffee.rating} />
+            <span className="font-num text-[11px] text-muted">({coffee.reviewsCount})</span>
+          </div>
+        )}
         <div className="mt-3 flex items-center justify-between">
           <span className="font-num text-sm font-semibold">
             {formatIQD(coffee.prices.g250)}
           </span>
           <button
-            onClick={() =>
+            disabled={coffee.soldOut}
+            onClick={(e) => {
+              e.preventDefault();
+              if (coffee.soldOut) return;
               addToCart({
                 slug: coffee.slug,
                 variant: "G250",
@@ -127,15 +128,17 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
                 name: coffee.name,
                 meta: "٢٥٠غ · حبوب كاملة",
                 priceShown: coffee.prices.g250,
-              })
-            }
-            aria-label={`أضف ${coffee.name}`}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-olive-text transition-transform hover:scale-105 active:scale-90"
+              });
+            }}
+            aria-label={coffee.soldOut ? "نفذ مؤقتاً" : `أضف ${coffee.name}`}
+            className={`flex h-9 items-center justify-center rounded-full text-olive-text transition-transform active:scale-90 ${
+              coffee.soldOut ? "w-auto cursor-default bg-bg-alt px-3 text-[11px] font-bold !text-muted" : "w-9 bg-accent hover:scale-105"
+            }`}
           >
-            <Plus size={17} />
+            {coffee.soldOut ? "نفذ مؤقتاً" : <Plus size={17} />}
           </button>
         </div>
-      </div>
+      </Link>
     </div>
   );
 }
