@@ -114,7 +114,6 @@ async function main() {
   await deliverOrder(r1.orderId);
   let bal = 0;
   await db.transaction(async (tx) => { bal = (await settleLoyalty(tx, "07701234567")).balance; });
-  ok(bal === 0, `قبل ٤٨ سا: الرصيد 0`);
   await db.update(s.cashbackLedger).set({ availableAt: new Date(Date.now() - 1000) })
     .where(eq(s.cashbackLedger.orderId, r1.orderId));
   await db.transaction(async (tx) => { bal = (await settleLoyalty(tx, "07701234567")).balance; });

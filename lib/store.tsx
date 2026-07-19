@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { BoxTier } from "@/lib/server/db/schema";
 
 /* ═══════ إعدادات الموقع (تصل من القاعدة عبر layout) ═══════ */
@@ -75,6 +75,20 @@ export function StoreProvider({
   config: SiteConfig;
 }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const cartLoaded = useRef(false);
+
+  /* السلة تعيش بعد إغلاق المتصفح */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("khz_cart_v1");
+      if (raw) setCart(JSON.parse(raw));
+    } catch {}
+    cartLoaded.current = true;
+  }, []);
+  useEffect(() => {
+    if (!cartLoaded.current) return;
+    try { localStorage.setItem("khz_cart_v1", JSON.stringify(cart)); } catch {}
+  }, [cart]);
   const [toast, setToast] = useState<string | null>(null);
   const [bump, setBump] = useState(0);
   const [useCashback, setUseCashback] = useState(false);

@@ -15,7 +15,7 @@ export async function deliverOrder(orderId: number) {
         orderId,
         type: "EARN",
         points: o.pointsEarned,
-        availableAt: new Date(deliveredAt.getTime() + 48 * 3600_000), // بعد ٤٨ ساعة
+        availableAt: deliveredAt, // تتفعّل فوراً مع التوصيل
         note: o.orderNumber,
       });
     return { ok: true };

@@ -21,7 +21,8 @@ function AccountInner() {
   const scope = useMotion();
   const { favorites, showToast } = useStore();
   const { coffees, tools } = useCatalog();
-  type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: string; phone?: string; pointsBalance?: number; pointsValueDinars?: number;
+  type JL = { level: number; rewardType: string; value: number; giftName: string | null };
+type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: string; phone?: string; journeyLevels?: JL[]; pointsBalance?: number; pointsValueDinars?: number;
     journeyOrders?: number; orders?: { orderNumber: string; status: string; total: number; createdAt: string }[] };
   const [me, setMe] = useState<Me>({ guest: true });
   useEffect(() => { fetch("/api/customer/me").then((r) => r.json()).then(setMe).catch(() => {}); }, []);
@@ -52,6 +53,44 @@ function AccountInner() {
           <LogOut size={14} /> تسجيل الخروج
         </Link>
       </div>
+
+      {/* بطاقة الولاء — النقاط والرحلة بمكان واحد واضح */}
+      {!me.guest && (
+        <div className="reveal mt-4 rounded-[22px] bg-olive p-6 text-olive-text">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[12px] opacity-80">رصيد الكاش باك</p>
+              <p className="font-num mt-1 text-3xl font-bold">
+                {((me.pointsBalance ?? 0) * 0 + (me.pointsValueDinars ?? 0)).toLocaleString("en")} <span className="text-sm font-semibold">د.ع</span>
+              </p>
+              <p className="font-num mt-0.5 text-[11px] opacity-70">{me.pointsBalance ?? 0} نقطة · تتفعّل فور توصيل طلبك</p>
+            </div>
+            <p className="font-num rounded-full bg-gold px-4 py-2 text-[13px] font-bold text-olive">
+              رحلتك {Math.min(me.journeyOrders ?? 0, 6)}/6
+            </p>
+          </div>
+          {/* مسار الرحلة */}
+          <div className="mt-5 flex items-center gap-1.5">
+            {(me.journeyLevels ?? []).slice(0, 6).map((l) => {
+              const doneStep = (me.journeyOrders ?? 0) >= l.level;
+              const label = l.rewardType === "PERCENT" ? `خصم ${l.value}٪`
+                : l.rewardType === "FREE_DELIVERY" ? "توصيل مجاني"
+                : l.giftName ?? "هدية";
+              return (
+                <div key={l.level} className="flex-1 text-center">
+                  <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${doneStep ? "bg-gold text-olive" : "bg-olive-text/15"}`}>
+                    {doneStep ? "✓" : l.level}
+                  </div>
+                  <p className="mt-1.5 text-[8.5px] leading-tight opacity-80">{label}</p>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-4 text-[11px] leading-relaxed opacity-80">
+            كل طلب يقرّبك لمكافأة تنصرف تلقائياً بطلبك الجاي — وكل ١٬٠٠٠ د = نقطة كاش باك
+          </p>
+        </div>
+      )}
 
       {/* التبويبات */}
       <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">

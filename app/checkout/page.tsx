@@ -99,7 +99,7 @@ export default function CheckoutPage() {
           </a>
           {done.pointsEarned > 0 && (
             <div className="flex items-center gap-2 rounded-[12px] bg-gold/10 px-4 py-3 text-[13px] font-bold text-gold">
-              <Sparkles size={15} /> ربحت <span className="font-num">{done.pointsEarned}</span> نقطة — تُفعَّل بعد التوصيل بـ٤٨ ساعة
+              <Sparkles size={15} /> ربحت <span className="font-num">{done.pointsEarned}</span> نقطة — تُفعَّل فور توصيل طلبك
             </div>
           )}
           {done.nextRewardMessage && (
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
           )}
         </div>
         <p className="reveal mt-5 text-[13px] leading-relaxed text-muted">
-          راح نتصل بيك لتأكيد الطلب، والتوصيل خلال ١–٢ يوم عمل.
+          التوصيل خلال ١–٢ يوم عمل لكل المحافظات.
         </p>
         <div className="reveal mt-7 flex justify-center gap-3">
           <Link href="/track/" className="btn btn-olive !px-6 !py-3 text-sm">تتبع الطلب</Link>
@@ -135,12 +135,12 @@ export default function CheckoutPage() {
           <section className="reveal">
             <h2 className="mb-4 text-lg font-bold">بيانات التوصيل</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              {extrasOpen && (<>
-              <input placeholder="الاسم الكامل (اختياري)" value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-              <input required type="tel" inputMode="tel" dir="ltr" placeholder="07XX XXX XXXX" value={form.phone}
+              {/* ١) الهاتف */}
+              <input required type="tel" inputMode="tel" dir="ltr" placeholder="07XX XXX XXXX — رقم الهاتف" value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
-                className={`${inputCls} text-end font-num`} maxLength={11} />
+                className={`${inputCls} text-end font-num sm:col-span-2`} maxLength={11} />
+
+              {/* ٢) المحافظة — قائمة بارزة */}
               <div className="relative sm:col-span-2">
                 <span className="pointer-events-none absolute -top-2 end-3 bg-bg px-2 text-[10.5px] font-bold text-accent">المحافظة *</span>
                 <select required value={form.governorate}
@@ -148,25 +148,36 @@ export default function CheckoutPage() {
                   className={`w-full appearance-none rounded-[14px] border-2 bg-card px-4 py-3.5 text-[14px] font-bold outline-none transition-colors ${
                     form.governorate ? "border-line" : "border-accent/50 text-muted"
                   }`}>
-                  <option value="" disabled>👇 اضغط واختر محافظتك من القائمة</option>
+                  <option value="" disabled>اضغط واختر محافظتك من القائمة ▾</option>
                   {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
                 </select>
                 <ChevronDown size={18} strokeWidth={2.6} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-accent" />
               </div>
-              <input type="email" dir="ltr" placeholder="الإيميل (اختياري)" value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
+
+              {/* ٣) العنوان */}
               <input required placeholder="العنوان: المنطقة، أقرب نقطة دالة" value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
-              </>)}
-              <textarea rows={2} placeholder="ملاحظات للطلب (اختياري): وقت مناسب، وصف إضافي…" value={form.note}
+
+              {/* ٤) الملاحظات */}
+              <textarea rows={2} placeholder="ملاحظات للطلب (اختياري)" value={form.note}
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
+
+              {/* ٥) الاسم والإيميل — خلف السهم */}
               <button type="button" onClick={() => setExtrasOpen((v) => !v)}
                 className="flex items-center justify-between rounded-[14px] border border-dashed border-line px-4 py-3.5 text-[13px] font-semibold text-muted sm:col-span-2">
                 الاسم والإيميل (اختياري)
                 <ChevronDown size={15} className={`transition-transform ${extrasOpen ? "rotate-180" : ""}`} />
               </button>
+              {extrasOpen && (
+                <>
+                  <input placeholder="الاسم الكامل" value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
+                  <input type="email" dir="ltr" placeholder="الإيميل" value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
+                </>
+              )}
             </div>
           </section>
 

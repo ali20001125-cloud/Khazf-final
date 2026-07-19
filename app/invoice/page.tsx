@@ -34,7 +34,7 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
           <div className="text-end">
             <p className="font-num text-lg font-bold">{o.orderNumber}</p>
             <p className="font-num mt-0.5 text-[11px] text-muted">
-              {new Date(o.createdAt).toLocaleDateString("ar-IQ", { dateStyle: "medium" })}
+              {new Date(o.createdAt).toLocaleString("ar-IQ", { dateStyle: "medium", timeStyle: "short" })}
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
         <ul className="mt-5 divide-y divide-line border-y border-line">
           {items.map((it) => (
             <li key={it.id} className="flex justify-between py-2.5 text-[13px]">
-              <span>{it.nameSnapshot}{it.isGift && " 🎁"} <span className="font-num text-muted">×{it.qty}</span></span>
+              <span>{it.nameSnapshot}{it.isGift && " (هدية)"} <span className="font-num text-muted">×{it.qty}</span></span>
               <span className="font-num font-semibold">{it.isGift ? "هدية" : formatIQD(it.lineTotal)}</span>
             </li>
           ))}
@@ -64,7 +64,7 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
           <span className="font-num">{formatIQD(o.total)}</span>
         </div>
 
-        <p className="mt-6 text-center text-[11px] text-muted">شكراً لاختيارك خزف ☕ خزف — قهوة مختصة، توصيل لكل العراق</p>
+        <p className="mt-6 text-center text-[11px] text-muted">شكراً لاختيارك خزف — قهوة مختصة، توصيل لكل العراق</p>
       </div>
       <PrintBtn />
     </div>
@@ -75,7 +75,7 @@ function PrintBtn() {
   return (
     <form className="mt-4 text-center print:hidden">
       <button formAction={async () => { "use server"; }} className="hidden" />
-      <a href="javascript:window.print()" className="btn btn-olive inline-block !px-8 !py-3 text-sm">🖨️ اطبع / احفظ PDF</a>
+      <a href="javascript:window.print()" className="btn btn-olive inline-block !px-8 !py-3 text-sm">اطبع / احفظ PDF</a>
     </form>
   );
 }

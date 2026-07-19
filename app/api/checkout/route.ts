@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createOrder, type CheckoutInput } from "@/lib/server/orders";
 import { setCustomerCookie } from "@/lib/server/customer-session";
 import { notifyTelegram } from "@/lib/server/telegram";
+import { emailNewOrderAdmin, emailOrderCustomer } from "@/lib/server/email";
 import { getSupabaseUser } from "@/lib/server/customer-identity";
 import { and, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
@@ -40,6 +41,12 @@ export async function POST(req: Request) {
       }
     }
     if (firstOrder || linkedToMe) await setCustomerCookie(phone);
+
+    /* إشعارات الإيميل (لا توقف الطلب إن فشلت) */
+    const site = process.env.SITE_URL ?? "https://plum-tapir-959252.hostingersite.com";
+    const invoiceUrl = `${site}/invoice/?n=${result.orderNumber}&p=${encodeURIComponent(phone)}`;
+    emailNewOrderAdmin({ orderNumber: result.orderNumber, name: body.name?.trim() || "زبون خزف", phone, governorate: body.governorate, total: result.total, invoiceUrl }).catch(() => {});
+    emailOrderCustomer({ email: body.email?.trim() || null, orderNumber: result.orderNumber, name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl }).catch(() => {});
 
     /* إشعار تيليجرام — أفضل جهد، لا يوقف النجاح */
     const lines = body.items.map((i) => `• ${i.slug} ${i.variant}×${i.qty}`).join("\n");

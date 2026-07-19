@@ -3,6 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getCustomerIdentity } from "@/lib/server/customer-identity";
 import { getSettings } from "@/lib/server/settings";
+import { asc } from "drizzle-orm";
 import { settleLoyalty } from "@/lib/server/loyalty";
 
 export const runtime = "nodejs";
@@ -30,6 +31,7 @@ export async function GET() {
     phone: c.phone, name: c.name, governorate: c.governorate, address: c.address,
     pointsBalance: balance, pointsValueDinars: balance * (await getSettings()).pointValue,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
+    journeyLevels: (await db.select({ level: s.journeyLevels.level, rewardType: s.journeyLevels.rewardType, value: s.journeyLevels.value, giftName: s.journeyLevels.giftName }).from(s.journeyLevels).orderBy(asc(s.journeyLevels.level))),
     orders,
   });
 }
