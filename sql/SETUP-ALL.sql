@@ -1,10 +1,12 @@
--- ═══ خزف: الإعداد الكامل (نسخة ذاتية التصفير — آمنة للإعادة دائماً) ═══
--- تصفير كامل للمخطط (قاعدة جديدة — لا بيانات تُفقد)
+-- ═══════════════════════════════════════════════
+-- خزف: الإعداد الشامل النهائي — نسخة 2026-07-19
+-- ذاتي التصفير: يمسح كل شي ويبني آخر نسخة كاملة
+-- (جداول + شحنات + لوغو/تحليلات + أمان + محاصيل + 1100)
+-- ═══════════════════════════════════════════════
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON SCHEMA public TO postgres, service_role;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO anon, authenticated;
 
 CREATE TYPE "public"."coupon_type" AS ENUM('PERCENT', 'FIXED', 'FREE_DELIVERY');--> statement-breakpoint
@@ -332,6 +334,20 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 ALTER TABLE settings ADD CONSTRAINT settings_singleton CHECK (id = 1);
 ALTER TABLE settings_internal ADD CONSTRAINT settings_internal_singleton CHECK (id = 1);
 
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS logo_url text;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS meta_pixel_id text;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS ga_id text;
+ALTER SEQUENCE khazf_order_seq RESTART WITH 1100;
+
+CREATE TABLE IF NOT EXISTS shipments (
+  id serial PRIMARY KEY,
+  total_grams integer NOT NULL,
+  ship_total integer NOT NULL DEFAULT 0,
+  note text,
+  received_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE inventory_batches ADD COLUMN IF NOT EXISTS shipment_id integer REFERENCES shipments(id);
+
 -- ═══════════════════════════════════════════════════════════
 -- خزف — سياسات أمان الصفوف (RLS) لـ Supabase
 -- تُلصق بمحرر SQL في Supabase بعد تشغيل الهجرات — مرة واحدة
@@ -460,8 +476,3 @@ INSERT INTO banners (text, sort, active) VALUES ('محاصيلنا',0,true);
 INSERT INTO settings (id, top_bar_messages) VALUES
  (1, ARRAY['توصيل لكل محافظات العراق — ٣٬٠٠٠ د.ع','نحمّص باستمرار · الدفع عند الاستلام']);
 INSERT INTO settings_internal (id) VALUES (1);
-
--- إضافات الإصدار ب
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS logo_url text;
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS meta_pixel_id text;
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS ga_id text;
