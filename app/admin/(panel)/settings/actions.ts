@@ -59,3 +59,13 @@ export async function addAdmin(f: FormData) {
   if (email) await db.insert(s.admins).values({ email, name }).onConflictDoNothing();
   revalidatePath("/admin/settings");
 }
+
+export async function togglePlace(f: FormData) {
+  await requireAdmin();
+  const id = Number(f.get("id"));
+  const [pl] = await db.select({ a: s.places.active }).from(s.places).where(eq(s.places.id, id));
+  await db.update(s.places).set({ active: !pl.a }).where(eq(s.places.id, id));
+  const { flashSaved } = await import("@/lib/server/flash");
+  await flashSaved(pl.a ? "أُخفي القسم من المتجر ✓" : "ظهر القسم بالمتجر ✓");
+  revalidatePath("/admin/settings"); revalidatePath("/");
+}

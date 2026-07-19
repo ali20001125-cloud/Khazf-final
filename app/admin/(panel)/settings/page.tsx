@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { PageTitle, Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
-import { savePublicSettings, saveInternalSettings, addAdmin } from "./actions";
+import { savePublicSettings, saveInternalSettings, addAdmin, togglePlace } from "./actions";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { supabaseConfigured } from "@/lib/server/admin-auth";
 import type { BoxTier } from "@/lib/server/db/schema";
@@ -12,6 +12,7 @@ export default async function SettingsPage() {
   const [pub] = await db.select().from(s.settings).where(eq(s.settings.id, 1));
   const [internal] = await db.select().from(s.settingsInternal).where(eq(s.settingsInternal.id, 1));
   const admins = await db.select().from(s.admins).orderBy(asc(s.admins.id));
+  const places = await db.select().from(s.places).orderBy(asc(s.places.sort));
   const tiers = (pub.boxTiers as BoxTier[]).concat(
     Array.from({ length: Math.max(0, 4 - (pub.boxTiers as BoxTier[]).length) }, () => ({ bags: 0, rewardType: "PERCENT" as const, value: 0 }))
   );
@@ -87,6 +88,24 @@ export default async function SettingsPage() {
           <div><SubmitBtn>حفظ الداخلي</SubmitBtn></div>
         </Card>
       </form>
+
+      {/* أقسام المتجر */}
+      <Card className="mt-6 p-5">
+        <h2 className="mb-1 text-sm font-bold">أقسام المتجر</h2>
+        <p className="mb-4 text-[12px] text-muted">أطفئ أي قسم فيختفي من المتجر كاملاً (القوائم والصفحات) — ويرجع بضغطة</p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {places.filter((pl) => pl.slug !== "home").map((pl) => (
+            <form key={pl.id} action={togglePlace}
+              className={`flex items-center justify-between rounded-[14px] border px-4 py-3 ${pl.active ? "border-line bg-card" : "border-dashed border-line bg-bg-alt/60"}`}>
+              <input type="hidden" name="id" value={pl.id} />
+              <span className={`text-[13.5px] font-bold ${pl.active ? "" : "text-muted"}`}>{pl.name}</span>
+              <button className={`rounded-full px-4 py-1.5 text-[11.5px] font-bold ${pl.active ? "bg-ok/12 text-ok" : "bg-bg text-muted"}`}>
+                {pl.active ? "ظاهر — أطفئه" : "مخفي — فعّله"}
+              </button>
+            </form>
+          ))}
+        </div>
+      </Card>
 
       {/* المدراء */}
       <Card className="mt-6 p-5">

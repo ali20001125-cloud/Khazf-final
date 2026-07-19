@@ -90,9 +90,10 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
             {o.email && <p className="font-num mt-0.5 text-[12px] text-muted" dir="ltr">{o.email}</p>}
             <p className="mt-3 text-[13px] leading-relaxed text-muted">{o.governorate} · {o.address}</p>
             {o.note && <p className="mt-3 rounded-[10px] bg-bg-alt px-3.5 py-2.5 text-[12.5px]">📝 {o.note}</p>}
-            <Link href={`/admin/customers/${o.customerPhone}/`} className="mt-4 inline-block text-[12.5px] font-bold text-accent">
-              ملف الزبون الكامل ←
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-4 text-[12.5px] font-bold">
+              <Link href={`/admin/customers/${o.customerPhone}/`} className="text-accent">ملف الزبون ←</Link>
+              <Link href={`/invoice/?n=${o.orderNumber}&p=${o.customerPhone}`} target="_blank" className="text-accent">🧾 الفاتورة</Link>
+            </div>
           </Card>
 
           {o.status === "CONFIRMED" && (

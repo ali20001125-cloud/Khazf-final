@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
+import { toNum } from "@/lib/num";
 import { flashSaved } from "@/lib/server/flash";
 
 const num = (v: FormDataEntryValue | null) => {
-  const n = Number(String(v ?? "").trim());
-  return Number.isFinite(n) && String(v).trim() !== "" ? Math.round(n) : null;
+  const n = toNum(v);
+  return Number.isFinite(n) && String(v ?? "").trim() !== "" ? Math.round(n) : null;
 };
 
 function parseProduct(f: FormData) {
@@ -20,7 +21,7 @@ function parseProduct(f: FormData) {
     latinName: String(f.get("latinName") ?? "").trim() || null,
     active: f.get("active") === "on",
     badge: String(f.get("badge") ?? "").trim() || null,
-    featured: f.get("featured") === "on",
+    featured: false,
     description: String(f.get("description") ?? "").trim() || null,
     trigger: String(f.get("trigger") ?? "").trim() || null,
     country: String(f.get("country") ?? "").trim() || null,
@@ -43,10 +44,14 @@ function parseProduct(f: FormData) {
     priceG1000: num(f.get("priceG1000")),
     pricePiece: num(f.get("pricePiece")),
     subcategoryId: num(f.get("subcategoryId")),
-    stockThreshold: num(f.get("stockThreshold")) ?? 0,
+    stockThreshold: (() => {
+      const bags = num(f.get("stockThresholdBags"));
+      const isCoffee = String(f.get("type")) === "COFFEE";
+      return bags != null ? bags * (isCoffee ? 250 : 1) : 2000;
+    })(),
     oosBehavior: (String(f.get("oosBehavior")) === "HIDE" ? "HIDE" : "SHOW_BADGE") as "HIDE" | "SHOW_BADGE",
     allowInBox: f.get("allowInBox") === "on",
-    images: String(f.get("images") ?? "").split("\n").map((x) => x.trim()).filter(Boolean),
+    images: (() => { const u = String(f.get("images") ?? "").trim(); return u ? [u] : []; })(),
   };
 }
 

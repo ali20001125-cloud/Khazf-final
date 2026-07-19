@@ -93,6 +93,10 @@ export default function CheckoutPage() {
             <span className="text-muted">الإجمالي (دفع عند الاستلام)</span>
             <span className="font-num text-lg font-bold">{formatIQD(done.total)}</span>
           </div>
+          <a href={`/invoice/?n=${done.orderNumber}&p=${encodeURIComponent(form.phone)}`} target="_blank"
+            className="flex items-center justify-center gap-2 rounded-[12px] bg-bg-alt px-4 py-3 text-[13px] font-bold">
+            🧾 عرض / طباعة الفاتورة
+          </a>
           {done.pointsEarned > 0 && (
             <div className="flex items-center gap-2 rounded-[12px] bg-gold/10 px-4 py-3 text-[13px] font-bold text-gold">
               <Sparkles size={15} /> ربحت <span className="font-num">{done.pointsEarned}</span> نقطة — تُفعَّل بعد التوصيل بـ٤٨ ساعة

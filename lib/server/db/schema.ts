@@ -126,12 +126,22 @@ export const productPlaces = pgTable(
 
 /* ═══════════════ المخزون — وجبات FIFO + سجل حركات ═══════════════ */
 
+/** شحنة أم — كيلوات كلية وتوصيل إجمالي يتوزع على وجباتها */
+export const shipments = pgTable("shipments", {
+  id: serial("id").primaryKey(),
+  totalGrams: integer("total_grams").notNull(),
+  shipTotal: integer("ship_total").notNull().default(0),
+  note: text("note"),
+  receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 /** وجبة استلام: الكمية + تكلفتها (التكلفة هنا فقط — لا على المنتج) */
 export const inventoryBatches = pgTable(
   "inventory_batches",
   {
     id: serial("id").primaryKey(),
     productId: integer("product_id").notNull().references(() => products.id, { onDelete: "restrict" }),
+    shipmentId: integer("shipment_id").references(() => shipments.id),
     qtyReceived: integer("qty_received").notNull(),   // غرام للقهوة · قطعة للأدوات
     qtyRemaining: integer("qty_remaining").notNull(), // يتناقص بالبيع FIFO
     /* تكاليف الكيلو (قهوة): استيراد + توصيل + تغليف */

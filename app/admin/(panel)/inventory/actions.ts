@@ -15,34 +15,44 @@ import { toNum } from "@/lib/num";
 export async function addShipment(f: FormData) {
   await requireAdmin();
   try {
-  const packPerKilo = Math.round(toNum(f.get("packPerKilo")) || 0);
+  const totalKg = toNum(f.get("totalKg"));
   const shipTotal = Math.round(toNum(f.get("shipTotal")) || 0);
   const note = String(f.get("note") ?? "").trim() || null;
-  const rows: { productId: number; kg: number; importPerKilo: number }[] = [];
-  for (let i = 1; i <= 4; i++) {
-    const productId = Number(f.get(`p${i}_product`));
-    const kg = toNum(f.get(`p${i}_kg`));
-    const imp = Math.round(toNum(f.get(`p${i}_import`)) || 0);
-    if (productId && kg > 0) rows.push({ productId, kg, importPerKilo: imp });
-  }
-  if (!rows.length || rows.some((r) => !Number.isFinite(r.kg))) {
-    await flashSaved("⚠️ أدخل محصولاً واحداً على الأقل مع كميته بالكيلو");
-    return;
-  }
-  const totalKg = rows.reduce((t, r) => t + r.kg, 0);
-  const shipPerKilo = totalKg > 0 ? Math.round(shipTotal / totalKg) : 0;
+  if (!Number.isFinite(totalKg) || totalKg <= 0) { await flashSaved("⚠️ اكتب كيلوات الشحنة الكلية"); return; }
 
-  await flashSaved(`أُضيفت الشحنة ✓ (${totalKg} كغ · توصيل ${shipPerKilo.toLocaleString("en")}/كغ)`);
+  const rows: { productId: number; kg: number; pricePerKilo: number }[] = [];
+  for (let i = 1; i <= 6; i++) {
+    const productId = Number(f.get(`p${i}_product`));
+    if (!productId) continue;
+    const kg = toNum(f.get(`p${i}_kg`));
+    const ppk = Math.round(toNum(f.get(`p${i}_price`)) || 0);
+    rows.push({ productId, kg: Number.isFinite(kg) && kg > 0 ? kg : NaN, pricePerKilo: ppk });
+  }
+  if (!rows.length) { await flashSaved("⚠️ اختر محصولاً واحداً على الأقل"); return; }
+
+  /* الباقي تلقائياً: أي صف بلا كمية ياخذ المتبقي من الشحنة */
+  const known = rows.filter((r) => Number.isFinite(r.kg)).reduce((t, r) => t + r.kg, 0);
+  const blanks = rows.filter((r) => !Number.isFinite(r.kg));
+  const remaining = totalKg - known;
+  if (blanks.length === 1 && remaining > 0) blanks[0].kg = remaining;
+  else if (blanks.length > 0) { await flashSaved("⚠️ اترك كمية محصول واحد فقط فارغة ليأخذ الباقي"); return; }
+  const sumKg = rows.reduce((t, r) => t + r.kg, 0);
+  if (Math.abs(sumKg - totalKg) > 0.001) { await flashSaved(`⚠️ مجموع الحصص ${sumKg} كغ لا يساوي الشحنة ${totalKg} كغ`); return; }
+
+  const shipPerKilo = Math.round(shipTotal / totalKg);
+  await flashSaved(`أُضيفت الشحنة ✓ ${totalKg} كغ · توصيل ${shipPerKilo.toLocaleString("en")}/كغ`);
   await db.transaction(async (tx) => {
+    const [sh] = await tx.insert(s.shipments).values({
+      totalGrams: Math.round(totalKg * 1000), shipTotal, note,
+    }).returning({ id: s.shipments.id });
     for (const r of rows) {
       const grams = Math.round(r.kg * 1000);
       const [b] = await tx.insert(s.inventoryBatches).values({
-        productId: r.productId, qtyReceived: grams, qtyRemaining: grams,
-        importCostPerKilo: r.importPerKilo, shipCostPerKilo: shipPerKilo,
-        packCostPerKilo: packPerKilo, note,
+        productId: r.productId, shipmentId: sh.id, qtyReceived: grams, qtyRemaining: grams,
+        importCostPerKilo: r.pricePerKilo, shipCostPerKilo: shipPerKilo, packCostPerKilo: 0, note,
       }).returning({ id: s.inventoryBatches.id });
       await tx.insert(s.inventoryMovements).values({
-        productId: r.productId, batchId: b.id, type: "IN", qtyDelta: grams, reason: "شحنة جديدة",
+        productId: r.productId, batchId: b.id, type: "IN", qtyDelta: grams, reason: `شحنة #${sh.id}`,
       });
     }
   });

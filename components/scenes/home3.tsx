@@ -17,65 +17,60 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 /* ═══════════ ١) الهيرو — خزف بسطر واحد، والمنتجات تبدأ فوراً ═══════════ */
 export function Hero() {
   const { logoUrl } = useSiteConfig();
+  const { coffees } = useCatalog();
   const scope = useRef<HTMLElement>(null);
+  const star = coffees[0];
 
-  useGSAP(
-    () => {
-      if (reduced()) return;
-      gsap.fromTo(
-        ".hr-in",
-        { autoAlpha: 0, y: 18 },
-        { autoAlpha: 1, y: 0, duration: 0.65, ease: "power3.out", stagger: 0.08 }
-      );
-      /* إشارة النزول — نبضة هادئة */
-      gsap.to(".hr-cue", {
-        y: 6,
-        opacity: 0.9,
-        duration: 1.4,
-        ease: "power1.inOut",
-        repeat: -1,
-        yoyo: true,
-      });
-    },
-    { scope }
-  );
+  useGSAP(() => {
+    if (reduced()) { gsap.set(".hr-in", { opacity: 1 }); return; }
+    gsap.fromTo(".hr-in", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.09, ease: "power3.out", delay: 0.15 });
+  }, { scope });
 
   return (
-    <section
-      ref={scope}
-      className="flex min-h-[46svh] flex-col items-center justify-center px-6 pb-8 pt-28 text-center md:min-h-[52svh]"
-    >
-      {logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt="خزف" className="hr-in h-16 w-auto opacity-0 md:h-20" />
-      ) : (
-        <h1
-          className="hr-in text-4xl font-bold opacity-0 md:text-5xl"
-          style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-        >
-          خزف
-        </h1>
-      )}
-      <p className="hr-in mt-6 text-[15px] font-semibold text-muted opacity-0 md:text-[17px]">
-        قهوة مختصة
-        <span className="mx-2.5 text-line">·</span>
-        أدوات تحضير
-        <span className="mx-2.5 text-line">·</span>
-        ابنِ صندوقك
-      </p>
+    <section ref={scope} className="relative overflow-hidden px-5 pb-12 pt-24 md:px-8 md:pt-28">
+      <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-2 md:gap-6">
+        {/* النص */}
+        <div className="text-center md:text-start">
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt="خزف" className="hr-in mx-auto h-12 w-auto opacity-0 md:mx-0 md:h-14" />
+          )}
+          <p className="hr-in mt-5 text-[12px] font-bold tracking-wide text-accent opacity-0">
+            قهوة مختصة · تُحمَّص باستمرار
+          </p>
+          <h1 className="hr-in mt-3 text-3xl font-bold leading-[1.25] opacity-0 md:text-5xl md:leading-[1.2]">
+            قهوتك المفضلة الجاية
+            <br />
+            <span className="text-accent">توصلك لباب بيتك</span>
+          </h1>
+          <p className="hr-in mt-4 text-[14px] leading-relaxed text-muted opacity-0 md:text-[15px]">
+            محاصيل مختارة من إثيوبيا والبرازيل وكولومبيا — لكل محافظات العراق خلال يوم إلى يومين.
+          </p>
+          <div className="hr-in mt-7 flex flex-wrap justify-center gap-3 opacity-0 md:justify-start">
+            <Link href="/products/?cat=coffee" className="btn btn-olive magnetic" data-strength="20">تسوّق القهوة</Link>
+            <Link href="/box/" className="btn btn-ghost">ابنِ بوكسك ووفّر</Link>
+          </div>
+        </div>
 
-      <div className="hr-in mt-9 flex flex-wrap justify-center gap-3 opacity-0">
-        <Link href="/products/?cat=all" className="btn btn-olive magnetic" data-strength="20">
-          تسوّق الآن
-        </Link>
-        <Link href="/box/" className="btn btn-ghost">
-          بناء البوكس
-        </Link>
-      </div>
-
-      <div className="hr-in mt-12 flex flex-col items-center gap-4 opacity-0">
-        <span className="block h-px w-16 bg-line" />
-        <ChevronDown className="hr-cue text-muted opacity-50" size={20} strokeWidth={1.8} />
+        {/* المنتج البطل */}
+        {star && (
+          <Link href={`/product/?c=${star.slug}`} className="hr-in relative mx-auto block w-full max-w-[340px] opacity-0">
+            <div className="absolute inset-0 -z-10 rounded-full blur-3xl opacity-25" style={{ background: star.accent }} />
+            <div className="rounded-[28px] border border-line bg-card p-7 transition-transform duration-300 hover:-translate-y-1.5">
+              <BagArt className="mx-auto h-56 w-auto text-olive md:h-64" accent={star.accent} latin={star.latin} />
+              <div className="mt-5 flex items-end justify-between">
+                <div>
+                  <p className="text-[11px] text-muted">{star.country}</p>
+                  <p className="text-xl font-bold">{star.name}</p>
+                  <p className="mt-0.5 text-[11.5px] font-semibold" style={{ color: star.accent }}>{star.notes.slice(0, 2).join(" · ")}</p>
+                </div>
+                <span className="font-num rounded-full bg-olive px-4 py-2 text-[13px] font-bold text-olive-text">
+                  {formatIQD(star.prices.g250)}
+                </span>
+              </div>
+            </div>
+          </Link>
+        )}
       </div>
     </section>
   );
