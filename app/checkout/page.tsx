@@ -44,6 +44,8 @@ export default function CheckoutPage() {
   const subtotal = useMemo(() => cart.reduce((t, i) => t + i.priceShown * i.qty, 0), [cart]);
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
   const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
+  const deliveryFee = freeDelivery ? 0 : config.deliveryPrice;
+  const estTotal = Math.max(0, subtotal - box.discount + deliveryFee);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,9 +227,13 @@ export default function CheckoutPage() {
               <span className="text-muted">التوصيل</span>
               {freeDelivery ? <span className="font-semibold text-ok">مجاني</span> : <span className="font-num font-semibold">{formatIQD(config.deliveryPrice)}</span>}
             </div>
+            <div className="flex items-center justify-between border-t border-line pt-3">
+              <span className="text-[15px] font-bold">الإجمالي</span>
+              <span className="font-num text-xl font-bold text-accent">{formatIQD(estTotal)}</span>
+            </div>
           </div>
           <p className="rounded-[12px] bg-bg-alt px-4 py-3 text-[11.5px] leading-relaxed text-muted">
-            الإجمالي النهائي يُحسب ويُثبَّت الآن عند الضغط — يشمل مكافآت رحلتك ورصيدك تلقائياً.
+            دفع عند الاستلام · يُخصم رصيد الكاش باك تلقائياً عند التثبيت إن اخترته.
           </p>
           <button type="submit" disabled={sending}
             className="btn btn-clay flex w-full items-center justify-center gap-2 !py-4 text-[15px] active:scale-[0.98] disabled:opacity-60">

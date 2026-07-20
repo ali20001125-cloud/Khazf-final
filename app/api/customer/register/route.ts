@@ -21,11 +21,11 @@ export async function POST(req: Request) {
   const governorate = body.governorate?.trim() ?? "";
   const address = body.address?.trim() ?? "";  // اختياري — يُكمل بالطلب
 
-  if (!/^07\d{9}$/.test(phone) || !name || !governorate)
+  const user = await getSupabaseUser();
+  const gName = name || (user?.email ? user.email.split("@")[0] : "صديق خزف");
+  if (!/^07\d{9}$/.test(phone) || !governorate)
     return NextResponse.json({ error: "بيانات ناقصة" }, { status: 400 });
 
-  // هوية المصادقة (من جلسة Supabase التي أنشأها signUp)
-  const user = await getSupabaseUser();
   const authUserId = user?.id ?? null;
 
   // الرقم محجوز لحساب مصادقة آخر؟
@@ -38,12 +38,12 @@ export async function POST(req: Request) {
     await db.update(s.customers).set({
       authUserId: authUserId ?? existing.authUserId,
       email: email || existing.email,
-      name: existing.name || name,
+      name: existing.name || gName,
       governorate: existing.governorate || governorate,
       address: existing.address || address,
     }).where(eq(s.customers.phone, phone));
   } else {
-    await db.insert(s.customers).values({ phone, authUserId, name, governorate, address: address || "", email });
+    await db.insert(s.customers).values({ phone, authUserId, name: gName, governorate, address: address || "", email: email || user?.email || null });
   }
 
   await setCustomerCookie(phone);

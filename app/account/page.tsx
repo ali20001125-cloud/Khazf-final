@@ -310,47 +310,47 @@ function transErr(msg: string): string {
   return "صار خطأ — جرّب مرة ثانية";
 }
 
-/* ═══ خطوة ربط الرقم بعد Google ═══ */
+/* ═══ إكمال الملف بعد Google (رقم + محافظة، لأول مرة) ═══ */
 function LinkStep() {
   const { showToast } = useStore();
   const [phone, setPhone] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
+  const [gov, setGov] = useState("");
   const [busy, setBusy] = useState(false);
-  const link = async () => {
-    if (phone.length < 10) return showToast("اكتب رقم هاتفك");
+  const complete = async () => {
+    if (!/^07\d{9}$/.test(phone)) return showToast("رقم هاتف عراقي صحيح");
+    if (!gov) return showToast("اختر محافظتك");
     setBusy(true);
     try {
-      const r = await fetch("/api/customer/link/", {
+      const r = await fetch("/api/customer/register/", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, orderNumber }),
+        body: JSON.stringify({ phone, governorate: gov, name: "", fromGoogle: true }),
       });
       const d = await r.json();
-      if (!r.ok) showToast(d.error ?? "تعذّر الربط");
+      if (!r.ok) showToast(d.error ?? "تعذّر الحفظ");
       else { showToast("تم ✓"); location.reload(); }
     } catch { showToast("تعذّر الاتصال"); }
     setBusy(false);
   };
+  const inp = "w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-[14px] outline-none focus:border-accent";
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-6 pb-20 pt-28">
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-ok/12 text-ok">✓</div>
       <h1 className="mt-4 text-center text-[24px] font-bold">دخلت بنجاح</h1>
       <p className="mx-auto mt-3 max-w-xs text-center text-[13.5px] leading-relaxed text-muted">
-        خطوة أخيرة لمرة واحدة: اكتب رقم هاتفك حتى نربط حسابك وتظهر طلباتك ونقاطك.
+        خطوة أخيرة لمرة واحدة: رقم هاتفك ومحافظتك حتى نجهّز طلباتك بسهولة.
       </p>
       <div className="mt-7 space-y-3">
-        <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11}
-          placeholder="رقم الهاتف — 07XXXXXXXXX" dir="ltr"
-          className="font-num w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-end text-[14px] outline-none focus:border-gold" />
-        <input value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)}
-          placeholder="رقم طلب سابق (اختياري — لاستعادة نقاطك)" dir="ltr"
-          className="font-num w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-end text-[13px] outline-none focus:border-gold" />
-        <button onClick={link} disabled={busy}
+        <input dir="ltr" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11}
+          placeholder="07XXXXXXXXX" className={`font-num ${inp} text-end`} />
+        <select value={gov} onChange={(e) => setGov(e.target.value)} className={`appearance-none ${inp} ${gov ? "" : "text-muted"}`}>
+          <option value="" disabled>اختر محافظتك</option>
+          {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
+        </select>
+        <button onClick={complete} disabled={busy}
           className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
-          {busy ? "لحظة…" : "ربط الحساب"}
+          {busy ? "لحظة…" : "حفظ ومتابعة"}
         </button>
-        <button onClick={signOut} className="w-full py-2 text-[12.5px] font-semibold text-muted">
-          تسجيل الخروج
-        </button>
+        <button onClick={signOut} className="w-full py-2 text-[12.5px] font-semibold text-muted">تسجيل الخروج</button>
       </div>
     </div>
   );
