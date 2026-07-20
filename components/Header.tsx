@@ -127,10 +127,13 @@ export default function Header() {
             </button>
             <Link
               href="/"
-              className="text-2xl font-bold tracking-tight max-lg:absolute max-lg:left-1/2 max-lg:-translate-x-1/2"
+              className="flex items-center max-lg:absolute max-lg:left-1/2 max-lg:-translate-x-1/2"
               style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
             >
-              خزف
+              {logoUrl
+                ? // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoUrl} alt="خزف" className="h-9 w-auto md:h-10" />
+                : <span className="text-2xl font-bold tracking-tight">خزف</span>}
             </Link>
           </div>
 
@@ -190,9 +193,10 @@ export default function Header() {
           }`}
         >
           <div className="flex items-center justify-between border-b border-line p-5">
-            <span className="text-xl font-bold" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>
-              خزف
-            </span>
+            {logoUrl
+              ? // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="خزف" className="h-8 w-auto" />
+              : <span className="text-xl font-bold" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>خزف</span>}
             <button onClick={() => setMenuOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-bg-alt" aria-label="إغلاق">
               <X size={20} />
             </button>

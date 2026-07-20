@@ -31,11 +31,7 @@ export function Hero() {
       <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-2 md:gap-6">
         {/* النص */}
         <div className="text-center md:text-start">
-          {logoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt="خزف" className="hr-in mx-auto h-12 w-auto opacity-0 md:mx-0 md:h-14" />
-          )}
-          <p className="hr-in mt-5 text-[12px] font-bold tracking-wide text-accent opacity-0">
+          <p className="hr-in text-[12px] font-bold tracking-wide text-accent opacity-0">
             قهوة مختصة · تُحمَّص باستمرار
           </p>
           <h1 className="hr-in mt-3 text-3xl font-bold leading-[1.25] opacity-0 md:text-5xl md:leading-[1.2]">
