@@ -196,12 +196,17 @@ export function CropsRail() {
                 href={`/product/?c=${c.slug}`}
                 className="group w-[74vw] max-w-[330px] shrink-0 rounded-[22px] border border-line bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/5"
               >
-                <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[16px] bg-bg-alt">
-                  <BagArt
-                    className="h-[70%] text-olive transition-transform duration-500 group-hover:scale-[1.07]"
-                    accent={c.accent}
-                    latin={c.latin}
-                  />
+                <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[16px] bg-white">
+                  {c.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.07]" />
+                  ) : (
+                    <BagArt
+                      className="h-[70%] text-olive transition-transform duration-500 group-hover:scale-[1.07]"
+                      accent={c.accent}
+                      latin={c.latin}
+                    />
+                  )}
                 </div>
                 <div className="mt-5 flex items-start justify-between gap-3">
                   <div>
