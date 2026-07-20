@@ -53,7 +53,12 @@ export function Hero() {
           <Link href={`/product/?c=${star.slug}`} className="hr-in relative mx-auto block w-full max-w-[340px] opacity-0">
             <div className="absolute inset-0 -z-10 rounded-full blur-3xl opacity-25" style={{ background: star.accent }} />
             <div className="rounded-[28px] border border-line bg-card p-7 transition-transform duration-300 hover:-translate-y-1.5">
-              <BagArt className="mx-auto h-56 w-auto text-olive md:h-64" accent={star.accent} latin={star.latin} />
+              {star.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={star.image} alt={star.name} className="mx-auto h-56 w-auto rounded-[18px] object-contain md:h-64" />
+              ) : (
+                <BagArt className="mx-auto h-56 w-auto text-olive md:h-64" accent={star.accent} latin={star.latin} />
+              )}
               <div className="mt-5 flex items-end justify-between">
                 <div>
                   <p className="text-[11px] text-muted">{star.country}</p>

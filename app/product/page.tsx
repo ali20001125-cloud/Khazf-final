@@ -230,7 +230,12 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
             {/* حاوية الكيس — جاهزة لأي صورة PNG لاحقاً */}
             <div className="bag-media relative flex h-[70%] items-center justify-center will-change-transform">
-              <BagArt className="h-full text-olive" accent={coffee.accent} latin={coffee.latin} />
+              {coffee.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coffee.image} alt={coffee.name} className="h-full w-full rounded-[18px] object-cover" />
+              ) : (
+                <BagArt className="h-full text-olive" accent={coffee.accent} latin={coffee.latin} />
+              )}
             </div>
             <div
               className="bag-shadow absolute bottom-[9%] h-3 w-[38%] rounded-full bg-ink blur-md"

@@ -94,11 +94,16 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
     <div className="group overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
       <Link href={`/product/?c=${coffee.slug}`} className="relative block">
         <div className="flex aspect-square items-center justify-center overflow-hidden bg-bg-alt">
-          <BagArt
-            className="h-[68%] text-olive transition-transform duration-500 group-hover:scale-[1.06]"
-            accent={coffee.accent}
-            latin={coffee.latin}
-          />
+          {coffee.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={coffee.image} alt={coffee.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]" />
+          ) : (
+            <BagArt
+              className="h-[68%] text-olive transition-transform duration-500 group-hover:scale-[1.06]"
+              accent={coffee.accent}
+              latin={coffee.latin}
+            />
+          )}
         </div>
         {coffee.isNew && <Badge label="جديد" />}
         <FavBtn id={`c:${coffee.slug}`} />

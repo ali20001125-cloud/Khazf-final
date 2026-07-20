@@ -1,6 +1,7 @@
 // ─── بيانات وهمية — v3 متجر متكامل ───
 
 export interface Coffee {
+  image?: string | null;
   slug: string;
   name: string;
   latin: string;
