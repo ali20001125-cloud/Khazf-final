@@ -19,9 +19,9 @@ export async function POST(req: Request) {
   const name = body.name?.trim() ?? "";
   const phone = body.phone?.trim() ?? "";
   const governorate = body.governorate?.trim() ?? "";
-  const address = body.address?.trim() ?? "";
+  const address = body.address?.trim() ?? "";  // اختياري — يُكمل بالطلب
 
-  if (!/^07\d{9}$/.test(phone) || !name || !governorate || !address)
+  if (!/^07\d{9}$/.test(phone) || !name || !governorate)
     return NextResponse.json({ error: "بيانات ناقصة" }, { status: 400 });
 
   // هوية المصادقة (من جلسة Supabase التي أنشأها signUp)
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       address: existing.address || address,
     }).where(eq(s.customers.phone, phone));
   } else {
-    await db.insert(s.customers).values({ phone, authUserId, name, governorate, address, email });
+    await db.insert(s.customers).values({ phone, authUserId, name, governorate, address: address || "", email });
   }
 
   await setCustomerCookie(phone);

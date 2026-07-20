@@ -196,7 +196,6 @@ function SignedOutView() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [gov, setGov] = useState("");
-  const [address, setAddress] = useState("");
   const [showPw, setShowPw] = useState(false);
 
   const google = async () => {
@@ -215,7 +214,6 @@ function SignedOutView() {
       if (!name.trim()) return setErr("اكتب اسمك");
       if (!/^07\d{9}$/.test(phone)) return setErr("رقم هاتف عراقي صحيح");
       if (!gov) return setErr("اختر محافظتك");
-      if (!address.trim()) return setErr("اكتب عنوانك");
     }
     setBusy(true);
     try {
@@ -227,7 +225,7 @@ function SignedOutView() {
         if (error) { setErr(transErr(error.message)); setBusy(false); return; }
         const r = await fetch("/api/customer/register/", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov, address }),
+          body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
         });
         if (!r.ok) { const d = await r.json(); setErr(d.error ?? "تعذّر الإنشاء"); setBusy(false); return; }
       } else {
@@ -272,7 +270,6 @@ function SignedOutView() {
             <option value="" disabled>اختر محافظتك</option>
             {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
-          <textarea rows={2} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="العنوان: المنطقة، أقرب نقطة دالة" className={inp} />
         </>)}
         {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
         <button onClick={submit} disabled={busy}
