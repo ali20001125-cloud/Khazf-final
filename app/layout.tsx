@@ -55,9 +55,22 @@ async function loadConfig(): Promise<SiteConfig> {
   }
 }
 
+const SITE = process.env.SITE_URL ?? "https://plum-tapir-959252.hostingersite.com";
+const DESC = "قهوة مختصة تُحمَّص باستمرار — محاصيل مختارة من إثيوبيا والبرازيل وكولومبيا، توصيل لكل محافظات العراق خلال يوم إلى يومين.";
+
 export const metadata: Metadata = {
-  title: "خزف — قهوة مختصة",
-  description: "محاصيل مختارة من إثيوبيا والبرازيل وكولومبيا وغواتيمالا — تُحمَّص باستمرار وتوصل لكل محافظات العراق. قهوةٌ صُنعت بصبر، لمن يعرف قيمة التوقّف.",
+  metadataBase: new URL(SITE),
+  title: { default: "خزف — قهوة مختصة", template: "%s · خزف" },
+  description: DESC,
+  keywords: ["خزف", "قهوة مختصة", "قهوة العراق", "قهوة اختصاص", "حبوب قهوة", "توصيل قهوة", "كالدي", "سيرادو", "الدورادو", "specialty coffee iraq"],
+  applicationName: "خزف",
+  openGraph: {
+    type: "website", locale: "ar_IQ", siteName: "خزف",
+    title: "خزف — قهوة مختصة", description: DESC, url: SITE,
+  },
+  twitter: { card: "summary_large_image", title: "خزف — قهوة مختصة", description: DESC },
+  robots: { index: true, follow: true },
+  alternates: { canonical: SITE },
 };
 
 export default async function RootLayout({
@@ -110,6 +123,12 @@ export default async function RootLayout({
             <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${analytics.ga}');` }} />
           </>
         )}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org", "@type": "Store", name: "خزف",
+          description: DESC, url: SITE, image: config.logoUrl || undefined,
+          address: { "@type": "PostalAddress", addressCountry: "IQ" },
+          priceRange: "IQD", servesCuisine: "قهوة مختصة",
+        }) }} />
         {analytics.pixel && (
           <script dangerouslySetInnerHTML={{ __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${analytics.pixel}');fbq('track','PageView');` }} />
         )}

@@ -79,6 +79,17 @@ export default function CheckoutPage() {
     setSending(false);
   };
 
+  /* حدث شراء لـ Pixel + GA عند نجاح الطلب */
+  useEffect(() => {
+    if (!done) return;
+    try {
+      // @ts-expect-error fbq عام
+      if (window.fbq) window.fbq("track", "Purchase", { value: done.total, currency: "IQD" });
+      // @ts-expect-error gtag عام
+      if (window.gtag) window.gtag("event", "purchase", { value: done.total, currency: "IQD", transaction_id: done.orderNumber });
+    } catch {}
+  }, [done]);
+
   /* ─── النجاح: حقيقة الخادم ─── */
   if (done)
     return (
