@@ -24,7 +24,10 @@ export default function Home() {
       <Hero />
       <PromoBanners />
       <CropsRail />
+      <BestSellers />
       <BoxTeaser />
+      <NewArrivals />
+      <StatementBanner />
       {activePlaces.includes("espresso_tools") && (
         <ToolsSection
           cat="إسبريسو"
@@ -33,7 +36,6 @@ export default function Home() {
           href="/products/?cat=espresso"
         />
       )}
-      <StatementBanner />
       {activePlaces.includes("drip_tools") && (
         <ToolsSection
           cat="تقطير"
@@ -42,8 +44,6 @@ export default function Home() {
           href="/products/?cat=drip"
         />
       )}
-      <NewArrivals />
-      <BestSellers />
       <JournalTeaser />
       <StartHere />
     </div>
