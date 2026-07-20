@@ -158,9 +158,14 @@ export default function BoxPage() {
               >
                 <Link
                   href={`/product/?c=${c.slug}`}
-                  className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-bg-alt"
+                  className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white"
                 >
-                  <BagArt className="h-[75%] text-olive" accent={c.accent} />
+                  {c.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <BagArt className="h-[75%] text-olive" accent={c.accent} />
+                  )}
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link href={`/product/?c=${c.slug}`}>
