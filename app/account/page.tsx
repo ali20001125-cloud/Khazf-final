@@ -192,6 +192,10 @@ function SignedOutView() {
       </p>
       <div className="reveal mt-8 space-y-3">
         <GoogleBtn />
+        <Link href="/login/"
+          className="block rounded-[16px] border border-line bg-card py-4 text-center text-[14.5px] font-bold transition-all hover:-translate-y-0.5 active:scale-[0.98]">
+          الدخول أو التسجيل بالإيميل
+        </Link>
         <Link href="/products/?cat=coffee"
           className="block rounded-[16px] bg-olive py-4 text-center text-[14.5px] font-bold text-olive-text active:scale-[0.98]">
           تسوّق كزائر
