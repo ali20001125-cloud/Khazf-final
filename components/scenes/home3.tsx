@@ -55,7 +55,7 @@ export function Hero() {
             <div className="rounded-[28px] border border-line bg-card p-7 transition-transform duration-300 hover:-translate-y-1.5">
               {star.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={star.image} alt={star.name} className="mx-auto aspect-square w-full max-w-[240px] rounded-[18px] object-contain" />
+                <img src={star.image} alt={star.name} className="mx-auto aspect-square w-full max-w-[240px] rounded-[18px] object-cover" />
               ) : (
                 <BagArt className="mx-auto h-56 w-auto text-olive md:h-64" accent={star.accent} latin={star.latin} />
               )}

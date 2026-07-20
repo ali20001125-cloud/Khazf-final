@@ -232,7 +232,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             <div className="bag-media relative flex aspect-square w-full items-center justify-center will-change-transform">
               {coffee.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={coffee.image} alt={coffee.name} className="h-full w-full rounded-[18px] object-contain" />
+                <img src={coffee.image} alt={coffee.name} className="h-full w-full rounded-[18px] object-cover" />
               ) : (
                 <BagArt className="h-full text-olive" accent={coffee.accent} latin={coffee.latin} />
               )}
