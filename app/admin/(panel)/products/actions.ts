@@ -51,7 +51,10 @@ function parseProduct(f: FormData) {
     })(),
     oosBehavior: (String(f.get("oosBehavior")) === "HIDE" ? "HIDE" : "SHOW_BADGE") as "HIDE" | "SHOW_BADGE",
     allowInBox: f.get("allowInBox") === "on",
-    images: (() => { const u = String(f.get("images") ?? "").trim(); return u ? [u] : []; })(),
+    images: (() => {
+      try { const a = JSON.parse(String(f.get("images") ?? "[]")); return Array.isArray(a) ? a.filter(Boolean) : []; }
+      catch { const u = String(f.get("images") ?? "").trim(); return u ? [u] : []; }
+    })(),
   };
 }
 

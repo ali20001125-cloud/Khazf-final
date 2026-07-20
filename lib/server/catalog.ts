@@ -79,6 +79,7 @@ function coffeeFromRow(
     desc: p.description ?? "",
     accent: ACCENTS[p.slug] ?? "#A66A4C",
     image: p.images?.[0] ?? null,
+    images: p.images ?? [],
     rating: agg?.avg ?? 0,
     reviewsCount: agg?.count ?? 0,
     brew: BREW_DEFAULT,

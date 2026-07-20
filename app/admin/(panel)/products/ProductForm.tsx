@@ -1,6 +1,6 @@
 /** نموذج المنتج — الأساسي أولاً، والباقي بطية «متقدم» */
 import { Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
-import ImageUpload from "@/components/admin/ImageUpload";
+import MultiImageUpload from "@/components/admin/MultiImageUpload";
 import { schema as s } from "@/lib/server/db";
 
 type P = Partial<typeof s.products.$inferSelect>;
@@ -31,7 +31,7 @@ export default function ProductForm({
         <Field label="سعر ٥٠٠غ" hint="فارغ = ما يظهر"><input name="priceG500" defaultValue={p.priceG500 ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="سعر الكيلو" hint="فارغ = ما يظهر"><input name="priceG1000" defaultValue={p.priceG1000 ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         {!isCoffee && <Field label="سعر القطعة"><input name="pricePiece" defaultValue={p.pricePiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>}
-        <Field label="صورة المنتج" hint="من جهازك"><ImageUpload name="images" initial={p.images?.[0] ?? null} /></Field>
+        <div className="sm:col-span-2"><Field label="صور المنتج" hint="ارفع عدة صور — الأولى الرئيسية"><MultiImageUpload name="images" initial={p.images ?? []} /></Field></div>
         <div className="flex items-end gap-5 pb-1">
           <label className="flex items-center gap-2 text-[13px] font-bold"><input type="checkbox" name="active" defaultChecked={p.active ?? true} className="h-4 w-4 accent-[#505445]" /> ظاهر بالمتجر</label>
           <label className="flex items-center gap-2 text-[13px] font-bold"><input type="checkbox" name="allowInBox" defaultChecked={p.allowInBox ?? isCoffee} className="h-4 w-4 accent-[#c9a961]" /> يدخل البوكس</label>

@@ -2,6 +2,7 @@
 
 export interface Coffee {
   image?: string | null;
+  images?: string[];
   slug: string;
   name: string;
   latin: string;

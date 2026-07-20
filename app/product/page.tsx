@@ -210,7 +210,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         <div className="md:sticky md:top-20 md:self-start">
           <div
             className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[24px] border border-line transition-colors duration-500"
-            style={{ background: tones[mediaTone] }}
+            style={{ background: coffee.images && coffee.images.length > 0 ? "#fff" : tones[mediaTone] }}
           >
             {/* الـ Chips العائمة (ديسكتوب) — تتبدّل حسب القسم */}
             {groups.map((g, gi) => (
@@ -230,9 +230,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
             {/* حاوية الكيس — جاهزة لأي صورة PNG لاحقاً */}
             <div className="bag-media relative flex aspect-square w-full items-center justify-center will-change-transform">
-              {coffee.image ? (
+              {coffee.images && coffee.images.length > 0 ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={coffee.image} alt={coffee.name} className="h-full w-full rounded-[18px] object-cover" />
+                <img src={coffee.images[mediaTone] ?? coffee.images[0]} alt={coffee.name} className="h-full w-full rounded-[18px] object-cover" />
               ) : (
                 <BagArt className="h-full text-olive" accent={coffee.accent} latin={coffee.latin} />
               )}
@@ -243,22 +243,25 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             />
           </div>
 
-          {/* مصغّرات المعرض */}
-          <div className="mt-3 grid grid-cols-3 gap-3">
-            {tones.map((t, i) => (
+          {/* مصغّرات المعرض — تظهر فقط عند تعدّد الصور */}
+          {(coffee.images && coffee.images.length > 1) && (
+          <div className="mt-3 grid grid-cols-4 gap-2.5">
+            {coffee.images.map((t, i) => (
               <button
                 key={i}
                 onClick={() => setMediaTone(i)}
                 aria-label={`صورة ${i + 1}`}
-                className={`flex aspect-square items-center justify-center rounded-[14px] border transition-all ${
+                className={`flex aspect-square items-center justify-center overflow-hidden rounded-[14px] border transition-all ${
                   mediaTone === i ? "border-accent" : "border-line opacity-70 hover:opacity-100"
                 }`}
-                style={{ background: t }}
+                style={{ background: "#fff" }}
               >
-                <BagArt className="h-[62%] text-olive" accent={coffee.accent} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={t} alt="" className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
+          )}
         </div>
 
         {/* لوحة الشراء */}
