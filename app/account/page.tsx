@@ -3,194 +3,209 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { User, Package, Heart, Wallet, MapPin, Settings, RotateCcw } from "lucide-react";
+import { Package, Heart, Wallet, ChevronLeft } from "lucide-react";
 import { formatIQD } from "@/lib/data";
-import { useCatalog } from "@/lib/catalog-context";
 import { useStore } from "@/lib/store";
+import { useCatalog } from "@/lib/catalog-context";
 import { useMotion } from "@/lib/motion";
 import { CoffeeCard, ToolCard } from "@/components/Cards";
 
-const tabs = [
-  { key: "orders", label: "الطلبات", Icon: Package },
-  { key: "fav", label: "المفضلة", Icon: Heart },
-  { key: "cashback", label: "الكاش باك", Icon: Wallet },
-];
+type JL = { level: number; rewardType: string; value: number; giftName: string | null };
+type Order = { orderNumber: string; status: string; total: number; createdAt: string };
+type Me = {
+  guest?: boolean; googleSession?: boolean; linked?: boolean;
+  name?: string; phone?: string; governorate?: string; address?: string;
+  pointsBalance?: number; pointsValueDinars?: number;
+  journeyOrders?: number; journeyLevels?: JL[]; orders?: Order[];
+};
+
+const rewardLabel = (l: JL) =>
+  l.rewardType === "PERCENT" ? `خصم ${l.value}٪`
+  : l.rewardType === "FREE_DELIVERY" ? "توصيل مجاني"
+  : l.giftName ?? "هدية";
+
+const statusText = (s: string) =>
+  s === "DELIVERED" ? "تم التوصيل" : s === "CANCELLED" ? "ملغى" : "قيد التنفيذ";
+
+export default function AccountPage() {
+  return <Suspense><AccountInner /></Suspense>;
+}
 
 function AccountInner() {
-  const params = useSearchParams();
   const scope = useMotion();
-  const { favorites, showToast } = useStore();
+  const params = useSearchParams();
+  const { favorites } = useStore();
   const { coffees, tools } = useCatalog();
-  type JL = { level: number; rewardType: string; value: number; giftName: string | null };
-type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: string; phone?: string; journeyLevels?: JL[]; pointsBalance?: number; pointsValueDinars?: number;
-    journeyOrders?: number; orders?: { orderNumber: string; status: string; total: number; createdAt: string }[] };
   const [me, setMe] = useState<Me | null>(null);
-  useEffect(() => { fetch("/api/customer/me/").then((r) => r.json()).then(setMe).catch(() => setMe({ guest: true })); }, []);
-  const [tab, setTab] = useState(params.get("tab") === "fav" ? "fav" : "orders");
+  const [tab, setTab] = useState<"orders" | "cashback" | "fav">(params.get("tab") === "fav" ? "fav" : "orders");
 
-  const favItems = favorites
-    .map((id) => {
-      const [k, slug] = id.split(":");
-      return k === "c" ? coffees.find((c) => c.slug === slug) : tools.find((t) => t.slug === slug);
-    })
-    .filter(Boolean);
+  useEffect(() => {
+    fetch("/api/customer/me/").then((r) => r.json()).then(setMe).catch(() => setMe({ guest: true }));
+  }, []);
 
+  const favItems = [...coffees, ...tools].filter((p) => favorites.includes(p.slug));
+
+  /* تحميل */
   if (!me) return (
-    <div className="mx-auto max-w-5xl px-4 pb-28 pt-28 md:px-8">
-      <div className="h-24 animate-pulse rounded-[22px] bg-bg-alt" />
-      <div className="mt-4 h-40 animate-pulse rounded-[22px] bg-bg-alt" />
-      <div className="mt-6 h-64 animate-pulse rounded-[22px] bg-bg-alt" />
+    <div className="mx-auto max-w-3xl px-4 pb-24 pt-28 md:px-8">
+      <div className="h-40 animate-pulse rounded-[24px] bg-bg-alt" />
+      <div className="mt-4 h-56 animate-pulse rounded-[24px] bg-bg-alt" />
     </div>
   );
 
+  /* ═══ زائر تماماً — شاشة دخول احترافية ═══ */
+  if (me.guest && !me.googleSession) return <SignedOutView />;
+
+  /* ═══ دخل بـ Google لكن لم يربط رقمه — خطوة الربط ═══ */
+  if (me.guest && me.googleSession) return <LinkStep />;
+
+  /* ═══ حساب كامل ═══ */
   return (
-    <div ref={scope} className="mx-auto max-w-5xl px-4 pb-24 pt-28 md:px-8 md:pt-32">
-      {/* ربط Google بجلسة غير مربوطة — إثبات ملكية */}
-      {me.googleSession && !me.linked && <LinkCard onLinked={() => location.reload()} />}
-
-      {/* من دخل Google لكن لم يربط رقمه بعد: بطاقة الربط فقط */}
-      {me.guest && me.googleSession && <LinkAfterGoogle />}
-      {/* زائر تماماً (لا جلسة): دعوة الدخول */}
-      {me.guest && !me.googleSession && <GuestGoogleCard />}
-
-      {/* البطاقة العلوية */}
-      <div className="reveal flex items-center gap-4 rounded-[22px] border border-line bg-card p-6">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-olive text-olive-text">
-          <User size={24} />
+    <div ref={scope} className="mx-auto max-w-3xl px-4 pb-24 pt-28 md:px-8 md:pt-32">
+      {/* بطاقة الرصيد + الرحلة */}
+      <div className="reveal rounded-[24px] bg-olive p-6 text-olive-text md:p-7">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[13px] opacity-80">أهلاً {me.name || "بك"}</p>
+            <p className="font-num mt-3 text-3xl font-bold">
+              {(me.pointsValueDinars ?? 0).toLocaleString("en")}<span className="ms-1 text-base font-semibold">د.ع</span>
+            </p>
+            <p className="font-num mt-1 text-[11.5px] opacity-70">رصيد الكاش باك · {me.pointsBalance ?? 0} نقطة</p>
+          </div>
+          <span className="font-num rounded-full bg-gold px-4 py-2 text-[13px] font-bold text-olive">
+            {Math.min(me.journeyOrders ?? 0, 6)}/6
+          </span>
         </div>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold">{me.name ?? "زائر"}</h1>
-          <p className="font-num text-[12px] text-muted" dir="ltr">{me.phone ?? "سجّل بطلبك الأول"}</p>
+        <div className="mt-6 flex items-center gap-1.5">
+          {(me.journeyLevels ?? []).slice(0, 6).map((l) => {
+            const done = (me.journeyOrders ?? 0) >= l.level;
+            return (
+              <div key={l.level} className="flex-1 text-center">
+                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${done ? "bg-gold text-olive" : "bg-olive-text/15 text-olive-text/70"}`}>
+                  {done ? "✓" : l.level}
+                </div>
+                <p className="mt-1.5 text-[8px] leading-tight opacity-80">{rewardLabel(l)}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* بطاقة الولاء — النقاط والرحلة بمكان واحد واضح */}
-      {!me.guest && (
-        <div className="reveal mt-4 rounded-[22px] bg-olive p-6 text-olive-text">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-[12px] opacity-80">رصيد الكاش باك</p>
-              <p className="font-num mt-1 text-3xl font-bold">
-                {((me.pointsBalance ?? 0) * 0 + (me.pointsValueDinars ?? 0)).toLocaleString("en")} <span className="text-sm font-semibold">د.ع</span>
-              </p>
-              <p className="font-num mt-0.5 text-[11px] opacity-70">{me.pointsBalance ?? 0} نقطة · تتفعّل فور توصيل طلبك</p>
-            </div>
-            <p className="font-num rounded-full bg-gold px-4 py-2 text-[13px] font-bold text-olive">
-              رحلتك {Math.min(me.journeyOrders ?? 0, 6)}/6
-            </p>
-          </div>
-          {/* مسار الرحلة */}
-          <div className="mt-5 flex items-center gap-1.5">
-            {(me.journeyLevels ?? []).slice(0, 6).map((l) => {
-              const doneStep = (me.journeyOrders ?? 0) >= l.level;
-              const label = l.rewardType === "PERCENT" ? `خصم ${l.value}٪`
-                : l.rewardType === "FREE_DELIVERY" ? "توصيل مجاني"
-                : l.giftName ?? "هدية";
-              return (
-                <div key={l.level} className="flex-1 text-center">
-                  <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${doneStep ? "bg-gold text-olive" : "bg-olive-text/15"}`}>
-                    {doneStep ? "✓" : l.level}
-                  </div>
-                  <p className="mt-1.5 text-[8.5px] leading-tight opacity-80">{label}</p>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-4 text-[11px] leading-relaxed opacity-80">
-            كل طلب يقرّبك لمكافأة تنصرف تلقائياً بطلبك الجاي — وكل ١٬٠٠٠ د = نقطة كاش باك
-          </p>
-        </div>
-      )}
-
       {/* التبويبات */}
-      <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2.5 text-[13px] font-bold transition-colors ${
-              tab === t.key ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted hover:text-ink"
-            }`}
-          >
-            <t.Icon size={14} /> {t.label}
+      <div className="reveal mt-5 flex gap-2">
+        {([["orders", "طلباتي", Package], ["cashback", "الكاش باك", Wallet], ["fav", "المفضلة", Heart]] as const).map(([k, label, Icon]) => (
+          <button key={k} onClick={() => setTab(k)}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-[14px] border py-3 text-[13px] font-bold transition-all ${
+              tab === k ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted"
+            }`}>
+            <Icon size={15} /> {label}
           </button>
         ))}
       </div>
 
       {/* المحتوى */}
-      <div className="mt-8">
+      <div className="reveal mt-5">
         {tab === "orders" && (
-          me.orders && me.orders.length > 0 ? (
-            <ul className="reveal-group space-y-3">
-              {me.orders.map((o) => (
-                <li key={o.orderNumber} className="flex flex-wrap items-center gap-4 rounded-[16px] border border-line bg-card p-5">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="font-num text-sm font-bold">{o.orderNumber}</span>
-                      <span className={`rounded-full px-3 py-0.5 text-[11px] font-semibold ${
-                        o.status === "DELIVERED" ? "bg-ok/10 text-ok" : o.status === "CANCELLED" ? "bg-accent/10 text-accent" : "bg-gold/10 text-gold"
-                      }`}>
-                        {o.status === "DELIVERED" ? "تم التوصيل" : o.status === "CANCELLED" ? "أُلغي" : "قيد التجهيز"}
-                      </span>
-                    </div>
-                    <p className="font-num mt-1 text-[11px] text-muted/70">{new Date(o.createdAt).toLocaleDateString("ar-IQ")}</p>
+          (me.orders ?? []).length > 0 ? (
+            <div className="space-y-2.5">
+              {me.orders!.map((o) => (
+                <Link key={o.orderNumber} href={`/invoice/?n=${o.orderNumber}&p=${me.phone}`}
+                  className="flex items-center justify-between rounded-[16px] border border-line bg-card px-5 py-4 transition-all hover:border-muted">
+                  <div>
+                    <p className="font-num text-[14px] font-bold">{o.orderNumber}</p>
+                    <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {new Date(o.createdAt).toLocaleDateString("ar-IQ", { dateStyle: "medium" })}</p>
                   </div>
-                  <span className="font-num text-sm font-bold">{formatIQD(o.total)}</span>
-                </li>
+                  <div className="flex items-center gap-2">
+                    <span className="font-num text-[13px] font-bold">{formatIQD(o.total)}</span>
+                    <ChevronLeft size={16} className="text-muted" />
+                  </div>
+                </Link>
               ))}
-              <Link href="/track/" className="block rounded-[16px] border border-dashed border-line py-4 text-center text-[13px] font-bold text-muted transition-colors hover:border-accent hover:text-accent">
-                تتبع طلب برقمه ←
-              </Link>
-            </ul>
-          ) : (
-            <div className="rounded-[20px] border border-dashed border-line py-16 text-center">
-              <Package size={26} className="mx-auto text-muted" />
-              <p className="mt-3 text-sm text-muted">ما عندك طلبات بعد — أول طلب يفتح رحلة مكافآتك</p>
-              <Link href="/products/?cat=coffee" className="btn btn-clay mt-6 inline-block !px-7 !py-3 text-sm">تسوّق القهوة</Link>
             </div>
-          )
+          ) : <Empty icon={Package} text="ما عندك طلبات بعد" cta />
+        )}
+
+        {tab === "cashback" && (
+          <div className="rounded-[20px] border border-line bg-card p-6 text-center">
+            <Wallet size={22} className="mx-auto text-accent" />
+            <p className="font-num mt-3 text-2xl font-bold">{(me.pointsValueDinars ?? 0).toLocaleString("en")} د.ع</p>
+            <p className="mt-1 text-[12px] text-muted">{me.pointsBalance ?? 0} نقطة — تُخصم تلقائياً من طلبك الجاي</p>
+            <p className="mt-4 text-[11.5px] leading-relaxed text-muted">
+              كل ١٬٠٠٠ دينار تشتريها = نقطة كاش باك، تتفعّل فور توصيل طلبك
+            </p>
+          </div>
         )}
 
         {tab === "fav" && (
           favItems.length > 0 ? (
-            <div className="reveal-group grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
-              {favItems.map((item) =>
-                item && "prices" in item ? (
-                  <CoffeeCard key={item.slug} coffee={item} />
-                ) : item ? (
-                  <ToolCard key={item.slug} tool={item} />
-                ) : null
+            <div className="grid grid-cols-2 gap-3">
+              {favItems.map((it) =>
+                "type" in it && it.type === "TOOL" ? <ToolCard key={it.slug} tool={it as never} /> : <CoffeeCard key={it.slug} coffee={it as never} />
               )}
             </div>
-          ) : (
-            <div className="rounded-[20px] border border-dashed border-line py-16 text-center">
-              <Heart size={26} className="mx-auto text-muted" />
-              <p className="mt-3 text-sm text-muted">ما عندك مفضلات بعد — اضغط القلب على أي منتج</p>
-              <Link href="/products/?cat=all" className="btn btn-clay mt-6 inline-block !px-7 !py-3 text-sm">تصفّح المتجر</Link>
-            </div>
-          )
+          ) : <Empty icon={Heart} text="ما عندك مفضلة بعد" cta />
         )}
-
-        {tab === "cashback" && (
-          <div className="reveal rounded-[22px] border border-line bg-card p-8 text-center">
-            <p className="text-[12px] text-muted">رصيدك الحالي</p>
-            <p className="font-num mt-2 text-4xl font-bold text-gold">{formatIQD(me.pointsValueDinars ?? 0)}</p>
-            <p className="mt-3 text-[13px] text-muted">تجمع ٣٪ من كل طلب — وتستخدمه خصماً من السلة</p>
-            <Link href="/cashback/" className="btn btn-olive mt-6 inline-block !px-8 !py-3.5 text-sm">
-              تفاصيل الكاش باك والعمليات
-            </Link>
-          </div>
-        )}
-
-        
-
-        
       </div>
+
+      {/* ربط Google (للمسجّل برقمه بلا Google) */}
+      {!me.googleSession && <ConnectGoogleHint />}
     </div>
   );
 }
 
-function LinkAfterGoogle() {
+function Empty({ icon: Icon, text, cta }: { icon: typeof Package; text: string; cta?: boolean }) {
+  return (
+    <div className="rounded-[20px] border border-dashed border-line bg-card p-10 text-center">
+      <Icon size={26} className="mx-auto text-muted" />
+      <p className="mt-3 text-[13.5px] font-semibold text-muted">{text}</p>
+      {cta && <Link href="/products/?cat=coffee" className="mt-4 inline-block rounded-full bg-olive px-6 py-2.5 text-[13px] font-bold text-olive-text">تسوّق الآن</Link>}
+    </div>
+  );
+}
+
+/* دخول Google بضغطة */
+async function startGoogle() {
+  const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
+  if (!supabaseEnabled) return;
+  const sb = supabaseBrowser();
+  await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback/?next=/account/` } });
+}
+
+function GoogleBtn({ label = "المتابعة عبر Google" }: { label?: string }) {
+  return (
+    <button onClick={startGoogle}
+      className="flex w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-card py-4 text-[14.5px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98]">
+      <svg width="19" height="19" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      {label}
+    </button>
+  );
+}
+
+/* ═══ شاشة الزائر — نظيفة واحترافية ═══ */
+function SignedOutView() {
+  const scope = useMotion();
+  return (
+    <div ref={scope} className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-6 pb-20 pt-28">
+      <h1 className="reveal text-center text-[26px] font-bold">حسابك في خزف</h1>
+      <p className="reveal mx-auto mt-3 max-w-xs text-center text-[13.5px] leading-relaxed text-muted">
+        ادخل بـ Google حتى توصلك طلباتك ونقاطك على أي جهاز — أو اطلب مباشرة بلا تسجيل.
+      </p>
+      <div className="reveal mt-8 space-y-3">
+        <GoogleBtn />
+        <Link href="/products/?cat=coffee"
+          className="block rounded-[16px] bg-olive py-4 text-center text-[14.5px] font-bold text-olive-text active:scale-[0.98]">
+          تسوّق كزائر
+        </Link>
+      </div>
+      <p className="reveal mt-6 text-center text-[11.5px] leading-relaxed text-muted">
+        كزائر: نقاطك تُحفظ برقم هاتفك وتُطبّق تلقائياً على طلباتك.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ خطوة ربط الرقم بعد Google ═══ */
+function LinkStep() {
   const { showToast } = useStore();
   const [phone, setPhone] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
@@ -205,100 +220,42 @@ function LinkAfterGoogle() {
       });
       const d = await r.json();
       if (!r.ok) showToast(d.error ?? "تعذّر الربط");
-      else { showToast("تم ربط حسابك ✓"); location.reload(); }
+      else { showToast("تم ✓"); location.reload(); }
     } catch { showToast("تعذّر الاتصال"); }
     setBusy(false);
   };
   return (
-    <div className="reveal mb-6 rounded-[22px] border border-gold/50 bg-gold/8 p-6">
-      <p className="text-[15px] font-bold">خطوة أخيرة — اربط رقمك</p>
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">
-        دخلت بحساب Google بنجاح ✓ — اكتب رقم هاتفك مرة واحدة فقط، فتظهر لك طلباتك ونقاطك على أي جهاز من الآن.
-        إذا عندك طلبات سابقة، أضف رقم أي طلب لإثبات ملكيتك (اختياري).
+    <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-6 pb-20 pt-28">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-ok/12 text-ok">✓</div>
+      <h1 className="mt-4 text-center text-[24px] font-bold">دخلت بنجاح</h1>
+      <p className="mx-auto mt-3 max-w-xs text-center text-[13.5px] leading-relaxed text-muted">
+        خطوة أخيرة لمرة واحدة: اكتب رقم هاتفك حتى نربط حسابك وتظهر طلباتك ونقاطك.
       </p>
-      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+      <div className="mt-7 space-y-3">
         <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11}
-          placeholder="07XXXXXXXXX" dir="ltr"
-          className="font-num rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
+          placeholder="رقم الهاتف — 07XXXXXXXXX" dir="ltr"
+          className="font-num w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-end text-[14px] outline-none focus:border-gold" />
         <input value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)}
-          placeholder="رقم طلب سابق (اختياري)" dir="ltr"
-          className="font-num rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
+          placeholder="رقم طلب سابق (اختياري — لاستعادة نقاطك)" dir="ltr"
+          className="font-num w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-end text-[13px] outline-none focus:border-gold" />
         <button onClick={link} disabled={busy}
-          className="btn rounded-[12px] !px-6 !py-3 text-sm text-olive disabled:opacity-50" style={{ background: "var(--gold)" }}>
-          {busy ? "…" : "اربط"}
+          className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
+          {busy ? "لحظة…" : "ربط الحساب"}
         </button>
       </div>
     </div>
   );
 }
 
-function GuestGoogleCard() {
-  const google = async () => {
-    const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
-    if (!supabaseEnabled) return;
-    const sb = supabaseBrowser();
-    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback/?next=/account/` } });
-  };
+/* تلميح ربط Google لمن يدخل برقمه فقط */
+function ConnectGoogleHint() {
   return (
-    <div className="reveal mb-6 rounded-[22px] border border-line bg-card p-6 text-center">
-      <p className="text-[15px] font-bold">احفظ حسابك على أي جهاز</p>
-      <p className="mx-auto mt-1.5 max-w-xs text-[12.5px] leading-relaxed text-muted">
-        تقدر تطلب مباشرة بلا تسجيل — أو ادخل بـ Google حتى توصلك طلباتك ونقاطك على أي جهاز
+    <div className="reveal mt-6 rounded-[18px] border border-dashed border-line bg-card p-5 text-center">
+      <p className="text-[13px] font-bold">اربط Google لحسابك</p>
+      <p className="mx-auto mt-1 mb-3 max-w-xs text-[11.5px] leading-relaxed text-muted">
+        حتى توصل لطلباتك ونقاطك من أي جهاز بضغطة، بلا رقم
       </p>
-      <button onClick={google}
-        className="mx-auto mt-4 flex items-center justify-center gap-3 rounded-[14px] border border-line bg-bg px-6 py-3.5 text-[14px] font-bold transition-all hover:-translate-y-0.5 active:scale-[0.98]">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        المتابعة عبر Google
-      </button>
+      <div className="mx-auto max-w-xs"><GoogleBtn label="ربط عبر Google" /></div>
     </div>
-  );
-}
-
-function LinkCard({ onLinked }: { onLinked: () => void }) {
-  const { showToast } = useStore();
-  const [phone, setPhone] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [busy, setBusy] = useState(false);
-  const link = async () => {
-    setBusy(true);
-    try {
-      const r = await fetch("/api/customer/link/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, orderNumber }),
-      });
-      const d = await r.json();
-      if (!r.ok) showToast(d.error ?? "تعذّر الربط");
-      else { showToast("تم ربط حسابك ✓"); onLinked(); }
-    } catch { showToast("تعذّر الاتصال"); }
-    setBusy(false);
-  };
-  return (
-    <div className="reveal mb-6 rounded-[20px] border border-gold/50 bg-gold/8 p-5">
-      <p className="text-sm font-bold">اربط رقمك بحساب Google</p>
-      <p className="mt-1 text-[12px] leading-relaxed text-muted">
-        حتى تشوف طلباتك ونقاطك من أي جهاز — أدخل هاتفك ورقم أي طلب سابق (موجود برسالة التأكيد)
-      </p>
-      <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-        <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11}
-          placeholder="07XXXXXXXXX" dir="ltr"
-          className="font-num rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
-        <input value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)}
-          placeholder="KHZ-1234" dir="ltr"
-          className="font-num rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
-        <button onClick={link} disabled={busy}
-          className="btn rounded-[12px] !px-6 !py-3 text-sm text-olive disabled:opacity-50" style={{ background: "var(--gold)" }}>
-          {busy ? "…" : "اربط"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export default function AccountPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <AccountInner />
-    </Suspense>
   );
 }
