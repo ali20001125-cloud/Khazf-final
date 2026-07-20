@@ -96,7 +96,7 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
         <div className="flex aspect-square items-center justify-center overflow-hidden bg-bg-alt">
           {coffee.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={coffee.image} alt={coffee.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]" />
+            <img src={coffee.image} alt={coffee.name} className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.06]" />
           ) : (
             <BagArt
               className="h-[68%] text-olive transition-transform duration-500 group-hover:scale-[1.06]"
