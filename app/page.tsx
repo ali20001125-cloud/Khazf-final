@@ -2,6 +2,7 @@
 
 import PromoBanners from "@/components/scenes/PromoBanners";
 import { useMotion } from "@/lib/motion";
+import { useCatalog } from "@/lib/catalog-context";
 import {
   Hero,
   StatementBanner,
@@ -16,6 +17,7 @@ import {
 
 export default function Home() {
   const scope = useMotion();
+  const { activePlaces } = useCatalog();
 
   return (
     <div ref={scope}>
@@ -23,19 +25,23 @@ export default function Home() {
       <PromoBanners />
       <CropsRail />
       <BoxTeaser />
-      <ToolsSection
-        cat="إسبريسو"
-        title="أدوات الإسبريسو"
-        sub="من التامبر إلى البيتشر — عدّة الشوت المثالي"
-        href="/products/?cat=espresso"
-      />
+      {activePlaces.includes("espresso_tools") && (
+        <ToolsSection
+          cat="إسبريسو"
+          title="أدوات الإسبريسو"
+          sub="من التامبر إلى البيتشر — عدّة الشوت المثالي"
+          href="/products/?cat=espresso"
+        />
+      )}
       <StatementBanner />
-      <ToolsSection
-        cat="تقطير"
-        title="أدوات التقطير"
-        sub="كل ما تحتاجه لكوب V60 نظيف"
-        href="/products/?cat=drip"
-      />
+      {activePlaces.includes("drip_tools") && (
+        <ToolsSection
+          cat="تقطير"
+          title="أدوات التقطير"
+          sub="كل ما تحتاجه لكوب V60 نظيف"
+          href="/products/?cat=drip"
+        />
+      )}
       <NewArrivals />
       <BestSellers />
       <JournalTeaser />
