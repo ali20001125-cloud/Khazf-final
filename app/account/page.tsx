@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Package, Heart, Wallet, ChevronLeft } from "lucide-react";
+import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { useCatalog } from "@/lib/catalog-context";
@@ -197,6 +197,7 @@ function SignedOutView() {
   const [phone, setPhone] = useState("");
   const [gov, setGov] = useState("");
   const [address, setAddress] = useState("");
+  const [showPw, setShowPw] = useState(false);
 
   const google = async () => {
     const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
@@ -258,7 +259,13 @@ function SignedOutView() {
       <div className="reveal space-y-3">
         {mode === "signup" && <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم الكامل" className={inp} />}
         <input type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="الإيميل" className={`${inp} text-end`} />
-        <input type="password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="كلمة السر" className={`${inp} text-end`} />
+        <div className="relative">
+          <input type={showPw ? "text" : "password"} dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="كلمة السر" className={`${inp} text-end pe-12`} />
+          <button type="button" onClick={() => setShowPw((v) => !v)} tabIndex={-1}
+            className="absolute inset-y-0 start-3 flex items-center text-muted" aria-label="إظهار كلمة السر">
+            {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
         {mode === "signup" && (<>
           <input dir="ltr" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11} placeholder="07XXXXXXXXX" className={`font-num ${inp} text-end`} />
           <select value={gov} onChange={(e) => setGov(e.target.value)} className={`appearance-none ${inp} ${gov ? "" : "text-muted"}`}>
