@@ -48,8 +48,10 @@ type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: s
       {/* ربط Google بجلسة غير مربوطة — إثبات ملكية */}
       {me.googleSession && !me.linked && <LinkCard onLinked={() => location.reload()} />}
 
-      {/* الزائر: دعوة لدخول Google */}
-      {me.guest && <GuestGoogleCard />}
+      {/* من دخل Google لكن لم يربط رقمه بعد: بطاقة الربط فقط */}
+      {me.guest && me.googleSession && <LinkAfterGoogle />}
+      {/* زائر تماماً (لا جلسة): دعوة الدخول */}
+      {me.guest && !me.googleSession && <GuestGoogleCard />}
 
       {/* البطاقة العلوية */}
       <div className="reveal flex items-center gap-4 rounded-[22px] border border-line bg-card p-6">
@@ -183,6 +185,48 @@ type Me = { guest?: boolean; googleSession?: boolean; linked?: boolean; name?: s
         
 
         
+      </div>
+    </div>
+  );
+}
+
+function LinkAfterGoogle() {
+  const { showToast } = useStore();
+  const [phone, setPhone] = useState("");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [busy, setBusy] = useState(false);
+  const link = async () => {
+    if (phone.length < 10) return showToast("اكتب رقم هاتفك");
+    setBusy(true);
+    try {
+      const r = await fetch("/api/customer/link/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, orderNumber }),
+      });
+      const d = await r.json();
+      if (!r.ok) showToast(d.error ?? "تعذّر الربط");
+      else { showToast("تم ربط حسابك ✓"); location.reload(); }
+    } catch { showToast("تعذّر الاتصال"); }
+    setBusy(false);
+  };
+  return (
+    <div className="reveal mb-6 rounded-[22px] border border-gold/50 bg-gold/8 p-6">
+      <p className="text-[15px] font-bold">خطوة أخيرة — اربط رقمك</p>
+      <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">
+        دخلت بحساب Google بنجاح ✓ — اكتب رقم هاتفك مرة واحدة فقط، فتظهر لك طلباتك ونقاطك على أي جهاز من الآن.
+        إذا عندك طلبات سابقة، أضف رقم أي طلب لإثبات ملكيتك (اختياري).
+      </p>
+      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+        <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11}
+          placeholder="07XXXXXXXXX" dir="ltr"
+          className="font-num rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
+        <input value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)}
+          placeholder="رقم طلب سابق (اختياري)" dir="ltr"
+          className="font-num rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
+        <button onClick={link} disabled={busy}
+          className="btn rounded-[12px] !px-6 !py-3 text-sm text-olive disabled:opacity-50" style={{ background: "var(--gold)" }}>
+          {busy ? "…" : "اربط"}
+        </button>
       </div>
     </div>
   );
