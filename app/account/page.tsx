@@ -13,7 +13,7 @@ import { CoffeeCard, ToolCard } from "@/components/Cards";
 type JL = { level: number; rewardType: string; value: number; giftName: string | null };
 type Order = { orderNumber: string; status: string; total: number; createdAt: string };
 type Me = {
-  guest?: boolean; googleSession?: boolean; linked?: boolean;
+  guest?: boolean; googleSession?: boolean; linked?: boolean; hasAuth?: boolean;
   name?: string; phone?: string; governorate?: string; address?: string;
   pointsBalance?: number; pointsValueDinars?: number;
   journeyOrders?: number; journeyLevels?: JL[]; orders?: Order[];
@@ -147,8 +147,8 @@ function AccountInner() {
         )}
       </div>
 
-      {/* ربط Google (للمسجّل برقمه بلا Google) */}
-      {!me.googleSession && <ConnectGoogleHint />}
+      {/* ربط Google — فقط لمن ليس لديه أي حساب مصادقة (لا Google ولا إيميل) */}
+      {!me.hasAuth && !me.googleSession && <ConnectGoogleHint />}
 
       <button onClick={signOut} className="reveal mx-auto mt-8 block text-[12.5px] font-semibold text-muted">
         تسجيل الخروج

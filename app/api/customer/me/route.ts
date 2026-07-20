@@ -27,7 +27,7 @@ export async function GET() {
     .orderBy(desc(s.orders.createdAt))
     .limit(10);
   return NextResponse.json({
-    googleSession: !!authUser, linked,
+    googleSession: !!authUser, linked, hasAuth: !!c.authUserId,
     phone: c.phone, name: c.name, governorate: c.governorate, address: c.address,
     pointsBalance: balance, pointsValueDinars: balance * (await getSettings()).pointValue,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
