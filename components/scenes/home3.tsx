@@ -19,7 +19,7 @@ export function Hero() {
   const { logoUrl } = useSiteConfig();
   const { coffees } = useCatalog();
   const scope = useRef<HTMLElement>(null);
-  const star = coffees[0];
+  const star = coffees.find((c) => c.image) ?? coffees[0];
 
   useGSAP(() => {
     if (reduced()) { gsap.set(".hr-in", { opacity: 1 }); return; }
