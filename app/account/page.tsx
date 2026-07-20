@@ -222,7 +222,18 @@ function SignedOutView() {
       const sb = supabaseBrowser();
       if (mode === "signup") {
         const { data, error } = await sb.auth.signUp({ email, password });
-        if (error) { setErr(transErr(error.message)); setBusy(false); return; }
+        if (error) {
+          if (error.message.toLowerCase().includes("already")) {
+            setMode("signin"); setErr("هذا الإيميل مسجّل — اكتب كلمة سرّك وسجّل دخول"); setBusy(false); return;
+          }
+          setErr(transErr(error.message)); setBusy(false); return;
+        }
+        // لو Confirm email مفعّل: ما تُنشأ جلسة — نبلّغ الزبون
+        if (!data.session) {
+          setMode("signin");
+          setErr("أنشئنا حسابك ✓ سجّل دخول الآن بنفس الإيميل وكلمة السر");
+          setBusy(false); return;
+        }
         const r = await fetch("/api/customer/register/", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
