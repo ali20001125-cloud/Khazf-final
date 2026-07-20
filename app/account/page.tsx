@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
+import { normalizeIqPhone } from "@/lib/phone";
 import { useStore } from "@/lib/store";
 import { useCatalog } from "@/lib/catalog-context";
 import { useMotion } from "@/lib/motion";
@@ -212,7 +213,7 @@ function SignedOutView() {
     if (password.length < 6) return setErr("كلمة السر ٦ أحرف على الأقل");
     if (mode === "signup") {
       if (!name.trim()) return setErr("اكتب اسمك");
-      if (!/^07\d{9}$/.test(phone)) return setErr("رقم هاتف عراقي صحيح");
+      if (!normalizeIqPhone(phone)) return setErr("رقم هاتف عراقي صحيح");
       if (!gov) return setErr("اختر محافظتك");
     }
     setBusy(true);
@@ -317,7 +318,7 @@ function LinkStep() {
   const [gov, setGov] = useState("");
   const [busy, setBusy] = useState(false);
   const complete = async () => {
-    if (!/^07\d{9}$/.test(phone)) return showToast("رقم هاتف عراقي صحيح");
+    if (!normalizeIqPhone(phone)) return showToast("رقم هاتف عراقي صحيح");
     if (!gov) return showToast("اختر محافظتك");
     setBusy(true);
     try {

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, HandCoins, Gift, Sparkles, ArrowLeft , ChevronDown } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
+import { normalizeIqPhone } from "@/lib/phone";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { useMotion } from "@/lib/motion";
 
@@ -45,7 +46,7 @@ export default function CheckoutPage() {
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
   const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
   const deliveryFee = freeDelivery ? 0 : config.deliveryPrice;
-  const estTotal = Math.max(0, subtotal - box.discount + deliveryFee);
+  const estTotal = Math.ceil(Math.max(0, subtotal - box.discount + deliveryFee) / 250) * 250;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +59,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.trim() || "زبون خزف",
-          phone: form.phone.trim(),
+          phone: normalizeIqPhone(form.phone) ?? form.phone.trim(),
           email: form.email.trim() || null,
           governorate: form.governorate,
           address: form.address.trim(),

@@ -4,6 +4,7 @@
  * يلتحم بها فترجع نقاطه القديمة تلقائياً.
  */
 import { NextResponse } from "next/server";
+import { normalizeIqPhone } from "@/lib/phone";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getSupabaseUser } from "@/lib/server/customer-identity";
@@ -17,13 +18,13 @@ export async function POST(req: Request) {
   };
   const email = body.email?.trim() ?? "";
   const name = body.name?.trim() ?? "";
-  const phone = body.phone?.trim() ?? "";
+  const phone = normalizeIqPhone(body.phone ?? "") ?? "";
   const governorate = body.governorate?.trim() ?? "";
   const address = body.address?.trim() ?? "";  // اختياري — يُكمل بالطلب
 
   const user = await getSupabaseUser();
   const gName = name || (user?.email ? user.email.split("@")[0] : "صديق خزف");
-  if (!/^07\d{9}$/.test(phone) || !governorate)
+  if (!phone || !governorate)
     return NextResponse.json({ error: "بيانات ناقصة" }, { status: 400 });
 
   const authUserId = user?.id ?? null;
