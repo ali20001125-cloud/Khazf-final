@@ -149,6 +149,10 @@ function AccountInner() {
 
       {/* ربط Google (للمسجّل برقمه بلا Google) */}
       {!me.googleSession && <ConnectGoogleHint />}
+
+      <button onClick={signOut} className="reveal mx-auto mt-8 block text-[12.5px] font-semibold text-muted">
+        تسجيل الخروج
+      </button>
     </div>
   );
 }
@@ -329,9 +333,21 @@ function LinkStep() {
           className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
           {busy ? "لحظة…" : "ربط الحساب"}
         </button>
+        <button onClick={signOut} className="w-full py-2 text-[12.5px] font-semibold text-muted">
+          تسجيل الخروج
+        </button>
       </div>
     </div>
   );
+}
+
+async function signOut() {
+  try {
+    const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
+    if (supabaseEnabled) await supabaseBrowser().auth.signOut();
+    await fetch("/api/customer/logout/", { method: "POST" }).catch(() => {});
+  } catch {}
+  location.href = "/account/";
 }
 
 /* تلميح ربط Google لمن يدخل برقمه فقط */

@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { clearCustomerCookie } from "@/lib/server/customer-session";
-
+import { cookies } from "next/headers";
 export const runtime = "nodejs";
-
 export async function POST() {
-  await clearCustomerCookie();
+  const jar = await cookies();
+  jar.set("khz_customer", "", { path: "/", maxAge: 0 });
   return NextResponse.json({ ok: true });
 }
