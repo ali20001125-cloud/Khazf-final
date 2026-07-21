@@ -33,12 +33,26 @@ export async function getCustomerIdentity(): Promise<{
 }> {
   const authUser = await getSupabaseUser();
   if (authUser) {
-    const [c] = await db
+    // ١) ربط مباشر بمعرّف المصادقة
+    const [byAuth] = await db
       .select({ phone: s.customers.phone })
       .from(s.customers)
       .where(eq(s.customers.authUserId, authUser.id));
-    if (c) return { phone: c.phone, authUser, linked: true };
-    /* جلسة Google بلا ربط بعد — الكوكي القديم قد يكمّل */
+    if (byAuth) return { phone: byAuth.phone, authUser, linked: true };
+    // ٢) لم يُربط بعد؟ ابحث بالإيميل واربطه تلقائياً (تسجيل إيميل قبل التأكيد)
+    if (authUser.email) {
+      const [byEmail] = await db
+        .select({ phone: s.customers.phone })
+        .from(s.customers)
+        .where(eq(s.customers.email, authUser.email));
+      if (byEmail) {
+        await db.update(s.customers)
+          .set({ authUserId: authUser.id })
+          .where(eq(s.customers.phone, byEmail.phone));
+        return { phone: byEmail.phone, authUser, linked: true };
+      }
+    }
+    /* جلسة بلا ربط بعد — الكوكي القديم قد يكمّل */
     return { phone: await getCustomerPhone(), authUser, linked: false };
   }
   return { phone: await getCustomerPhone(), authUser: null, linked: false };
