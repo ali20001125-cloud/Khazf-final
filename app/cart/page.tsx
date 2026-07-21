@@ -75,15 +75,11 @@ export default function CartPage() {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         {/* الأسطر */}
         <div className="space-y-3">
-          {cart.map((i) => (
+          {/* عناصر مفردة (خارج البوكس) */}
+          {cart.filter((i) => i.boxGroup == null).map((i) => (
             <div key={i.key} className="flex items-center gap-4 rounded-[18px] border border-line bg-card p-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold">
-                  {i.name}
-                  {i.boxGroup != null && (
-                    <span className="ms-2 rounded-full bg-gold/15 px-2.5 py-0.5 text-[10px] font-bold text-gold">بوكس</span>
-                  )}
-                </p>
+                <p className="truncate font-bold">{i.name}</p>
                 {i.meta && <p className="mt-0.5 text-[12px] text-muted">{i.meta}</p>}
                 <p className="font-num mt-1 text-[13px] font-semibold">{formatIQD(i.priceShown)}</p>
               </div>
@@ -96,14 +92,44 @@ export default function CartPage() {
             </div>
           ))}
 
-          {box.bags > 0 && (
-            <div className="rounded-[16px] bg-olive/8 border border-olive/20 px-5 py-3.5 text-[13px] font-semibold">
-              بوكس <span className="font-num">{box.bags}</span> أكياس
-              {box.pct > 0 && <> — خصم <span className="font-num">{box.pct}٪</span></>}
-              {box.freeDelivery && " + توصيل مجاني"}
-              {box.gift && (boxGiftChoice ? ` + هدية «${boxGiftChoice}»` : " + هدية تختارها")}
-            </div>
-          )}
+          {/* البوكس — بطاقة واحدة مجمّعة */}
+          {(() => {
+            const boxItems = cart.filter((i) => i.boxGroup != null);
+            if (boxItems.length === 0) return null;
+            const boxBags = boxItems.reduce((t, i) => t + i.qty, 0);
+            const boxSubtotal = boxItems.reduce((t, i) => t + i.priceShown * i.qty, 0);
+            return (
+              <div className="rounded-[18px] border border-gold/40 bg-gold/[0.06] p-4">
+                <div className="flex items-center justify-between">
+                  <p className="flex items-center gap-2 font-bold">
+                    <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-[11px] font-bold text-gold">البوكس الثلاثي</span>
+                    <span className="font-num text-[13px] text-muted">{boxBags} أكياس</span>
+                  </p>
+                  <button onClick={() => boxItems.forEach((i) => removeFromCart(i.key))} aria-label="احذف البوكس" className="text-muted transition-colors hover:text-accent"><Trash2 size={16} /></button>
+                </div>
+                <div className="mt-3 space-y-1.5 border-t border-gold/20 pt-3">
+                  {boxItems.map((i) => (
+                    <div key={i.key} className="flex items-center justify-between text-[12.5px]">
+                      <span className="text-muted">{i.name} <span className="font-num">×{i.qty}</span></span>
+                      <span className="font-num">{formatIQD(i.priceShown * i.qty)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-gold/20 pt-3 text-[13px] font-bold">
+                  <span>مجموع البوكس</span>
+                  <span className="font-num">{formatIQD(boxSubtotal)}</span>
+                </div>
+                {(box.pct > 0 || box.freeDelivery || box.gift) && (
+                  <p className="mt-2.5 text-[12px] font-semibold text-gold">
+                    {box.pct > 0 && <>خصم {box.pct}٪ </>}
+                    {box.freeDelivery && "· توصيل مجاني "}
+                    {box.gift && (boxGiftChoice ? `· هدية «${boxGiftChoice}»` : "· هدية تختارها")}
+                    <span className="text-muted"> — يُطبّق عند الإتمام</span>
+                  </p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* الملخص */}
