@@ -445,12 +445,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
               {[
-                { l: "المعالجة", v: coffee.process },
                 { l: "المنطقة", v: coffee.region },
-                { l: "الارتفاع", v: coffee.altitude },
                 { l: "السلالة", v: coffee.variety },
                 { l: "التحميص", v: coffee.roast },
-                { l: "الدولة", v: coffee.country },
               ].map((s) => (
                 <div key={s.l} className="rounded-[14px] border border-line bg-card px-4 py-3.5">
                   <p className="text-[11px] text-muted">{s.l}</p>
