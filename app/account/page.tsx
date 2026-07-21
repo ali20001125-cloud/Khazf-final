@@ -229,10 +229,15 @@ function SignedOutView() {
           }
           setErr(transErr(error.message)); setBusy(false); return;
         }
-        // لو Confirm email مفعّل: ما تُنشأ جلسة — نبلّغ الزبون
+        // Confirm email مفعّل: نحفظ الملف مبدئياً، ونطلب تأكيد الإيميل
         if (!data.session) {
+          // نسجّل بيانات الزبون بانتظار التأكيد (يُربط بـ authUserId عند أول دخول)
+          await fetch("/api/customer/register/", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
+          }).catch(() => {});
           setMode("signin");
-          setErr("أنشئنا حسابك ✓ سجّل دخول الآن بنفس الإيميل وكلمة السر");
+          setErr("أرسلنا رابط تأكيد إلى بريدك ✓ افتح الإيميل واضغط الرابط، ثم سجّل الدخول");
           setBusy(false); return;
         }
         const r = await fetch("/api/customer/register/", {
