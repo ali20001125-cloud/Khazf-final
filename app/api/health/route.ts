@@ -28,6 +28,12 @@ export async function GET() {
     supabase_url_public: (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) ? "URL_OK" : "URL_MISSING",
     supabase_anon_public: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_API_KEY || process.env.SUPABASE_ANON_KEY) ? "ANON_OK" : "ANON_MISSING",
     google_login_ready: ((process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_API_KEY || process.env.SUPABASE_ANON_KEY)) ? "READY ✓" : "زر Google مخفي — مفاتيح ناقصة",
+    smtp_host: process.env.SMTP_HOST ? "HOST_OK" : "HOST_MISSING",
+    smtp_user: process.env.SMTP_USER ? "USER_OK" : "USER_MISSING",
+    smtp_pass: process.env.SMTP_PASS ? "PASS_OK" : "PASS_MISSING",
+    smtp_from: process.env.MAIL_FROM ? "FROM_OK" : "FROM_MISSING",
+    smtp_admin: process.env.ADMIN_EMAIL ? "ADMIN_OK" : "ADMIN_MISSING",
+    smtp_ready: (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ? "EMAIL READY ✓" : "بريد غير مكتمل — تحقق من متغيرات هوستنجر",
     service_key: (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SECRET_KEY || process.env.SERVICE_ROLE_KEY) ? "SERVICE_KEY_OK" : "SERVICE_KEY_MISSING",
     port: url.split(":").pop()?.split("/")[0] ?? "—",
   };
