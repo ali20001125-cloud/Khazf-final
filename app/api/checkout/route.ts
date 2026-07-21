@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     if (firstOrder || linkedToMe) await setCustomerCookie(phone);
 
     /* إشعارات الإيميل (لا توقف الطلب إن فشلت) */
-    const site = process.env.SITE_URL ?? "https://plum-tapir-959252.hostingersite.com";
+    const site = process.env.SITE_URL ?? "https://khazf.shop";
     const invoiceUrl = `${site}/invoice/?n=${result.orderNumber}&p=${encodeURIComponent(phone)}`;
     emailNewOrderAdmin({ orderNumber: result.orderNumber, name: body.name?.trim() || "زبون خزف", phone, governorate: body.governorate, total: result.total, invoiceUrl }).catch(() => {});
     emailOrderCustomer({ email: body.email?.trim() || null, orderNumber: result.orderNumber, name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl }).catch(() => {});

@@ -56,7 +56,7 @@ async function loadConfig(): Promise<SiteConfig> {
   }
 }
 
-const SITE = process.env.SITE_URL ?? "https://plum-tapir-959252.hostingersite.com";
+const SITE = process.env.SITE_URL ?? "https://khazf.shop";
 const DESC = "قهوة مختصة تُحمَّص باستمرار — محاصيل مختارة من إثيوبيا والبرازيل وكولومبيا، توصيل لكل محافظات العراق خلال يوم إلى يومين.";
 
 export const metadata: Metadata = {
