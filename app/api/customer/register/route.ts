@@ -36,12 +36,13 @@ export async function POST(req: Request) {
 
   if (existing) {
     // التحام بحساب قائم (نقاطه القديمة تبقى) — نكمل الحقول الناقصة
+    const newEmail = (email || user?.email || "").trim();
     await db.update(s.customers).set({
       authUserId: authUserId ?? existing.authUserId,
-      email: email || existing.email,
-      name: existing.name || gName,
-      governorate: existing.governorate || governorate,
-      address: existing.address || address,
+      email: newEmail || existing.email,   // الإيميل الأحدث يُحدّث الحساب
+      name: name || existing.name || gName, // الاسم الأحدث أولاً
+      governorate: governorate || existing.governorate,
+      address: address || existing.address,
     }).where(eq(s.customers.phone, phone));
   } else {
     await db.insert(s.customers).values({ phone, authUserId, name: gName, governorate, address: address || "", email: email || user?.email || null });
