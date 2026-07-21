@@ -86,7 +86,7 @@ export default function BoxPage() {
   }, []);
 
   return (
-    <div ref={scope} className="pb-32 pt-24 md:pt-28">
+    <div ref={scope} className="pb-32 pt-20 md:pt-24">
       {/* شريط ثابت مصغّر — يظهر عند النزول */}
       <div className={`fixed inset-x-0 top-0 z-30 border-b border-line bg-bg/95 backdrop-blur transition-all duration-300 ${showBar ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}`}>
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5">
@@ -103,43 +103,43 @@ export default function BoxPage() {
         </div>
       </div>
       <div className="mx-auto max-w-3xl px-4 md:px-6">
-        {/* رأس مبسّط — بلا مشاهد سينمائية */}
+        {/* رأس مضغوط */}
         <div className="text-center">
           <p className="reveal font-num text-[10px] tracking-[0.4em] text-muted">
             BUILD YOUR BOX
           </p>
-          <h1 className="reveal mt-3 text-3xl font-bold md:text-4xl">اصنع بوكسك</h1>
-          <p className="reveal mt-2 text-sm text-muted">
+          <h1 className="reveal mt-2 text-[26px] font-bold md:text-3xl">اصنع صندوقك</h1>
+          <p className="reveal mt-1.5 text-[13px] text-muted">
             اختر أكياسك بنفسك — والمكافأة تكبر مع كل كيس
           </p>
 
-          {/* العدّاد */}
-          <div className="mt-8">
+          {/* العدّاد — مضغوط */}
+          <div className="mt-5">
             <span
-              className={`big-count inline-block text-[80px] font-bold leading-none transition-colors duration-300 ${
+              className={`big-count inline-block text-[54px] font-bold leading-none transition-colors duration-300 ${
                 count > 0 ? "text-accent" : "text-line"
               }`}
               style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
             >
               {count}
             </span>
-            <p className="mt-1 text-sm text-muted">{count === 1 ? "كيس" : "أكياس"}</p>
+            <p className="mt-0.5 text-[13px] text-muted">{count === 1 ? "كيس" : "أكياس"}</p>
           </div>
 
           {/* التقدّم والمحطات */}
-          <div className="mt-7 h-2 overflow-hidden rounded-full bg-bg-alt">
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-bg-alt">
             <i
               className="block h-full rounded-full bg-accent transition-all duration-500"
               style={{ width: `${Math.min(count / 6, 1) * 100}%` }}
             />
           </div>
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="mt-3 grid grid-cols-4 gap-2">
             {tiers.map((t, i) => {
               const on = count >= i + 3;
               return (
                 <div key={t.n} className="text-center">
                   <div
-                    className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors ${
+                    className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full border-2 text-[13px] font-bold transition-colors ${
                       on
                         ? t.gold
                           ? "border-gold bg-gold text-olive"
@@ -151,7 +151,7 @@ export default function BoxPage() {
                     {t.n}
                   </div>
                   <p
-                    className={`mt-2 text-[11px] font-semibold ${
+                    className={`mt-1.5 text-[10.5px] font-semibold ${
                       on ? (t.gold ? "text-gold" : "text-accent") : "text-muted"
                     }`}
                   >
@@ -162,13 +162,13 @@ export default function BoxPage() {
             })}
           </div>
 
-          <p className="mt-7 inline-block rounded-full bg-bg-alt px-6 py-2.5 text-[13px] font-semibold">
+          <p className="mt-5 inline-block rounded-full bg-bg-alt px-5 py-2 text-[12.5px] font-semibold">
             {hintFor(count)}
           </p>
         </div>
 
         {/* المحاصيل */}
-        <div className="reveal-group mt-10 space-y-4">
+        <div className="reveal-group mt-7 space-y-3">
           {coffees.map((c) => {
             const n = bags[c.slug] ?? 0;
             return (
