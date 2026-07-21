@@ -11,10 +11,10 @@ export default function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="تواصل عبر واتساب"
-      className="fixed bottom-5 end-5 z-40 flex h-13 w-13 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/20 transition-transform hover:scale-105 active:scale-95"
-      style={{ height: 52, width: 52 }}
+      className="fixed bottom-24 end-4 z-30 flex items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/25 transition-transform hover:scale-105 active:scale-95 md:bottom-6"
+      style={{ height: 48, width: 48 }}
     >
-      <MessageCircle size={26} fill="white" strokeWidth={0} />
+      <MessageCircle size={24} fill="white" strokeWidth={0} />
     </a>
   );
 }

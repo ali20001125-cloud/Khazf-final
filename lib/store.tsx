@@ -181,7 +181,12 @@ export function boxPreview(cart: CartItem[], tiers: BoxTier[]) {
       if (t.rewardType === "FREE_DELIVERY") freeDelivery = true;
       if (t.rewardType === "GIFT") gift = true;
     }
-  return { bags, discount: Math.round((subtotal * pct) / 100), pct, freeDelivery, gift };
+  const rawDiscount = Math.round((subtotal * pct) / 100);
+  // الإجمالي بعد الخصم يتقرّب لأعلى ٢٥٠ (رقم يُدفع بالورق) — الزبون يبقى وافّراً
+  const afterRaw = Math.max(0, subtotal - rawDiscount);
+  const afterRounded = Math.ceil(afterRaw / 250) * 250;
+  const discount = subtotal - afterRounded;
+  return { bags, discount: Math.max(0, discount), pct, freeDelivery, gift };
 }
 
 export function GlobalToast() {

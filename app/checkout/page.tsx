@@ -48,9 +48,22 @@ export default function CheckoutPage() {
   const deliveryFee = freeDelivery ? 0 : config.deliveryPrice;
   const estTotal = Math.ceil(Math.max(0, subtotal - box.discount + deliveryFee) / 250) * 250;
 
+  const goTo = (id: string, msg: string) => {
+    showToast(msg);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => (el as HTMLElement).focus({ preventScroll: true }), 400);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+    // تحقق ودود بالترتيب
+    if (!normalizeIqPhone(form.phone)) return goTo("f-phone", "اكتب رقم هاتفك الصحيح");
+    if (!form.governorate) return goTo("f-gov", "اختر محافظتك");
+    if (!form.address.trim()) return goTo("f-address", "اكتب عنوانك حتى يوصلك الطلب");
     setSending(true);
     const note = form.note.trim();
     try {
@@ -149,15 +162,22 @@ export default function CheckoutPage() {
           <section className="reveal">
             <h2 className="mb-4 text-lg font-bold">بيانات التوصيل</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              {/* ١) الهاتف */}
-              <input required type="tel" inputMode="tel" dir="ltr" placeholder="07XX XXX XXXX — رقم الهاتف" value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
-                className={`${inputCls} text-end font-num sm:col-span-2`} maxLength={11} />
+              {/* ١) الهاتف — بمؤشر صحة فوري */}
+              <div className="relative sm:col-span-2">
+                <input id="f-phone" required type="tel" inputMode="tel" dir="ltr" placeholder="07XX XXX XXXX — رقم الهاتف" value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
+                  className={`${inputCls} w-full text-end font-num ${normalizeIqPhone(form.phone) ? "!border-ok" : ""}`} maxLength={11} />
+                {normalizeIqPhone(form.phone) && (
+                  <span className="absolute inset-y-0 start-3 flex items-center gap-1 text-[11px] font-bold text-ok">
+                    <Check size={14} strokeWidth={3} /> صحيح
+                  </span>
+                )}
+              </div>
 
               {/* ٢) المحافظة — قائمة بارزة */}
               <div className="relative sm:col-span-2">
                 <span className="pointer-events-none absolute -top-2 end-3 bg-bg px-2 text-[10.5px] font-bold text-accent">المحافظة *</span>
-                <select required value={form.governorate}
+                <select id="f-gov" required value={form.governorate}
                   onChange={(e) => setForm({ ...form, governorate: e.target.value })}
                   className={`w-full appearance-none rounded-[14px] border-2 bg-card px-4 py-3.5 text-[14px] font-bold outline-none transition-colors ${
                     form.governorate ? "border-line" : "border-accent/50 text-muted"
@@ -169,7 +189,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* ٣) العنوان */}
-              <input required placeholder="العنوان: المنطقة، أقرب نقطة دالة" value={form.address}
+              <input id="f-address" required placeholder="العنوان: المنطقة، أقرب نقطة دالة" value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
 
