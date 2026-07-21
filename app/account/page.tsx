@@ -15,6 +15,7 @@ type JL = { level: number; rewardType: string; value: number; giftName: string |
 type Order = { orderNumber: string; status: string; total: number; createdAt: string };
 type Me = {
   guest?: boolean; googleSession?: boolean; linked?: boolean; hasAuth?: boolean;
+  email?: string | null;
   name?: string; phone?: string; governorate?: string; address?: string;
   pointsBalance?: number; pointsValueDinars?: number;
   journeyOrders?: number; journeyLevels?: JL[]; orders?: Order[];
@@ -66,9 +67,14 @@ function AccountInner() {
       {/* بطاقة الرصيد + الرحلة */}
       <div className="reveal rounded-[24px] bg-olive p-6 text-olive-text md:p-7">
         <div className="flex items-start justify-between">
-          <div>
-            <p className="text-[13px] opacity-80">أهلاً {me.name || "بك"}</p>
-            <p className="font-num mt-3 text-3xl font-bold">
+          <div className="min-w-0">
+            <p className="text-[15px] font-bold">أهلاً، {me.name || "صديق خزف"}</p>
+            {(me.phone || me.email) && (
+              <p className="font-num mt-0.5 truncate text-[11px] opacity-65" dir="ltr">
+                {me.phone}{me.phone && me.email ? " · " : ""}{me.email}
+              </p>
+            )}
+            <p className="font-num mt-4 text-3xl font-bold">
               {(me.pointsValueDinars ?? 0).toLocaleString("en")}<span className="ms-1 text-base font-semibold">د.ع</span>
             </p>
             <p className="font-num mt-1 text-[11.5px] opacity-70">رصيد الكاش باك · {me.pointsBalance ?? 0} نقطة</p>
@@ -222,7 +228,7 @@ function SignedOutView() {
       if (!supabaseEnabled) { setErr("غير متاح حالياً"); setBusy(false); return; }
       const sb = supabaseBrowser();
       if (mode === "signup") {
-        const { data, error } = await sb.auth.signUp({ email, password });
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/account/` } });
         if (error) {
           if (error.message.toLowerCase().includes("already")) {
             setMode("signin"); setErr("هذا الإيميل مسجّل — اكتب كلمة سرّك وسجّل دخول"); setBusy(false); return;

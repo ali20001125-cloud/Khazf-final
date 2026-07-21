@@ -28,7 +28,7 @@ export async function GET() {
     .limit(10);
   return NextResponse.json({
     googleSession: !!authUser, linked, hasAuth: !!c.authUserId,
-    phone: c.phone, name: c.name, governorate: c.governorate, address: c.address,
+    phone: c.phone, name: c.name, email: c.email, governorate: c.governorate, address: c.address,
     pointsBalance: balance, pointsValueDinars: balance * (await getSettings()).pointValue,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
     journeyLevels: (await db.select({ level: s.journeyLevels.level, rewardType: s.journeyLevels.rewardType, value: s.journeyLevels.value, giftName: s.journeyLevels.giftName }).from(s.journeyLevels).orderBy(asc(s.journeyLevels.level))),
