@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef } from "react";
 import { Minus, Plus, Gift, Coffee as CoffeeIcon, Layers } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
@@ -20,6 +22,59 @@ const tiers = [
 ];
 
 const GIFT_ICONS = [CoffeeIcon, Layers, GiftIcon];
+
+/* ══ المقدّمة المثبّتة: بطاقات بحركات متنوّعة ══ */
+function BoxIntro() {
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (reduced() || !wrap.current) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const ctx = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>(".fcard");
+      const dots = gsap.utils.toArray<HTMLElement>(".pd");
+      gsap.set(cards[0], { scale: 0.6, opacity: 0 });
+      gsap.set(cards[1], { xPercent: 60, rotation: 8, opacity: 0 });
+      gsap.set(cards[2], { yPercent: 50, scale: 1.15, opacity: 0 });
+      const setDot = (i: number) => dots.forEach((d, j) => d.classList.toggle("on", j === i));
+      const tl = gsap.timeline({ scrollTrigger: { trigger: wrap.current, start: "top top", end: "bottom bottom", pin: ".pin-stage", scrub: 1 } });
+      tl.to(cards[0], { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)", onStart: () => setDot(0) }, 0)
+        .to(cards[0], { scale: 1.3, opacity: 0, rotation: -6, duration: 0.5, ease: "power2.in" }, 1)
+        .to(cards[1], { xPercent: 0, rotation: 0, opacity: 1, duration: 0.6, ease: "power3.out", onStart: () => setDot(1) }, 1.1)
+        .to(cards[1], { xPercent: -60, rotation: -8, opacity: 0, duration: 0.5, ease: "power2.in" }, 2.1)
+        .to(cards[2], { yPercent: 0, scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.5)", onStart: () => setDot(2) }, 2.2)
+        .to(cards[2], { scale: 1, opacity: 1, duration: 0.4 }, 3);
+    }, wrap);
+    return () => ctx.revert();
+  }, []);
+
+  const steps = [
+    { k: "٠١ · الاختيار", h: "محاصيلك التي تختارها", p: "أربعة محاصيل مختصّة من أربع أراضٍ. امزج أو كرّر ما يناسب ذوقك — كل كيس ٢٥٠ غرامًا." },
+    { k: "٠٢ · التكوين", h: "ثلاثة أكياس فأكثر", p: "لا حدّ أقصى. كلّما أضفت كيسًا، زاد توفيرك — يصل الخصم إلى ٢٠٪." },
+    { k: "٠٣ · المكافأة", h: "مكافآت تكبر معك", p: "توصيل مجّاني عند خمسة أكياس، وهديّة تختارها عند ستّة — دون رموز أو شروط." },
+  ];
+
+  return (
+    <div ref={wrap} style={{ height: "360vh", position: "relative" }}>
+      <style>{`.pd.on{background:var(--accent);width:22px;border-radius:99px}`}</style>
+      <div className="pin-stage flex h-screen flex-col items-center justify-center px-5 text-center">
+        <p className="font-num text-[10px] tracking-[0.4em] text-muted">BUILD YOUR BOX</p>
+        <h1 className="mt-2 text-[24px] font-bold md:text-3xl">اصنع صندوقك في ثلاث خطوات</h1>
+        <div className="relative mt-7 h-[210px] w-full max-w-[320px]">
+          {steps.map((st, i) => (
+            <div key={i} className="fcard absolute inset-0 flex flex-col items-center justify-center rounded-[22px] border border-line bg-card px-6 py-7 text-center shadow-[0_24px_60px_-28px_rgba(61,66,48,0.4)]">
+              <p className="font-amiri text-[13px] font-bold tracking-wide text-muted" style={{ fontFamily: "'Amiri', serif" }}>{st.k}</p>
+              <h3 className="mt-1.5 text-[21px] font-bold">{st.h}</h3>
+              <p className="mt-2 max-w-[260px] text-[13px] leading-relaxed text-muted">{st.p}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 flex gap-2">
+          {[0,1,2].map((i) => <span key={i} className={`pd h-2 w-2 rounded-full bg-line transition-all ${i===0?"on":""}`} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function hintFor(count: number): string {
   if (count === 0) return "ابدأ بأول كيس — كل كيس يقرّبك لمكافأة";
@@ -80,13 +135,14 @@ export default function BoxPage() {
   };
 
   useEffect(() => {
-    const onScroll = () => setShowBar(window.scrollY > 340);
+    const onScroll = () => setShowBar(window.scrollY > window.innerHeight * 3.4);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div ref={scope} className="pb-32 pt-20 md:pt-24">
+    <div ref={scope} className="pb-32">
+      <BoxIntro />
       {/* شريط ثابت مصغّر — يظهر عند النزول */}
       <div className={`fixed inset-x-0 top-0 z-30 border-b border-line bg-bg/95 backdrop-blur transition-all duration-300 ${showBar ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}`}>
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5">
