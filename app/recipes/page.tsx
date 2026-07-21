@@ -128,29 +128,6 @@ const methods: Method[] = [
       };
     },
   },
-  {
-    key: "french", name: "فرنش برس", latin: "FRENCH PRESS",
-    doseMin: 15, doseMax: 40, doseDefault: 20,
-    build: (d) => {
-      const water = Math.round((d * 15) / 10) * 10;
-      return {
-        grind: "خشن — مثل فتات الخبز",
-        total: 240,
-        stats: [
-          { l: "الماء", v: `${water}مل` },
-          { l: "الحرارة", v: "93°" },
-          { l: "النقع", v: "4 دقائق" },
-          { l: "التحريك", v: "مرة وحدة" },
-          { l: "الوقت الكلي", v: "04:00" },
-        ],
-        steps: [
-          { label: `اسكب ${water}مل كاملة وحرّك مرة`, at: 0 },
-          { label: "غطِّ بدون كبس واصبر", at: 20 },
-          { label: "اكبس ببطء… واسكب فوراً", at: 220 },
-        ],
-      };
-    },
-  },
 ];
 
 /* ════════ المؤقت ════════ */

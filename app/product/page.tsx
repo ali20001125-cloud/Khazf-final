@@ -464,8 +464,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
           <Link href="/recipes/"
             className="reveal flex items-center justify-between rounded-[20px] border border-line bg-card px-6 py-5 transition-all hover:-translate-y-0.5">
             <span>
-              <span className="block text-[15px] font-bold">شلون أحضّرها؟</span>
-              <span className="mt-0.5 block text-[12px] text-muted">وصفات V60 والإسبريسو والفرنش برس خطوة بخطوة</span>
+              <span className="block text-[15px] font-bold">كيف أحضّرها؟</span>
+              <span className="mt-0.5 block text-[12px] text-muted">وصفات V60 والإسبريسو خطوة بخطوة</span>
             </span>
             <ArrowLeft size={17} className="text-accent" />
           </Link>
