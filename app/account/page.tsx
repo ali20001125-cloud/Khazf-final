@@ -214,15 +214,22 @@ function GoogleBtn({ label = "المتابعة عبر Google" }: { label?: strin
 /* ═══ الزائر: دخول + تسجيل موحّد (Google + إيميل كامل) ═══ */
 function SignedOutView() {
   const scope = useMotion();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [gov, setGov] = useState("");
-  const [showPw, setShowPw] = useState(false);
+  const [needProfile, setNeedProfile] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   const google = async () => {
     const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
@@ -232,63 +239,55 @@ function SignedOutView() {
     await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback/?next=/account/` } });
   };
 
-  const submit = async () => {
+  // إرسال الرمز للإيميل
+  const sendCode = async () => {
     setErr("");
     if (!/^\S+@\S+\.\S+$/.test(email)) return setErr("اكتب إيميلاً صحيحاً");
-    if (password.length < 6) return setErr("كلمة السر ٦ أحرف على الأقل");
-    if (mode === "signup") {
+    setBusy(true);
+    try {
+      const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
+      if (!supabaseEnabled) { setErr("غير متاح حالياً"); setBusy(false); return; }
+      const sb = supabaseBrowser();
+      // نتحقق: هل الإيميل له حساب زبون (فيه اسم ورقم)؟
+      const chk = await fetch(`/api/customer/exists/?email=${encodeURIComponent(email)}`).then((r) => r.json()).catch(() => ({ exists: false }));
+      setNeedProfile(!chk.exists);
+      const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      if (error) { setErr("تعذّر إرسال الرمز — تأكد من الإيميل"); setBusy(false); return; }
+      setStep("otp"); setCooldown(45); setBusy(false);
+    } catch { setErr("تعذّر الاتصال"); setBusy(false); }
+  };
+
+  // التحقق من الرمز
+  const verify = async () => {
+    setErr("");
+    if (code.trim().length < 6) return setErr("اكتب الرمز المكوّن من ٦ أرقام");
+    if (needProfile) {
       if (!name.trim()) return setErr("اكتب اسمك");
       if (!normalizeIqPhone(phone)) return setErr("رقم هاتف عراقي صحيح");
       if (!gov) return setErr("اختر محافظتك");
     }
     setBusy(true);
     try {
-      const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
-      if (!supabaseEnabled) { setErr("غير متاح حالياً"); setBusy(false); return; }
+      const { supabaseBrowser } = await import("@/lib/supabase-browser");
       const sb = supabaseBrowser();
-      if (mode === "signup") {
-        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/account/` } });
-        if (error) {
-          if (error.message.toLowerCase().includes("already")) {
-            setMode("signin"); setErr("هذا الإيميل مسجّل — اكتب كلمة سرّك وسجّل دخول"); setBusy(false); return;
-          }
-          setErr(transErr(error.message)); setBusy(false); return;
-        }
-        // Confirm email مفعّل: نحفظ الملف مبدئياً، ونطلب تأكيد الإيميل
-        // نسجّل بيانات الزبون
-        await fetch("/api/customer/register/", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
-        }).catch(() => {});
-        // لو لم تُفتح جلسة (التأكيد مفعّل) نحاول الدخول فوراً بكلمة السر
-        if (!data.session) {
-          const { error: siErr } = await sb.auth.signInWithPassword({ email, password });
-          if (siErr) {
-            // التأكيد ما زال مفعّلاً بـSupabase — رسالة لطيفة
-            setMode("signin");
-            setErr("أنشأنا حسابك ✓ سجّل الدخول الآن بإيميلك وكلمة سرّك");
-            setBusy(false); return;
-          }
-        }
-        const r = await fetch("/api/customer/register/", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
-        });
-        if (!r.ok) { const d = await r.json(); setErr(d.error ?? "تعذّر الإنشاء"); setBusy(false); return; }
-      } else {
-        const { error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) { setErr(transErr(error.message)); setBusy(false); return; }
-      }
+      const { data, error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: "email" });
+      if (error) { setErr("الرمز غير صحيح أو منتهٍ — أعد الإرسال"); setBusy(false); return; }
+      // حفظ/ربط ملف الزبون
+      await fetch("/api/customer/register/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
+      }).catch(() => {});
       location.reload();
     } catch { setErr("تعذّر الاتصال"); setBusy(false); }
   };
 
   const inp = "w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-[14px] outline-none focus:border-accent";
+
   return (
     <div ref={scope} className="mx-auto max-w-sm px-6 pb-24 pt-28">
-      <h1 className="reveal text-center text-[26px] font-bold">{mode === "signin" ? "حسابك في خزف" : "إنشاء حساب"}</h1>
+      <h1 className="reveal text-center text-[26px] font-bold">حسابك في خزف</h1>
       <p className="reveal mx-auto mt-2.5 max-w-xs text-center text-[13px] leading-relaxed text-muted">
-        {mode === "signin" ? "ادخل لتتابع طلباتك ونقاطك على أي جهاز" : "سجّل مرة واحدة، وتابع كل شي من أي جهاز"}
+        بلا كلمات سر — رمز يصلك على إيميلك ويدخّلك
       </p>
 
       <button onClick={google} disabled={busy}
@@ -301,36 +300,51 @@ function SignedOutView() {
         <span className="h-px flex-1 bg-line" /> أو بالإيميل <span className="h-px flex-1 bg-line" />
       </div>
 
-      <div className="reveal space-y-3">
-        {mode === "signup" && <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم الكامل" className={inp} />}
-        <input type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="الإيميل" className={`${inp} text-end`} />
-        <div className="relative">
-          <input type={showPw ? "text" : "password"} dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="كلمة السر" className={`${inp} text-end pe-12`} />
-          <button type="button" onClick={() => setShowPw((v) => !v)} tabIndex={-1}
-            className="absolute inset-y-0 start-3 flex items-center text-muted" aria-label="إظهار كلمة السر">
-            {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+      {step === "email" ? (
+        <div className="reveal space-y-3">
+          <input type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="الإيميل" className={`${inp} text-end`} />
+          {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
+          <button onClick={sendCode} disabled={busy}
+            className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
+            {busy ? "لحظة…" : "أرسل رمز الدخول"}
+          </button>
+          <p className="text-center text-[11px] leading-relaxed text-muted">
+            يصلك رمز من ٦ أرقام على إيميلك. إن لم تجده خلال دقيقة، تحقّق من مجلد <b>الرسائل المزعجة (Spam)</b>.
+          </p>
+        </div>
+      ) : (
+        <div className="reveal space-y-3">
+          <p className="text-center text-[13px] text-muted">
+            أرسلنا رمزاً إلى<br/><b dir="ltr" className="text-ink">{email}</b>
+          </p>
+          <input dir="ltr" inputMode="numeric" maxLength={6} value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            placeholder="______"
+            className={`font-num ${inp} text-center !text-2xl tracking-[0.5em]`} />
+          {needProfile && (<>
+            <p className="pt-1 text-center text-[12px] font-semibold text-muted">أكمل بياناتك (مرة واحدة)</p>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم الكامل" className={inp} />
+            <input dir="ltr" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11} placeholder="07XXXXXXXXX" className={`font-num ${inp} text-end`} />
+            <select value={gov} onChange={(e) => setGov(e.target.value)} className={`appearance-none ${inp} ${gov ? "" : "text-muted"}`}>
+              <option value="" disabled>اختر محافظتك</option>
+              {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </>)}
+          {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
+          <button onClick={verify} disabled={busy}
+            className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
+            {busy ? "لحظة…" : "دخول"}
+          </button>
+          <button onClick={cooldown > 0 ? undefined : sendCode} disabled={cooldown > 0}
+            className="w-full py-2 text-[12.5px] font-semibold text-muted disabled:opacity-50">
+            {cooldown > 0 ? `إعادة الإرسال بعد ${cooldown} ث` : "لم يصلك الرمز؟ أعد الإرسال"}
+          </button>
+          <button onClick={() => { setStep("email"); setCode(""); setErr(""); }} className="w-full text-[12px] text-muted">
+            تغيير الإيميل
           </button>
         </div>
-        {mode === "signup" && (<>
-          <input dir="ltr" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11} placeholder="07XXXXXXXXX" className={`font-num ${inp} text-end`} />
-          <select value={gov} onChange={(e) => setGov(e.target.value)} className={`appearance-none ${inp} ${gov ? "" : "text-muted"}`}>
-            <option value="" disabled>اختر محافظتك</option>
-            {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
-        </>)}
-        {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
-        <button onClick={submit} disabled={busy}
-          className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
-          {busy ? "لحظة…" : mode === "signin" ? "دخول" : "إنشاء الحساب"}
-        </button>
-      </div>
+      )}
 
-      <p className="reveal mt-5 text-center text-[13px] text-muted">
-        {mode === "signin" ? "ما عندك حساب؟" : "عندك حساب؟"}{" "}
-        <button onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setErr(""); }} className="font-bold text-accent">
-          {mode === "signin" ? "أنشئ حساباً" : "سجّل دخول"}
-        </button>
-      </p>
       <Link href="/products/?cat=coffee" className="reveal mt-6 block text-center text-[12.5px] font-semibold text-muted">
         أو تسوّق كزائر بلا تسجيل ←
       </Link>
