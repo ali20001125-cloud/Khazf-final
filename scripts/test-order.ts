@@ -86,8 +86,8 @@ async function main() {
   const r5 = await createOrder({ ...base, phone: "07701234567",
     items: [{ slug: "cerrado", variant: "G250", qty: 1 }] });
   const [o5] = await db.select().from(s.orders).where(eq(s.orders.id, r5.orderId));
-  ok(o5.journeyDiscount === 1200 && r5.appliedJourney?.level === 1, `مستوى ١: خصم 1,200 (٥٪): ${o5.journeyDiscount}`);
-  ok(o5.totalRaw === 25800 && r5.total === 26000, `خام 25,800 → مقرَّب 26,000: ${r5.total}`);
+  ok(o5.journeyDiscount === 1250 && r5.appliedJourney?.level === 1, `مستوى ١: خصم ٥٪ مقرّب لأعلى ٢٥٠ = 1,250: ${o5.journeyDiscount}`);
+  ok(r5.total === 25750, `الإجمالي بعد خصم ١٢٥٠ + توصيل، مقرّب: ${r5.total}`);
   ok(!!r5.nextRewardMessage?.includes("توصيل"), `رسالة المكافأة القادمة: ${r5.nextRewardMessage}`);
 
   console.log("── ٦) كود عام TEST10 ──");
