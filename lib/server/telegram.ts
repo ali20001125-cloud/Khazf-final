@@ -6,6 +6,11 @@ type OrderMsg = {
   governorate: string; address: string; total: number;
   items: { name: string; qty: number; line: number }[];
   invoiceUrl: string;
+  itemsSubtotal?: number;      // مجموع المنتجات قبل التوصيل
+  deliveryCharged?: number;    // التوصيل المدفوع (منفرد)
+  journeyDiscount?: number;    // خصم الرحلة/الولاء
+  journeyPct?: number;         // نسبة الخصم المعروضة
+  pointsUsed?: number;         // الكاش باك المستخدم
 };
 
 export async function notifyTelegram(text: string): Promise<boolean> {
@@ -30,12 +35,19 @@ export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
     const s = await getInternalSettings();
     if (!s.notifyNewOrder || !s.telegramBotToken || !s.telegramChatId) return false;
     const lines = o.items.map((it) => `• ${it.name} ×${it.qty} — ${it.line.toLocaleString("en")}`).join("\n");
+    const money = (n: number) => n.toLocaleString("en");
+    let breakdown = "";
+    if (o.itemsSubtotal != null) breakdown += `المنتجات: ${money(o.itemsSubtotal)} د.ع\n`;
+    if (o.journeyDiscount) breakdown += `خصم الولاء${o.journeyPct ? ` (${o.journeyPct}٪)` : ""}: −${money(o.journeyDiscount)} د.ع\n`;
+    if (o.pointsUsed) breakdown += `كاش باك مستخدم: −${money(o.pointsUsed)} د.ع\n`;
+    breakdown += `التوصيل: ${o.deliveryCharged ? money(o.deliveryCharged) + " د.ع" : "مجاني"}\n`;
     const text =
       `🆕 <b>طلب جديد #${o.seqNo ?? "?"}</b>\n` +
       `━━━━━━━━━━━━\n` +
       `👤 ${o.name}\n📞 ${o.phone}\n📍 ${o.governorate} — ${o.address}\n` +
       `━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━\n` +
-      `💰 <b>الإجمالي: ${o.total.toLocaleString("en")} د.ع</b> (كاش)\n` +
+      breakdown +
+      `💰 <b>الإجمالي: ${money(o.total)} د.ع</b> (كاش)\n` +
       `🧾 فاتورة: ${o.orderNumber}`;
     const base = `https://api.telegram.org/bot${s.telegramBotToken}`;
     const res = await fetch(`${base}/sendMessage`, {

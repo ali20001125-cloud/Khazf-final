@@ -154,7 +154,8 @@ export async function createOrder(input: CheckoutInput) {
       freeDeliveryJourney = false,
       journeyGiftName: string | null = null,
       journeyRewardType: "PERCENT" | "FIXED" | "FREE_DELIVERY" | "GIFT" | null = null,
-      appliedLevel = 0;
+      appliedLevel = 0,
+      journeyPctValue = 0;
     if (customer?.journeyActive && customer.journeyOrders >= 1 && customer.journeyOrders <= 6) {
       const [lvl] = await tx
         .select()
@@ -163,7 +164,7 @@ export async function createOrder(input: CheckoutInput) {
       if (lvl) {
         appliedLevel = lvl.level;
         journeyRewardType = lvl.rewardType;
-        if (lvl.rewardType === "PERCENT") journeyDiscount = Math.round((itemsSubtotal * lvl.value) / 100);
+        if (lvl.rewardType === "PERCENT") { journeyPctValue = lvl.value; journeyDiscount = Math.ceil((itemsSubtotal * lvl.value) / 100 / 250) * 250; }
         else if (lvl.rewardType === "FIXED") journeyDiscount = Math.min(lvl.value, itemsSubtotal - couponDiscount);
         else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = true;
         else {
@@ -194,17 +195,11 @@ export async function createOrder(input: CheckoutInput) {
     /* استخدام النقاط على الإجمالي شامل التوصيل — حتى يهبط لرقم يُدفع بالورق */
     if (input.usePoints && customer && customer.pointsBalance > 0) {
       const preTotal = Math.max(0, afterDiscounts) + deliveryCharged;
-      const budget = Math.min(customer.pointsBalance * settings.pointValue, preTotal);
-      const step = settings.pointValue; // النقطة لا تتجزأ
-      let d = Math.floor(budget / step) * step;
-      let best = -1;
-      while (d >= 0) {
-        if ((preTotal - d) % 250 === 0) { best = d; break; }
-        d -= step;
-      }
-      // إن تعذّرت المطابقة التامة: خذ الأقصى والكسر يتقرّب لأعلى بصمت
-      pointsUsedDinars = best >= 0 ? best : Math.floor(budget / step) * step;
-      pointsUsedCount = pointsUsedDinars / step;
+      const available = customer.pointsBalance * settings.pointValue;
+      // يُستخدم بمضاعفات ٢٥٠ فقط، لا يتجاوز الرصيد ولا الإجمالي
+      const cap = Math.min(available, preTotal);
+      pointsUsedDinars = Math.floor(cap / 250) * 250;
+      pointsUsedCount = pointsUsedDinars / settings.pointValue;
     }
 
     /* ── ٧) الإجمالي + التقريب لأعلى ٢٥٠ (مخفي عن الزبون) ── */
@@ -354,6 +349,9 @@ export async function createOrder(input: CheckoutInput) {
       seqNo,
       items: lines.map((l) => ({ nameSnapshot: l.name, qty: l.qty, lineTotal: l.lineTotal })),
       total,
+      itemsSubtotal,
+      journeyDiscount,
+      journeyPct: journeyPctValue,
       pointsEarned,
       pointsUsedDinars,
       deliveryCharged,

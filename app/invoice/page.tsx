@@ -15,6 +15,8 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
   if (!o)
     return <div className="mx-auto max-w-md px-6 pt-40 text-center text-sm text-muted">الفاتورة غير موجودة — تأكد من الرابط</div>;
   const items = await db.select().from(s.orderItems).where(eq(s.orderItems.orderId, o.id));
+  const [cfg] = await db.select().from(s.settings).where(eq(s.settings.id, 1));
+  const logoUrl = cfg?.logoUrl ?? null;
   const rows = [
     { l: "المنتجات", v: formatIQD(o.itemsSubtotal) },
     ...(o.quantityDiscount ? [{ l: "خصم البوكس", v: `− ${formatIQD(o.quantityDiscount)}` }] : []),
@@ -28,8 +30,13 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
       <div className="rounded-[22px] border border-line bg-card p-7 print:border-0">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-2xl font-bold">خزف</p>
-            <p className="font-num mt-0.5 text-[10px] tracking-[0.3em] text-muted">SPECIALTY COFFEE</p>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="خزف" className="h-11 w-auto" />
+            ) : (
+              <p className="text-2xl font-bold">خزف</p>
+            )}
+            <p className="font-num mt-1 text-[10px] tracking-[0.3em] text-muted">SPECIALTY COFFEE</p>
           </div>
           <div className="text-end">
             <p className="font-num text-lg font-bold">{o.orderNumber}</p>

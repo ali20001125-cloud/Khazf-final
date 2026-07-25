@@ -51,6 +51,11 @@ export async function POST(req: Request) {
       orderNumber: result.orderNumber, seqNo: result.seqNo, name: body.name?.trim() || "زبون خزف",
       phone, governorate: body.governorate, address: body.address,
       total: result.total, invoiceUrl,
+      itemsSubtotal: result.itemsSubtotal,
+      deliveryCharged: result.deliveryCharged,
+      journeyDiscount: result.journeyDiscount,
+      journeyPct: result.journeyPct,
+      pointsUsed: result.pointsUsedDinars,
       items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal })) ?? [],
     }).catch(() => {});
 
