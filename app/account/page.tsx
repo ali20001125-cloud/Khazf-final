@@ -255,15 +255,20 @@ function SignedOutView() {
           setErr(transErr(error.message)); setBusy(false); return;
         }
         // Confirm email مفعّل: نحفظ الملف مبدئياً، ونطلب تأكيد الإيميل
+        // نسجّل بيانات الزبون
+        await fetch("/api/customer/register/", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
+        }).catch(() => {});
+        // لو لم تُفتح جلسة (التأكيد مفعّل) نحاول الدخول فوراً بكلمة السر
         if (!data.session) {
-          // نسجّل بيانات الزبون بانتظار التأكيد (يُربط بـ authUserId عند أول دخول)
-          await fetch("/api/customer/register/", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
-          }).catch(() => {});
-          setMode("signin");
-          setErr("أرسلنا رابط تأكيد إلى بريدك ✓ افتح الإيميل واضغط الرابط، ثم سجّل الدخول");
-          setBusy(false); return;
+          const { error: siErr } = await sb.auth.signInWithPassword({ email, password });
+          if (siErr) {
+            // التأكيد ما زال مفعّلاً بـSupabase — رسالة لطيفة
+            setMode("signin");
+            setErr("أنشأنا حسابك ✓ سجّل الدخول الآن بإيميلك وكلمة سرّك");
+            setBusy(false); return;
+          }
         }
         const r = await fetch("/api/customer/register/", {
           method: "POST", headers: { "Content-Type": "application/json" },
