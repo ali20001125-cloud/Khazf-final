@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2, Ticket, Wallet, Gift, ArrowLeft } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
+import { useCatalog } from "@/lib/catalog-context";
 import { useMotion } from "@/lib/motion";
 
 type Me = { guest?: boolean; pointsBalance?: number; pointsValueDinars?: number; name?: string };
@@ -12,8 +13,9 @@ type Me = { guest?: boolean; pointsBalance?: number; pointsValueDinars?: number;
 export default function CartPage() {
   const scope = useMotion();
   const config = useSiteConfig();
+  const { coffees } = useCatalog();
   const {
-    cart, setQty, removeFromCart,
+    cart, setQty, removeFromCart, addToCart,
     coupon, setCoupon, useCashback, setUseCashback,
     boxGiftChoice, showToast,
   } = useStore();
@@ -147,6 +149,40 @@ export default function CartPage() {
                     <span className="text-muted"> — يُطبّق عند الإتمام</span>
                   </p>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* اقتراحات ذكية — محاصيل ليست بالسلة (ترفع قيمة الطلب) */}
+          {(() => {
+            const inCart = new Set(cart.map((i) => i.slug));
+            const suggestions = coffees.filter((c) => !inCart.has(c.slug) && !c.soldOut).slice(0, 3);
+            if (suggestions.length === 0) return null;
+            return (
+              <div className="reveal mt-6 rounded-[18px] border border-line bg-card p-5">
+                <p className="text-[14px] font-bold">أضِف إلى طلبك</p>
+                <p className="mt-0.5 text-[12px] text-muted">محاصيل قد تعجبك — وتقرّبك من التوصيل المجّاني</p>
+                <div className="mt-4 space-y-2.5">
+                  {suggestions.map((c) => (
+                    <div key={c.slug} className="flex items-center gap-3">
+                      <Link href={`/product/?c=${c.slug}`} className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[12px] bg-white">
+                        {c.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
+                        ) : <span className="font-num text-lg font-bold text-line">خزف</span>}
+                      </Link>
+                      <div className="min-w-0 flex-1">
+                        <Link href={`/product/?c=${c.slug}`}><p className="truncate text-[13.5px] font-bold">{c.name}</p></Link>
+                        <p className="font-num text-[12px] text-muted">{formatIQD(c.prices.g250)}</p>
+                      </div>
+                      <button
+                        onClick={() => { addToCart({ slug: c.slug, variant: "G250", grind: "حبوب كاملة", name: c.name, meta: "٢٥٠غ", priceShown: c.prices.g250 }); showToast(`أُضيف ${c.name}`); }}
+                        className="shrink-0 rounded-full border border-line px-4 py-2 text-[12.5px] font-bold text-accent transition-colors hover:border-accent">
+                        إضافة
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })()}

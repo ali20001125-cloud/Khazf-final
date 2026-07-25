@@ -1,6 +1,7 @@
 "use client";
 
 import PromoBanners from "@/components/scenes/PromoBanners";
+import WelcomeSheet from "@/components/WelcomeSheet";
 import { useMotion } from "@/lib/motion";
 import { useCatalog } from "@/lib/catalog-context";
 import {
@@ -21,6 +22,7 @@ export default function Home() {
 
   return (
     <div ref={scope}>
+      <WelcomeSheet />
       <Hero />
       <PromoBanners />
       <CropsRail />
