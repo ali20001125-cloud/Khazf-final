@@ -110,7 +110,8 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
   const afterDiscounts = Math.max(0, itemsSubtotal - couponDiscount - journeyDiscount);
 
   // ٥) التوصيل
-  const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon;
+  const thresholdMet = (settings?.freeDeliveryThreshold ?? 0) > 0 && itemsSubtotal >= settings.freeDeliveryThreshold;
+  const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon || thresholdMet;
   const deliveryCharged = freeDelivery ? 0 : (settings?.deliveryCustomerPrice ?? 0);
 
   // ٦) الكاش باك — يُستخدم بمضاعفات ٢٥٠ فقط، بحيث الإجمالي يبقى قابلاً للدفع

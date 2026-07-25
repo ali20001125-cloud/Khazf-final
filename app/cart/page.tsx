@@ -72,6 +72,26 @@ export default function CartPage() {
     <div ref={scope} className="mx-auto max-w-5xl px-4 pb-28 pt-28 md:px-8 md:pt-32">
       <h1 className="reveal text-3xl font-bold md:text-4xl">السلة</h1>
 
+      {/* شريط تقدّم التوصيل المجاني */}
+      {config.freeDeliveryThreshold > 0 && !freeDelivery && (() => {
+        const remaining = config.freeDeliveryThreshold - subtotal;
+        const pct = Math.min(100, (subtotal / config.freeDeliveryThreshold) * 100);
+        return (
+          <div className="reveal mt-5 rounded-[16px] border border-line bg-card p-4">
+            {remaining > 0 ? (
+              <p className="text-[13px] font-semibold">
+                أضِف <span className="font-num text-accent">{formatIQD(remaining)}</span> وتحصل على <span className="text-ok">توصيل مجّاني</span>
+              </p>
+            ) : (
+              <p className="text-[13px] font-semibold text-ok">حصلت على توصيل مجّاني ✓</p>
+            )}
+            <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-bg-alt">
+              <div className="h-full rounded-full bg-gradient-to-l from-accent to-gold transition-all duration-500" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         {/* الأسطر */}
         <div className="space-y-3">

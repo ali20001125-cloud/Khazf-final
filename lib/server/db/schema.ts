@@ -371,6 +371,7 @@ export const settings = pgTable("settings", {
   id: integer("id").primaryKey().default(1),
   storeName: text("store_name").notNull().default("خزف"),
   deliveryCustomerPrice: integer("delivery_customer_price").notNull().default(3000), // موحّد لكل العراق
+  freeDeliveryThreshold: integer("free_delivery_threshold").notNull().default(0), // 0=معطّل · الإجمالي فوقه = توصيل مجاني
   cashbackPerAmount: integer("cashback_per_amount").notNull().default(1000), // كل ١٠٠٠ د = نقطة
   pointValue: integer("point_value").notNull().default(30), // النقطة = ٣٠ د (٣٪)
   loyaltyValidityDays: integer("loyalty_validity_days").notNull().default(90),

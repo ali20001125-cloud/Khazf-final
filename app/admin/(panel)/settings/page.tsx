@@ -27,6 +27,9 @@ export default async function SettingsPage() {
           <Field label="سعر التوصيل (الزبون)" hint="موحّد لكل العراق">
             <input name="deliveryCustomerPrice" defaultValue={pub.deliveryCustomerPrice} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
+          <Field label="عتبة التوصيل المجاني" hint="٠ = معطّل · الطلب فوق هذا المبلغ توصيله مجاني">
+            <input name="freeDeliveryThreshold" defaultValue={pub.freeDeliveryThreshold ?? 0} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
           <Field label="كل … دينار = نقطة"><input name="cashbackPerAmount" defaultValue={pub.cashbackPerAmount} className={`${inputCls} font-num`} dir="ltr" /></Field>
           <Field label="قيمة النقطة (د.ع)"><input name="pointValue" defaultValue={pub.pointValue} className={`${inputCls} font-num`} dir="ltr" /></Field>
           <Field label="صلاحية الولاء (يوم)"><input name="loyaltyValidityDays" defaultValue={pub.loyaltyValidityDays} className={`${inputCls} font-num`} dir="ltr" /></Field>

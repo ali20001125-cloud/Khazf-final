@@ -186,7 +186,8 @@ export async function createOrder(input: CheckoutInput) {
     const afterDiscounts = itemsSubtotal - couponDiscount - journeyDiscount;
 
     /* ── ٦) التوصيل: سعر موحّد للزبون · التكلفة حسب المحافظة (داخلي) ── */
-    const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon;
+    const thresholdMet = (settings.freeDeliveryThreshold ?? 0) > 0 && itemsSubtotal >= settings.freeDeliveryThreshold;
+    const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon || thresholdMet;
     const deliveryCharged = freeDelivery ? 0 : settings.deliveryCustomerPrice;
     const isBasra = input.governorate.includes("بصرة");
     const deliveryCost = isBasra ? internal.deliveryCostBasra : internal.deliveryCostOther;

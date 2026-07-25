@@ -12,7 +12,7 @@ import { CatalogProvider } from "@/lib/catalog-context";
 export const dynamic = "force-dynamic"; // متجر حي من القاعدة — لا تصيير مسبق
 
 const FALLBACK: SiteConfig = {
-  deliveryPrice: 3000, pointValue: 30, cashbackPerAmount: 1000,
+  deliveryPrice: 3000, freeDeliveryThreshold: 0, pointValue: 30, cashbackPerAmount: 1000,
   boxTiers: [
     { bags: 3, rewardType: "PERCENT", value: 10 },
     { bags: 4, rewardType: "PERCENT", value: 20 },
@@ -44,6 +44,7 @@ async function loadConfig(): Promise<SiteConfig> {
     const st = await getSettings();
     return {
       deliveryPrice: st.deliveryCustomerPrice,
+      freeDeliveryThreshold: st.freeDeliveryThreshold ?? 0,
       pointValue: st.pointValue,
       cashbackPerAmount: st.cashbackPerAmount,
       boxTiers: st.boxTiers,

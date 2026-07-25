@@ -6,6 +6,7 @@ import type { BoxTier } from "@/lib/server/db/schema";
 /* ═══════ إعدادات الموقع (تصل من القاعدة عبر layout) ═══════ */
 export interface SiteConfig {
   deliveryPrice: number;
+  freeDeliveryThreshold: number;
   pointValue: number;
   cashbackPerAmount: number;
   boxTiers: BoxTier[];
