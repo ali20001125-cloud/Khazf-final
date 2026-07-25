@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { getSettings } from "@/lib/server/settings";
 import { getCatalog, type CatalogData } from "@/lib/server/catalog";
 import WhatsAppFab from "@/components/WhatsAppFab";
+import VisitTracker from "@/components/VisitTracker";
 import { CatalogProvider } from "@/lib/catalog-context";
 
 export const dynamic = "force-dynamic"; // متجر حي من القاعدة — لا تصيير مسبق
@@ -116,6 +117,7 @@ export default async function RootLayout({
             <main>{children}</main>
             <Footer />
             <WhatsAppFab />
+            <VisitTracker />
             <GlobalToast />
           </Smooth>
         </StoreProvider>

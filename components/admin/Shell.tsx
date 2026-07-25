@@ -9,6 +9,7 @@ import { Menu, X, ExternalLink, LogOut } from "lucide-react";
 const nav = [
   { href: "/admin/", label: "لوحة القيادة" },
   { href: "/admin/orders/", label: "الطلبات", badge: "pending" as const },
+  { href: "/admin/analytics/", label: "التحليلات" },
   { href: "/admin/products/", label: "المنتجات" },
   { href: "/admin/inventory/", label: "المخزون والوجبات", badge: "lowStock" as const },
   { href: "/admin/customers/", label: "العملاء" },

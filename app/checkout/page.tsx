@@ -66,7 +66,26 @@ export default function CheckoutPage() {
     return () => ctrl.abort();
   }, [cart, form.phone, form.governorate, coupon, useCashback]);
 
+  // معرّف الجلسة (نفس متتبّع الزيارات)
+  const sid = () => { try { let id = sessionStorage.getItem("khz_sid"); if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem("khz_sid", id); } return id; } catch { return "anon"; } };
+
   const subtotal = useMemo(() => cart.reduce((t, i) => t + i.priceShown * i.qty, 0), [cart]);
+
+  // حفظ لقطة السلة (لكشف الهجران)
+  useEffect(() => {
+    if (cart.length === 0 || done) return;
+    const t = setTimeout(() => {
+      fetch("/api/track/cart/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sid(), phone: form.phone, name: form.name,
+          items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.priceShown })),
+          itemsTotal: subtotal,
+        }),
+      }).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [cart, form.phone, form.name, subtotal, done]);
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
   const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
   const deliveryFee = freeDelivery ? 0 : config.deliveryPrice;
@@ -113,6 +132,7 @@ export default function CheckoutPage() {
       if (!r.ok) { showToast(d.error ?? "تعذّر إتمام الطلب"); setSending(false); return; }
       setDone(d);
       clearCart();
+      fetch("/api/track/cart/", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: sid() }) }).catch(() => {});
     } catch {
       showToast("انقطع الاتصال — حاول ثانية");
     }

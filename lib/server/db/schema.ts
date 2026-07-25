@@ -453,3 +453,32 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 export const reviewsRelations = relations(reviews, ({ one }) => ({
   product: one(products, { fields: [reviews.productId], references: [products.id] }),
 }));
+
+/* ═══════════════ التحليلات (زوار + هجران) ═══════════════ */
+export const pageViews = pgTable("page_views", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  path: text("path").notNull(),
+  referrer: text("referrer"),
+  device: text("device"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [index("page_views_created_idx").on(t.createdAt)]);
+
+export const abandonedCarts = pgTable("abandoned_carts", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().unique(),
+  phone: text("phone"),
+  name: text("name"),
+  items: jsonb("items").notNull().default(sql`'[]'::jsonb`),
+  itemsTotal: integer("items_total").notNull().default(0),
+  recovered: boolean("recovered").notNull().default(false),
+  notified: boolean("notified").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const dailyDigests = pgTable("daily_digests", {
+  id: serial("id").primaryKey(),
+  digestDate: text("digest_date").notNull().unique(),
+  sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+});

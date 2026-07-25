@@ -1,0 +1,43 @@
+"use client";
+/** يرسل زيارة كل تغيّر مسار — صامت، خفيف، بلا أي أثر بصري */
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+function sessionId(): string {
+  const KEY = "khz_sid";
+  try {
+    let id = sessionStorage.getItem(KEY);
+    if (!id) {
+      id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      sessionStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    return "anon";
+  }
+}
+
+function device(): string {
+  if (typeof navigator === "undefined") return "unknown";
+  const ua = navigator.userAgent;
+  if (/Mobi|Android|iPhone/i.test(ua)) return "mobile";
+  if (/iPad|Tablet/i.test(ua)) return "tablet";
+  return "desktop";
+}
+
+export default function VisitTracker() {
+  const pathname = usePathname();
+  useEffect(() => {
+    // لا نتتبّع لوحة الإدارة
+    if (pathname?.startsWith("/admin")) return;
+    const body = JSON.stringify({
+      sessionId: sessionId(),
+      path: pathname,
+      referrer: document.referrer || null,
+      device: device(),
+    });
+    // نرسل صامتاً (بلا انتظار)
+    fetch("/api/track/view/", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+  }, [pathname]);
+  return null;
+}
