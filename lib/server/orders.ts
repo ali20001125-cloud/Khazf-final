@@ -332,15 +332,17 @@ export async function createOrder(input: CheckoutInput) {
         .select()
         .from(s.journeyLevels)
         .where(and(eq(s.journeyLevels.level, nextJourneyOrders), eq(s.journeyLevels.active, true)));
-      if (nl)
-        nextRewardMessage =
-          nl.rewardType === "PERCENT"
-            ? `مبروك! حصلت على خصم ${nl.value}٪ لطلبك القادم`
-            : nl.rewardType === "FREE_DELIVERY"
-              ? "مبروك! توصيلك القادم مجاني"
-              : nl.rewardType === "FIXED"
-                ? `مبروك! خصم ${nl.value} د.ع لطلبك القادم`
-                : `مبروك! حصلت على هدية «${nl.giftName}» مع طلبك القادم`;
+      if (nl) {
+        const reward =
+          nl.rewardType === "PERCENT" ? `خصم ${nl.value}٪`
+          : nl.rewardType === "FREE_DELIVERY" ? "توصيل مجّاني"
+          : nl.rewardType === "FIXED" ? `خصم ${nl.value.toLocaleString("en")} د.ع`
+          : `هديّة «${nl.giftName}»`;
+        // زبون جديد (أوّل طلب): نحتفي ببداية الرحلة
+        nextRewardMessage = !customer
+          ? `بدأت رحلتك مع خزف 🎉 طلبك القادم يحمل لك ${reward}`
+          : `أحسنت! طلبك القادم يحمل لك ${reward}`;
+      }
     }
 
     return {
