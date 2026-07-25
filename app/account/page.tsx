@@ -80,22 +80,41 @@ function AccountInner() {
             <p className="font-num mt-1 text-[11.5px] opacity-70">رصيد الكاش باك · {me.pointsBalance ?? 0} نقطة</p>
           </div>
           <span className="font-num rounded-full bg-gold px-4 py-2 text-[13px] font-bold text-olive">
-            {Math.min(me.journeyOrders ?? 0, 6)}/6
+            {((me.journeyOrders ?? 0) % 6)}/6
           </span>
         </div>
+        {/* شريط الرحلة — التقدّم بالدورة الحالية · المكافأة القادمة مُبرزة */}
         <div className="mt-6 flex items-center gap-1.5">
           {(me.journeyLevels ?? []).slice(0, 6).map((l) => {
-            const done = (me.journeyOrders ?? 0) >= l.level;
+            const inCycle = (me.journeyOrders ?? 0) % 6;   // المكتملة بالدورة الحالية
+            const nextLevel = inCycle + 1;                  // المكافأة القادمة
+            const done = l.level <= inCycle;                // اكتملت
+            const isNext = l.level === nextLevel;           // القادمة
             return (
               <div key={l.level} className="flex-1 text-center">
-                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${done ? "bg-gold text-olive" : "bg-olive-text/15 text-olive-text/70"}`}>
+                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold transition-all ${
+                  done ? "bg-gold text-olive"
+                  : isNext ? "bg-olive-text text-olive ring-2 ring-gold"
+                  : "bg-olive-text/15 text-olive-text/70"}`}>
                   {done ? "✓" : l.level}
                 </div>
-                <p className="mt-1.5 text-[8px] leading-tight opacity-80">{rewardLabel(l)}</p>
+                <p className={`mt-1.5 text-[8px] leading-tight ${isNext ? "font-bold opacity-100" : "opacity-80"}`}>{rewardLabel(l)}</p>
               </div>
             );
           })}
         </div>
+        {/* رسالة المكافأة القادمة */}
+        {(() => {
+          const inCycle = (me.journeyOrders ?? 0) % 6;
+          const nextLevel = inCycle + 1;
+          const nl = (me.journeyLevels ?? []).find((l) => l.level === nextLevel);
+          if (!nl) return null;
+          return (
+            <p className="mt-4 rounded-[12px] bg-olive-text/10 px-4 py-2.5 text-center text-[12px] font-semibold">
+              طلبك القادم يحمل لك: <span className="text-gold">{rewardLabel(nl)}</span>
+            </p>
+          );
+        })()}
       </div>
 
       {/* التبويبات */}

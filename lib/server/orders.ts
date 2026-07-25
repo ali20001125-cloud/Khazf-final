@@ -149,19 +149,23 @@ export async function createOrder(input: CheckoutInput) {
       else freeDeliveryCoupon = true;
     }
 
-    /* ── ٤) رحلة المكافآت: مكافأة هذا الطلب = مستوى (عدد الطلبات المكتملة) ── */
+    /* ── ٤) رحلة المكافآت: مكافأة هذا الطلب = المستوى الحالي (الطلب رقم N ياخذ مكافأة المستوى N) ── */
     const { customer } = await settleLoyalty(tx, phone);
+    // الرحلة مفعّلة افتراضياً (دائمة، تتكرّر كل 6). تُعطّل فقط إن journeyActive=false صراحةً.
+    const journeyOn = customer ? customer.journeyActive : true;
+    const completedOrders = customer?.journeyOrders ?? 0;
+    const currentLevel = journeyOn ? ((completedOrders % 6) + 1) : 0; // 0 = لا مكافأة
     let journeyDiscount = 0,
       freeDeliveryJourney = false,
       journeyGiftName: string | null = null,
       journeyRewardType: "PERCENT" | "FIXED" | "FREE_DELIVERY" | "GIFT" | null = null,
       appliedLevel = 0,
       journeyPctValue = 0;
-    if (customer?.journeyActive && customer.journeyOrders >= 1 && customer.journeyOrders <= 6) {
+    if (currentLevel >= 1 && currentLevel <= 6) {
       const [lvl] = await tx
         .select()
         .from(s.journeyLevels)
-        .where(and(eq(s.journeyLevels.level, customer.journeyOrders), eq(s.journeyLevels.active, true)));
+        .where(and(eq(s.journeyLevels.level, currentLevel), eq(s.journeyLevels.active, true)));
       if (lvl) {
         appliedLevel = lvl.level;
         journeyRewardType = lvl.rewardType;
@@ -223,12 +227,9 @@ export async function createOrder(input: CheckoutInput) {
 
     /* upsert الزبون + تقدّم الرحلة + تجديد الصلاحية */
     const validity = new Date(Date.now() + settings.loyaltyValidityDays * 86400_000);
-    const nextJourneyOrders = customer
-      ? customer.journeyActive
-        ? Math.min(customer.journeyOrders + 1, 6)
-        : customer.journeyOrders
-      : 1; // زبون جديد: طلبه الأول يفتح المستوى ١
-    const journeyStillActive = appliedLevel === 6 ? false : (customer?.journeyActive ?? true);
+    // عدد الطلبات المكتملة يزيد ١ بعد هذا الطلب · الرحلة تبقى فعّالة دائماً (تتكرّر)
+    const nextJourneyOrders = completedOrders + 1;
+    const journeyStillActive = true; // الرحلة دائمة — تتجدّد كل ٦ طلبات
     await tx
       .insert(s.customers)
       .values({
@@ -330,11 +331,12 @@ export async function createOrder(input: CheckoutInput) {
 
     /* ── ١٢) رسالة مكافأة الطلب القادم (لصفحة النجاح — مرة واحدة) ── */
     let nextRewardMessage: string | null = null;
-    if (journeyStillActive && nextJourneyOrders >= 1 && nextJourneyOrders <= 6) {
+    const nextLevel = (nextJourneyOrders % 6) + 1; // مكافأة الطلب القادم بالدورة
+    {
       const [nl] = await tx
         .select()
         .from(s.journeyLevels)
-        .where(and(eq(s.journeyLevels.level, nextJourneyOrders), eq(s.journeyLevels.active, true)));
+        .where(and(eq(s.journeyLevels.level, nextLevel), eq(s.journeyLevels.active, true)));
       if (nl) {
         const reward =
           nl.rewardType === "PERCENT" ? `خصم ${nl.value}٪`

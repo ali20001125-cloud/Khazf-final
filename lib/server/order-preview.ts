@@ -91,9 +91,11 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
   if (phone) {
     const [c] = await db.select().from(s.customers).where(eq(s.customers.phone, phone));
     customer = c ?? null;
-    if (customer?.journeyActive && customer.journeyOrders >= 1 && customer.journeyOrders <= 6) {
+    const completed = customer?.journeyActive ? (customer.journeyOrders ?? 0) : 0;
+    const currentLevel = (completed % 6) + 1; // الطلب الحالي ياخذ مكافأة مستواه
+    {
       const [lvl] = await db.select().from(s.journeyLevels)
-        .where(and(eq(s.journeyLevels.level, customer.journeyOrders), eq(s.journeyLevels.active, true)));
+        .where(and(eq(s.journeyLevels.level, currentLevel), eq(s.journeyLevels.active, true)));
       if (lvl) {
         if (lvl.rewardType === "PERCENT") {
           journeyPct = lvl.value;

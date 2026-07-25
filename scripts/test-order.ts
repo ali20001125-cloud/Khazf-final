@@ -33,23 +33,29 @@ async function reset() {
 
 async function main() {
   await reset();
+  // يعطّل رحلة زبون حتى تُختبر ميزات أخرى بمعزل عن مكافأة الطلب الأول
+  const noJourney = async (phone: string) => {
+    await db.insert(s.customers).values({ phone, name: "ت", governorate: "بغداد", address: "-", journeyActive: false, journeyOrders: 0 })
+      .onConflictDoUpdate({ target: s.customers.phone, set: { journeyActive: false } });
+  };
   const base = { name: "علي", governorate: "بغداد", address: "الكرادة" };
 
   console.log("── ١) طلب بسيط: كالدي ربع ──");
   const r1 = await createOrder({ ...base, phone: "07701234567",
     items: [{ slug: "kaldi", variant: "G250", qty: 1, grind: "V60" }] });
   ok(/^KHZ-\d+$/.test(r1.orderNumber) && typeof r1.seqNo === "number", `رقمان: فاتورة ${r1.orderNumber} · داخلي #${r1.seqNo}`);
-  ok(r1.total === 29000, `الإجمالي 29,000 (26k+3k): ${r1.total}`);
+  ok(r1.total === 27500, `أول طلب: توت باج/مكافأة مستوى ١ (خصم ٥٪→1,500) · 26k−1.5k+3k = 27,500: ${r1.total}`);
   ok((await stockOf("kaldi")) === 4750, `المخزون خُصم FIFO: ${await stockOf("kaldi")}`);
   const [o1] = await db.select().from(s.orders).where(eq(s.orders.id, r1.orderId));
-  ok(o1.productProfit === 9000, `الربح 9,000 (26k−17k): ${o1.productProfit}`);
-  ok(r1.pointsEarned === 26, `نقاط الكسب 26: ${r1.pointsEarned}`);
+  ok(o1.productProfit === 7500, `الربح بعد خصم الرحلة: 9,000−1,500 = 7,500: ${o1.productProfit}`);
+  ok(r1.pointsEarned === 24, `نقاط الكسب على المبلغ بعد الخصم: 24: ${r1.pointsEarned}`);
 
   console.log("── ٢) التقريب لأعلى ٢٥٠ (مثال الوثيقة) ──");
   // زبون برصيد متاح 56 نقطة = 1,680 د
   await db.insert(s.customers).values({ phone: "07709999999", name: "ت", governorate: "بغداد", address: "-" });
   await db.insert(s.cashbackLedger).values({ customerPhone: "07709999999", type: "EARN", points: 56,
     availableAt: new Date(Date.now() - 1000) });
+  await db.update(s.customers).set({ journeyActive: false }).where(eq(s.customers.phone, "07709999999"));
   await db.transaction(async (tx) => { await settleLoyalty(tx, "07709999999"); });
   const r2 = await createOrder({ ...base, phone: "07709999999", usePoints: true,
     items: [{ slug: "antigua", variant: "G250", qty: 1 }] });
@@ -58,6 +64,7 @@ async function main() {
   ok(o2.totalRaw === 21500 && r2.total === 21500, `الإجمالي 21,500 قابل للدفع تماماً بلا تقريب: ${r2.total}`);
 
   console.log("── ٣) بوكس ٣ أكياس (خصم ١٠٪) ──");
+  await noJourney("07702222222");
   const r3 = await createOrder({ ...base, phone: "07702222222",
     items: [
       { slug: "kaldi", variant: "G250", qty: 1, boxGroup: 1 },
@@ -69,6 +76,7 @@ async function main() {
   ok(r3.total === 70500, `الإجمالي 70,500: ${r3.total}`);
 
   console.log("── ٤) بوكس ٥ أكياس (٢٠٪ + توصيل مجاني) — بصرة ──");
+  await noJourney("07703333333");
   const r4 = await createOrder({ ...base, phone: "07703333333", governorate: "البصرة",
     items: [
       { slug: "kaldi", variant: "G250", qty: 2, boxGroup: 2 },
@@ -82,13 +90,13 @@ async function main() {
   ok(o4.deliveryCost === 2000 && o4.deliveryNet === -2000, `تكلفة بصرة 2,000 · صافي −2,000`);
   ok(r4.total === 97000, `96,800 → تقريب 97,000: ${r4.total}`);
 
-  console.log("── ٥) رحلة الولاء: الطلب الثاني لنفس الزبون → خصم ٥٪ تلقائي ──");
+  console.log("── ٥) رحلة الولاء: الطلب الثاني لنفس الزبون → مستوى ٢ (توصيل مجاني) ──");
   const r5 = await createOrder({ ...base, phone: "07701234567",
     items: [{ slug: "cerrado", variant: "G250", qty: 1 }] });
   const [o5] = await db.select().from(s.orders).where(eq(s.orders.id, r5.orderId));
-  ok(o5.journeyDiscount === 1250 && r5.appliedJourney?.level === 1, `مستوى ١: خصم ٥٪ مقرّب لأعلى ٢٥٠ = 1,250: ${o5.journeyDiscount}`);
-  ok(r5.total === 25750, `الإجمالي بعد خصم ١٢٥٠ + توصيل، مقرّب: ${r5.total}`);
-  ok(!!r5.nextRewardMessage?.includes("توصيل"), `رسالة المكافأة القادمة: ${r5.nextRewardMessage}`);
+  ok(r5.appliedJourney?.level === 2, `الطلب الثاني = مستوى ٢: ${r5.appliedJourney?.level}`);
+  ok(o5.deliveryCharged === 0, `توصيل مجاني (مستوى ٢): ${o5.deliveryCharged}`);
+  ok(r5.total === 24000, `الإجمالي = سعر سيرادو بلا توصيل (مستوى ٢): ${r5.total}`);
 
   console.log("── ٦) كود عام TEST10 ──");
   await db.insert(s.coupons).values({ code: "TEST10", type: "PERCENT", value: 10 });
@@ -117,7 +125,7 @@ async function main() {
   await db.update(s.cashbackLedger).set({ availableAt: new Date(Date.now() - 1000) })
     .where(eq(s.cashbackLedger.orderId, r1.orderId));
   await db.transaction(async (tx) => { bal = (await settleLoyalty(tx, "07701234567")).balance; });
-  ok(bal === 26, `بعدها: الرصيد 26 نقطة`);
+  ok(bal === 24, `بعدها: الرصيد 24 نقطة (نقاط الطلب الأول بعد خصم الرحلة)`);
 
   console.log(`\n${fail === 0 ? "✅" : "❌"} النتيجة: ${pass} ناجح · ${fail} فاشل`);
   process.exit(fail === 0 ? 0 : 1);
