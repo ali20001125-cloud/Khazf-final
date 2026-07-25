@@ -46,7 +46,14 @@ export async function POST(req: Request) {
     const site = process.env.SITE_URL ?? "https://khazf.shop";
     const invoiceUrl = `${site}/invoice/?n=${result.orderNumber}&p=${encodeURIComponent(phone)}`;
     emailNewOrderAdmin({ orderNumber: result.orderNumber, name: body.name?.trim() || "زبون خزف", phone, governorate: body.governorate, total: result.total, invoiceUrl }).catch(() => {});
-    emailOrderCustomer({ email: body.email?.trim() || null, orderNumber: result.orderNumber, name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl }).catch(() => {});
+    emailOrderCustomer({
+      email: body.email?.trim() || null, orderNumber: result.orderNumber,
+      name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl,
+      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal })) ?? [],
+      itemsSubtotal: result.itemsSubtotal, journeyDiscount: result.journeyDiscount,
+      pointsUsed: result.pointsUsedDinars, deliveryCharged: result.deliveryCharged,
+      freeDelivery: result.deliveryCharged === 0,
+    }).catch(() => {});
     notifyOrderTelegram({
       orderNumber: result.orderNumber, seqNo: result.seqNo, name: body.name?.trim() || "زبون خزف",
       phone, governorate: body.governorate, address: body.address,

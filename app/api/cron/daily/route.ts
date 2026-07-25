@@ -66,7 +66,10 @@ export async function GET(req: Request) {
     (stats.abandoned_value > 0 ? ` (${m(stats.abandoned_value)} د.ع معلّقة)` : "");
 
   const sent = await notifyTelegram(text);
-  if (sent) await db.insert(s.dailyDigests).values({ digestDate: today });
-
-  return NextResponse.json({ ok: sent });
+  if (sent) {
+    await db.insert(s.dailyDigests).values({ digestDate: today });
+    return NextResponse.json({ ok: true, sent: true });
+  }
+  // فشل الإرسال — لا نسجّل اليوم (نعيد المحاولة لاحقاً) ونوضّح السبب
+  return NextResponse.json({ ok: false, sent: false, reason: "تعذّر الإرسال للتيليجرام — تحقّق من إعداد البوت" }, { status: 502 });
 }

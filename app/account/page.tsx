@@ -335,6 +335,8 @@ function SignedOutView() {
 
 function transErr(msg: string): string {
   const m = msg.toLowerCase();
+  if (m.includes("email not confirmed") || m.includes("not confirmed"))
+    return "لم تؤكّد إيميلك بعد — افتح رسالة التأكيد واضغط الرابط، ثم سجّل الدخول";
   if (m.includes("already")) return "هذا الإيميل مسجّل — سجّل دخول بدله";
   if (m.includes("invalid login")) return "الإيميل أو كلمة السر غير صحيحة";
   if (m.includes("password")) return "كلمة السر ضعيفة (٦ أحرف على الأقل)";
