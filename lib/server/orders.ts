@@ -5,6 +5,7 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "./db";
 import { settleLoyalty } from "./loyalty";
+import { randomBytes } from "crypto";
 
 export type CheckoutItem = {
   slug: string;
@@ -257,6 +258,7 @@ export async function createOrder(input: CheckoutInput) {
         pointsUsed: pointsUsedDinars,
         deliveryCharged, deliveryCost, deliveryNet,
         totalRaw, total, pointsEarned,
+        reviewToken: randomBytes(12).toString("base64url"), // رمز آمن للتقييم
       })
       .returning();
 

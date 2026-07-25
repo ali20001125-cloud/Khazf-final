@@ -1,6 +1,7 @@
 /** عمليات الإدارة على الطلبات: توصيل (يفتح كسب النقاط بعد ٤٨سا) + إلغاء (يرجّع كل شيء) */
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "./db";
+import { emailReviewRequest } from "./email";
 
 export async function deliverOrder(orderId: number) {
   return db.transaction(async (tx) => {
@@ -18,6 +19,17 @@ export async function deliverOrder(orderId: number) {
         availableAt: deliveredAt, // تتفعّل فوراً مع التوصيل
         note: o.orderNumber,
       });
+    return { ok: true, order: o };
+  }).then(async (res) => {
+    // إيميل طلب التقييم (بعد التوصيل) — لا يُفشل العملية إن تعذّر
+    const o = res.order;
+    if (o.email && o.reviewToken) {
+      const site = process.env.SITE_URL ?? "https://khazf.shop";
+      await emailReviewRequest({
+        email: o.email, name: o.name, orderNumber: o.orderNumber,
+        reviewUrl: `${site}/review/?token=${o.reviewToken}`,
+      }).catch(() => {});
+    }
     return { ok: true };
   });
 }

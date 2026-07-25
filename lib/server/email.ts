@@ -62,3 +62,16 @@ export async function emailOrderCustomer(o: { email: string | null; orderNumber:
     <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none">فاتورتك</a>
   `));
 }
+
+export async function emailReviewRequest(o: { email: string | null; name: string; orderNumber: string; reviewUrl: string }) {
+  if (!o.email) return;
+  await sendMail(o.email, `وصل طلبك ${o.orderNumber} — كيف كانت تجربتك؟`, wrap(`
+    <p style="font-size:15px;font-weight:bold">وصل طلبك يا ${o.name} 🤎</p>
+    <p style="font-size:13px;line-height:1.9">
+      نتمنّى أن تكون محاصيلك أعجبتك. رأيك يصنع فرقاً حقيقياً لخزف —<br/>
+      قيّم محاصيلك والتوصيل بدقيقة واحدة:
+    </p>
+    <a href="${o.reviewUrl}" style="display:inline-block;background:#A66A4C;color:#fff;padding:11px 26px;border-radius:10px;font-size:14px;font-weight:bold;text-decoration:none">قيّم تجربتك</a>
+    <p style="font-size:11px;color:#8A7F70;margin-top:14px">أو انسخ الرابط: ${o.reviewUrl}</p>
+  `));
+}

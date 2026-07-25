@@ -17,6 +17,9 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
   const items = await db.select().from(s.orderItems).where(eq(s.orderItems.orderId, o.id));
   const [cfg] = await db.select().from(s.settings).where(eq(s.settings.id, 1));
   const logoUrl = cfg?.logoUrl ?? null;
+  const site = process.env.SITE_URL ?? "https://khazf.shop";
+  const reviewUrl = o.reviewToken ? `${site}/review/?token=${o.reviewToken}` : null;
+  const qrUrl = reviewUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&data=${encodeURIComponent(reviewUrl)}` : null;
   const rows = [
     { l: "المنتجات", v: formatIQD(o.itemsSubtotal) },
     ...(o.quantityDiscount ? [{ l: "خصم البوكس", v: `− ${formatIQD(o.quantityDiscount)}` }] : []),
@@ -71,6 +74,19 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
           <span className="font-num">{formatIQD(o.total)}</span>
         </div>
 
+        {reviewUrl && (
+          <div className="mt-6 flex items-center gap-4 rounded-[16px] border border-line bg-bg-alt p-4 print:break-inside-avoid">
+            {qrUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={qrUrl} alt="امسح للتقييم" className="h-[70px] w-[70px] shrink-0 rounded-[8px] bg-white p-1" />
+            )}
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold">قيّم تجربتك</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted">امسح الرمز أو افتح الرابط لتقييم محاصيلك والتوصيل — رأيك يهمّنا</p>
+              <a href={reviewUrl} className="font-num mt-1 block truncate text-[10px] text-accent print:hidden">{reviewUrl}</a>
+            </div>
+          </div>
+        )}
         <p className="mt-6 text-center text-[11px] text-muted">شكراً لاختيارك خزف — قهوة مختصة، توصيل لكل العراق</p>
       </div>
       <PrintBtn />

@@ -766,31 +766,14 @@ export default function ProductPage() {
 
 /* ════════════════ المراجعات الحقيقية ════════════════ */
 function ReviewsSection({ slug, rating, count }: { slug: string; rating: number; count: number }) {
-  const { showToast } = useStore();
   const [list, setList] = useState<{ id: number; name: string; rating: number; comment: string | null; verified: boolean; reply: string | null; createdAt: string }[]>([]);
-  const [form, setForm] = useState({ rating: 5, comment: "", name: "" });
-  const [sending, setSending] = useState(false);
-  const [thanks, setThanks] = useState(false);
 
   useEffect(() => {
     fetch(`/api/reviews/?slug=${slug}`).then((r) => r.json()).then((d) => setList(d.reviews ?? [])).catch(() => {});
   }, [slug]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSending(true);
-    try {
-      const r = await fetch("/api/reviews/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, ...form }),
-      });
-      const d = await r.json();
-      if (!r.ok) showToast(d.error ?? "تعذّر الإرسال");
-      else { setThanks(true); showToast(d.message); }
-    } catch { showToast("تعذّر الاتصال"); }
-    setSending(false);
-  };
+  // لا تُعرض المراجعات إن لم توجد منشورة — القسم يختفي تماماً
+  if (list.length === 0 && count === 0) return null;
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-20 md:px-8">
@@ -804,11 +787,7 @@ function ReviewsSection({ slug, rating, count }: { slug: string; rating: number;
         )}
       </div>
 
-      {list.length === 0 ? (
-        <p className="reveal mt-6 rounded-[18px] border border-dashed border-line px-6 py-8 text-center text-sm text-muted">
-          محصول جديد — كن أول من يشاركنا رأيه بعد التجربة
-        </p>
-      ) : (
+      {list.length > 0 && (
         <div className="reveal-group mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((r) => (
             <div key={r.id} className="rounded-[18px] border border-line bg-card p-5">
@@ -830,32 +809,6 @@ function ReviewsSection({ slug, rating, count }: { slug: string; rating: number;
             </div>
           ))}
         </div>
-      )}
-
-      {/* نموذج التقييم */}
-      {!thanks && (
-        <form onSubmit={submit} className="reveal mt-8 rounded-[20px] border border-line bg-card p-6">
-          <p className="text-sm font-bold">قيّم تجربتك</p>
-          <div className="mt-3 flex items-center gap-1.5">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" onClick={() => setForm({ ...form, rating: n })} aria-label={`${n} نجوم`}>
-                <Star size={22} className={n <= form.rating ? "fill-gold text-gold" : "text-line"} />
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-[200px_1fr]">
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="اسمك (اختياري)"
-              className="rounded-[12px] border border-line bg-bg px-4 py-3 text-sm outline-none focus:border-accent" />
-            <input value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })}
-              placeholder="شنو حبيت بيها؟ (اختياري)"
-              className="rounded-[12px] border border-line bg-bg px-4 py-3 text-sm outline-none focus:border-accent" />
-          </div>
-          <button disabled={sending} className="btn btn-olive mt-4 !px-7 !py-3 text-sm disabled:opacity-50">
-            {sending ? "…" : "أرسل التقييم"}
-          </button>
-          <p className="mt-2.5 text-[11px] text-muted">التقييم متاح لزبائن خزف · يُنشر بعد مراجعة سريعة</p>
-        </form>
       )}
     </section>
   );

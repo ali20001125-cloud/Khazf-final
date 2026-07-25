@@ -17,9 +17,45 @@ export default async function ReviewsPage() {
     .orderBy(sql`CASE WHEN ${s.reviews.status}='PENDING' THEN 0 ELSE 1 END`, desc(s.reviews.createdAt))
     .limit(60);
 
+  const experience = await db
+    .select({
+      id: s.experienceReviews.id, delivery: s.experienceReviews.deliveryRating,
+      courier: s.experienceReviews.courierRating, ease: s.experienceReviews.easeRating,
+      comment: s.experienceReviews.comment, at: s.experienceReviews.createdAt,
+      orderNumber: s.orders.orderNumber, phone: s.experienceReviews.customerPhone,
+    })
+    .from(s.experienceReviews)
+    .innerJoin(s.orders, sql`${s.orders.id} = ${s.experienceReviews.orderId}`)
+    .orderBy(desc(s.experienceReviews.createdAt))
+    .limit(40);
+
+  const stars = (n: number | null) => n ? "★".repeat(n) + "☆".repeat(5 - n) : "—";
+
   return (
     <div>
       <PageTitle title="التقييمات" sub="لا يُنشر شيء بلا موافقتك · «موثّق» = طلب مُسلَّم يحوي المنتج" />
+
+      {/* تقييمات التجربة (توصيل/مندوب/سهولة) */}
+      {experience.length > 0 && (
+        <div className="mb-8">
+          <h2 className="mb-3 text-[15px] font-bold">تقييم التجربة والتوصيل</h2>
+          <div className="grid gap-3">
+            {experience.map((e) => (
+              <Card key={e.id} className="p-4">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px]">
+                  <span className="font-num font-bold text-accent">{e.orderNumber}</span>
+                  <span>التوصيل: <span className="font-num text-gold">{stars(e.delivery)}</span></span>
+                  <span>المندوب: <span className="font-num text-gold">{stars(e.courier)}</span></span>
+                  <span>سهولة الشراء: <span className="font-num text-gold">{stars(e.ease)}</span></span>
+                </div>
+                {e.comment && <p className="mt-2.5 text-[13px] leading-relaxed">{e.comment}</p>}
+                <p className="font-num mt-2 text-[11px] text-muted">{e.phone} · {dateAr(e.at)}</p>
+              </Card>
+            ))}
+          </div>
+          <h2 className="mb-3 mt-8 text-[15px] font-bold">تقييمات المحاصيل</h2>
+        </div>
+      )}
       <div className="grid gap-4">
         {rows.map((r) => (
           <Card key={r.id} className="p-5">

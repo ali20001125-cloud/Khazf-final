@@ -234,6 +234,7 @@ export const orders = pgTable(
     totalRaw: integer("total_raw").notNull(),                // قبل التقريب (داخلي)
     total: integer("total").notNull(),                       // المقرَّب لأعلى ٢٥٠ — ما يراه الزبون
     productProfit: integer("product_profit").notNull().default(0), // من تكاليف وجبات FIFO
+    reviewToken: text("review_token"), // رمز آمن للتقييم (باركود/رابط)
     pointsEarned: integer("points_earned").notNull().default(0),
 
     status: orderStatus("status").notNull().default("CONFIRMED"),
@@ -349,6 +350,19 @@ export const reviews = pgTable(
   },
   (t) => [index("reviews_product_idx").on(t.productId, t.status)]
 );
+
+/* تقييم التجربة العامة — مرة لكل طلب */
+export const experienceReviews = pgTable("experience_reviews", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  customerPhone: text("customer_phone").references(() => customers.phone, { onDelete: "set null" }),
+  deliveryRating: smallint("delivery_rating"),
+  courierRating: smallint("courier_rating"),
+  easeRating: smallint("ease_rating"),
+  comment: text("comment"),
+  status: reviewStatus("status").notNull().default("PENDING"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 /* ═══════════════ البنرات + الإعدادات ═══════════════ */
 
