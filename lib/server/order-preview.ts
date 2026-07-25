@@ -1,0 +1,136 @@
+import { db } from "@/lib/server/db";
+import * as s from "@/lib/server/db/schema";
+import { and, eq, sql, asc } from "drizzle-orm";
+import { normalizeIqPhone } from "@/lib/phone";
+
+const roundUp250 = (n: number) => Math.ceil(Math.max(0, n) / 250) * 250;
+
+export type PreviewInput = {
+  items: { slug: string; variant: "G250" | "G500" | "G1000" | "PIECE"; qty: number; boxGroup?: number | null }[];
+  phone?: string;
+  governorate?: string;
+  couponCode?: string;
+  usePoints?: boolean;
+};
+
+export type PreviewResult = {
+  itemsSubtotal: number;   // بعد خصم كمية البوكس
+  grossSubtotal: number;   // قبل أي خصم
+  boxDiscount: number;     // خصم أكياس البوكس
+  journeyDiscount: number; // خصم الرحلة (مقرّب لأعلى ٢٥٠)
+  journeyPct: number;      // النسبة المعروضة للزبون (مثل ١٠)
+  couponDiscount: number;
+  pointsAvailable: number;      // رصيد النقاط بالدينار
+  pointsUsedDinars: number;     // المستخدم فعلاً (مضاعفات ٢٥٠)
+  pointsRemaining: number;      // الباقي بعد الاستخدام
+  deliveryCharged: number;
+  freeDelivery: boolean;
+  total: number;                // الإجمالي النهائي المقرّب
+  giftName: string | null;      // هدية الرحلة إن وُجدت
+};
+
+/** معاينة حسابية حية — تطابق منطق createOrder بلا حفظ */
+export async function previewOrder(input: PreviewInput): Promise<PreviewResult> {
+  const phone = normalizeIqPhone(input.phone ?? "") ?? "";
+  const [settings] = await db.select().from(s.settings).where(eq(s.settings.id, 1));
+
+  // ١) أسعار المنتجات
+  const slugs = [...new Set(input.items.map((i) => i.slug))];
+  const empty: PreviewResult = {
+    itemsSubtotal: 0, grossSubtotal: 0, boxDiscount: 0, journeyDiscount: 0, journeyPct: 0,
+    couponDiscount: 0, pointsAvailable: 0, pointsUsedDinars: 0, pointsRemaining: 0,
+    deliveryCharged: settings?.deliveryCustomerPrice ?? 0, freeDelivery: false, total: 0, giftName: null,
+  };
+  if (slugs.length === 0) return empty;
+
+  const products = await db.select().from(s.products)
+    .where(and(sql`${s.products.slug} IN (${sql.join(slugs.map((x) => sql`${x}`), sql`, `)})`, eq(s.products.active, true)));
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
+
+  const priceOf = (p: typeof s.products.$inferSelect, v: string) =>
+    v === "G500" ? p.priceG500 : v === "G1000" ? p.priceG1000 : v === "PIECE" ? p.pricePiece : p.priceG250;
+
+  let grossSubtotal = 0;
+  const boxLines: { qty: number; total: number }[] = [];
+  for (const it of input.items) {
+    const p = bySlug.get(it.slug);
+    if (!p) continue;
+    const unit = priceOf(p, it.variant) ?? 0;
+    const lineTotal = unit * it.qty;
+    grossSubtotal += lineTotal;
+    if (it.boxGroup != null && it.variant === "G250") boxLines.push({ qty: it.qty, total: lineTotal });
+  }
+
+  // ٢) خصم أكياس البوكس
+  const bags = boxLines.reduce((t, l) => t + l.qty, 0);
+  const boxSubtotal = boxLines.reduce((t, l) => t + l.total, 0);
+  const tiers = (settings?.boxTiers ?? []) as { bags: number; rewardType: string; value?: number }[];
+  let boxPct = 0, freeDeliveryBox = false;
+  for (const t of tiers) if (bags >= t.bags) {
+    if (t.rewardType === "PERCENT") boxPct = Math.max(boxPct, t.value ?? 0);
+    if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
+  }
+  const boxDiscount = Math.round((boxSubtotal * boxPct) / 100);
+  const itemsSubtotal = grossSubtotal - boxDiscount;
+
+  // ٣) كوبون
+  let couponDiscount = 0, freeDeliveryCoupon = false;
+  if (input.couponCode?.trim()) {
+    const code = input.couponCode.trim().toUpperCase();
+    const [c] = await db.select().from(s.coupons).where(eq(s.coupons.code, code));
+    if (c && c.active && (!c.expiresAt || c.expiresAt >= new Date())) {
+      if (c.type === "PERCENT") couponDiscount = Math.round((itemsSubtotal * c.value) / 100);
+      else if (c.type === "FIXED") couponDiscount = Math.min(c.value, itemsSubtotal);
+      else freeDeliveryCoupon = true;
+    }
+  }
+
+  // ٤) خصم الرحلة (تلقائي) — مقرّب لأعلى ٢٥٠ (للزبون تظهر النسبة، للحساب مقرّبة)
+  let journeyDiscount = 0, journeyPct = 0, freeDeliveryJourney = false, giftName: string | null = null;
+  let customer: typeof s.customers.$inferSelect | null = null;
+  if (phone) {
+    const [c] = await db.select().from(s.customers).where(eq(s.customers.phone, phone));
+    customer = c ?? null;
+    if (customer?.journeyActive && customer.journeyOrders >= 1 && customer.journeyOrders <= 6) {
+      const [lvl] = await db.select().from(s.journeyLevels)
+        .where(and(eq(s.journeyLevels.level, customer.journeyOrders), eq(s.journeyLevels.active, true)));
+      if (lvl) {
+        if (lvl.rewardType === "PERCENT") {
+          journeyPct = lvl.value;
+          const raw = (itemsSubtotal * lvl.value) / 100;
+          // يُقرّب خصم الرحلة لأعلى ٢٥٠ (ربح بسيط للمتجر، الزبون يرى النسبة فقط)
+          journeyDiscount = Math.ceil(raw / 250) * 250;
+        } else if (lvl.rewardType === "FIXED") journeyDiscount = Math.min(lvl.value, itemsSubtotal - couponDiscount);
+        else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = true;
+        else giftName = lvl.giftName ?? "هدية";
+      }
+    }
+  }
+
+  const afterDiscounts = Math.max(0, itemsSubtotal - couponDiscount - journeyDiscount);
+
+  // ٥) التوصيل
+  const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon;
+  const deliveryCharged = freeDelivery ? 0 : (settings?.deliveryCustomerPrice ?? 0);
+
+  // ٦) الكاش باك — يُستخدم بمضاعفات ٢٥٠ فقط، بحيث الإجمالي يبقى قابلاً للدفع
+  const pointValue = settings?.pointValue ?? 250;
+  const pointsAvailable = customer ? customer.pointsBalance * pointValue : 0;
+  let pointsUsedDinars = 0;
+  if (input.usePoints && pointsAvailable > 0) {
+    const preTotal = afterDiscounts + deliveryCharged;
+    // أكبر مضاعف ٢٥٠ لا يتجاوز الرصيد ولا الإجمالي
+    const cap = Math.min(pointsAvailable, preTotal);
+    pointsUsedDinars = Math.floor(cap / 250) * 250;
+  }
+  const pointsRemaining = pointsAvailable - pointsUsedDinars;
+
+  // ٧) الإجمالي + تقريب لأعلى ٢٥٠
+  const total = roundUp250(afterDiscounts - pointsUsedDinars + deliveryCharged);
+
+  return {
+    itemsSubtotal, grossSubtotal, boxDiscount, journeyDiscount, journeyPct,
+    couponDiscount, pointsAvailable, pointsUsedDinars, pointsRemaining,
+    deliveryCharged, freeDelivery, total, giftName,
+  };
+}

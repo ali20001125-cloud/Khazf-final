@@ -42,6 +42,30 @@ export default function CheckoutPage() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<Success | null>(null);
 
+  // ── المعاينة الحية من الخادم (نفس حساب الطلب: خصم + كاش باك + تقريب) ──
+  type Preview = {
+    itemsSubtotal: number; boxDiscount: number; journeyDiscount: number; journeyPct: number;
+    pointsAvailable: number; pointsUsedDinars: number; pointsRemaining: number;
+    deliveryCharged: number; freeDelivery: boolean; total: number; giftName: string | null;
+  };
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  useEffect(() => {
+    if (cart.length === 0) { setPreview(null); return; }
+    const ctrl = new AbortController();
+    setPreviewing(true);
+    const body = {
+      items: cart.map((i) => ({ slug: i.slug, variant: i.variant, qty: i.qty, boxGroup: i.boxGroup ?? null })),
+      phone: normalizeIqPhone(form.phone) ?? "",
+      governorate: form.governorate,
+      couponCode: coupon?.code ?? null,
+      usePoints: useCashback,
+    };
+    fetch("/api/checkout/preview/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal })
+      .then((r) => r.json()).then((d) => { if (!d.error) setPreview(d); }).catch(() => {}).finally(() => setPreviewing(false));
+    return () => ctrl.abort();
+  }, [cart, form.phone, form.governorate, coupon, useCashback]);
+
   const subtotal = useMemo(() => cart.reduce((t, i) => t + i.priceShown * i.qty, 0), [cart]);
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
   const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
@@ -240,21 +264,47 @@ export default function CheckoutPage() {
             ))}
           </ul>
           <div className="space-y-2 border-t border-line pt-3 text-[13px]">
-            {box.discount > 0 && (
-              <div className="flex justify-between text-ok"><span>خصم البوكس</span><span className="font-num">−{formatIQD(box.discount)}</span></div>
+            {/* منتجات */}
+            <div className="flex justify-between">
+              <span className="text-muted">المنتجات</span>
+              <span className="font-num font-semibold">{formatIQD(preview?.itemsSubtotal ?? subtotal - box.discount)}</span>
+            </div>
+            {/* خصم الرحلة/الولاء التلقائي */}
+            {(preview?.journeyDiscount ?? 0) > 0 && (
+              <div className="flex justify-between text-ok">
+                <span>خصم الولاء{preview!.journeyPct > 0 ? ` (${preview!.journeyPct}٪)` : ""}</span>
+                <span className="font-num">−{formatIQD(preview!.journeyDiscount)}</span>
+              </div>
             )}
             {coupon && <div className="flex justify-between text-ok"><span>كود {coupon.code}</span><span>مفعّل</span></div>}
+            {/* الكاش باك المستخدم */}
+            {(preview?.pointsUsedDinars ?? 0) > 0 && (
+              <div className="flex justify-between text-accent">
+                <span>الكاش باك المستخدم</span>
+                <span className="font-num">−{formatIQD(preview!.pointsUsedDinars)}</span>
+              </div>
+            )}
+            {/* التوصيل */}
             <div className="flex justify-between">
               <span className="text-muted">التوصيل</span>
-              {freeDelivery ? <span className="font-semibold text-ok">مجاني</span> : <span className="font-num font-semibold">{formatIQD(config.deliveryPrice)}</span>}
+              {(preview?.freeDelivery ?? freeDelivery) ? <span className="font-semibold text-ok">مجاني</span> : <span className="font-num font-semibold">{formatIQD(preview?.deliveryCharged ?? config.deliveryPrice)}</span>}
             </div>
+            {/* الإجمالي */}
             <div className="flex items-center justify-between border-t border-line pt-3">
               <span className="text-[15px] font-bold">الإجمالي</span>
-              <span className="font-num text-xl font-bold text-accent">{formatIQD(estTotal)}</span>
+              <span className="font-num text-xl font-bold text-accent">
+                {previewing && !preview ? "…" : formatIQD(preview?.total ?? estTotal)}
+              </span>
             </div>
           </div>
+          {/* رصيد الكاش باك المتبقي */}
+          {useCashback && (preview?.pointsUsedDinars ?? 0) > 0 && (
+            <p className="rounded-[12px] bg-accent/8 px-4 py-3 text-[11.5px] leading-relaxed text-accent">
+              استُخدم {formatIQD(preview!.pointsUsedDinars)} من رصيدك · يبقى {formatIQD(preview!.pointsRemaining)} في حسابك
+            </p>
+          )}
           <p className="rounded-[12px] bg-bg-alt px-4 py-3 text-[11.5px] leading-relaxed text-muted">
-            دفع عند الاستلام · يُخصم رصيد الكاش باك تلقائياً عند التثبيت إن اخترته.
+            الدفع عند الاستلام · جميع الخصومات مطبّقة أعلاه.
           </p>
           <button type="submit" disabled={sending}
             className="btn btn-clay flex w-full items-center justify-center gap-2 !py-4 text-[15px] active:scale-[0.98] disabled:opacity-60">
