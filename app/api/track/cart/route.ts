@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, schema as s } from "@/lib/server/db";
 import { eq, sql } from "drizzle-orm";
+import { getAdmin } from "@/lib/server/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,6 +9,10 @@ export const dynamic = "force-dynamic";
 /** يحفظ لقطة السلة عند صفحة الدفع (لكشف الهجران لاحقاً) */
 export async function POST(req: Request) {
   try {
+    // لا نتتبّع سلة المدير عند اختباره المتجر
+    const admin = await getAdmin().catch(() => null);
+    if (admin) return NextResponse.json({ ok: true, skipped: "admin" });
+
     const b = await req.json();
     if (!b.sessionId) return NextResponse.json({ ok: false });
     const items = Array.isArray(b.items) ? b.items : [];

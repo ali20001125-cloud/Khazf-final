@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { db, schema as s } from "@/lib/server/db";
 import { sql } from "drizzle-orm";
+import { getAdmin } from "@/lib/server/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** تتبّع زيارة صفحة — خفيف، صامت */
+/** تتبّع زيارة صفحة — خفيف، صامت. لا نحسب زيارات المدير (تشوّه الأرقام). */
 export async function POST(req: Request) {
   try {
+    // لا نتتبّع صاحب المتجر/المدير عند تصفّحه المتجر
+    const admin = await getAdmin().catch(() => null);
+    if (admin) return NextResponse.json({ ok: true, skipped: "admin" });
+
     const b = await req.json();
     if (!b.sessionId || !b.path) return NextResponse.json({ ok: false });
     await db.insert(s.pageViews).values({
