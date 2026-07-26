@@ -308,6 +308,38 @@ function GoogleBtn({ label = "المتابعة عبر Google" }: { label?: strin
 }
 
 /* ═══ الزائر: دخول + تسجيل موحّد (Google + إيميل كامل) ═══ */
+/* تحقّق ذكي من الإيميل: يكشف أخطاء البنية والنطاقات الشائعة، ويقترح التصحيح */
+const COMMON_DOMAINS = [
+  "gmail.com", "hotmail.com", "outlook.com", "yahoo.com",
+  "icloud.com", "live.com", "protonmail.com", "khazf.shop",
+];
+// أخطاء إملائية شائعة → التصحيح
+const DOMAIN_FIXES: Record<string, string> = {
+  "gmial.com": "gmail.com", "gamil.com": "gmail.com", "gmai.com": "gmail.com",
+  "gmil.com": "gmail.com", "gmaill.com": "gmail.com", "gmail.co": "gmail.com",
+  "gmail.con": "gmail.com", "gmail.cm": "gmail.com", "gmailcom": "gmail.com",
+  "hotmial.com": "hotmail.com", "hotmil.com": "hotmail.com", "hotmai.com": "hotmail.com",
+  "hotmail.co": "hotmail.com", "outlok.com": "outlook.com", "outook.com": "outlook.com",
+  "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "iclod.com": "icloud.com",
+};
+
+/** يرجّع: خطأ (نص) أو اقتراح تصحيح أو null (سليم) */
+function checkEmail(raw: string): { error?: string; suggest?: string } {
+  const email = raw.trim().toLowerCase();
+  if (!email) return { error: "اكتب إيميلك" };
+  if (!email.includes("@")) return { error: "الإيميل ناقص علامة @" };
+  const parts = email.split("@");
+  if (parts.length > 2) return { error: "الإيميل فيه أكثر من @ — تأكّد" };
+  const [local, domain] = parts;
+  if (!local) return { error: "اكتب اسم الإيميل قبل @" };
+  if (!domain) return { error: "اكتب النطاق بعد @ (مثل gmail.com)" };
+  if (!domain.includes(".")) return { error: "النطاق ناقص نقطة (مثل gmail.com)" };
+  if (domain.startsWith(".") || domain.endsWith(".")) return { error: "تأكّد من موضع النقطة بالنطاق" };
+  // خطأ إملائي معروف؟ نقترح التصحيح
+  if (DOMAIN_FIXES[domain]) return { suggest: `${local}@${DOMAIN_FIXES[domain]}` };
+  return {};
+}
+
 function SignedOutView() {
   const scope = useMotion();
   const [step, setStep] = useState<"email" | "otp">("email");
@@ -316,6 +348,7 @@ function SignedOutView() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [suggest, setSuggest] = useState("");
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -334,7 +367,11 @@ function SignedOutView() {
   // إرسال الرمز للإيميل (تسجيل ودخول موحّد — بلا رقم ولا محافظة)
   const sendCode = async () => {
     setErr("");
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setErr("اكتب إيميلاً صحيحاً");
+    const check = checkEmail(email);
+    if (check.error) return setErr(check.error);
+    // نقترح التصحيح مرة واحدة؛ لو الاقتراح معروض والزبون ضغط ثانية = يتابع بإيميله
+    if (check.suggest && !suggest) { setSuggest(check.suggest); return; }
+    setSuggest("");
     setBusy(true);
     try {
       const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
@@ -386,11 +423,21 @@ function SignedOutView() {
 
       {step === "email" ? (
         <div className="reveal space-y-3">
-          <input type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="الإيميل" className={`${inp} text-end`} />
+          <input type="email" dir="ltr" value={email} onChange={(e) => { setEmail(e.target.value); setSuggest(""); setErr(""); }} placeholder="الإيميل" className={`${inp} text-end`} />
+          {suggest && (
+            <div className="rounded-[12px] border border-gold/50 bg-gold/8 px-4 py-3 text-center">
+              <p className="text-[12.5px] text-muted">هل تقصد؟</p>
+              <button onClick={() => { setEmail(suggest); setSuggest(""); }}
+                dir="ltr" className="font-num mt-1 text-[14px] font-bold text-ink underline decoration-gold decoration-2 underline-offset-2">
+                {suggest}
+              </button>
+              <p className="mt-1.5 text-[11px] text-muted">اضغط للتصحيح، أو تابع بإيميلك الحالي</p>
+            </div>
+          )}
           {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
           <button onClick={sendCode} disabled={busy}
             className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
-            {busy ? "لحظة…" : "أرسل رمز الدخول"}
+            {busy ? "لحظة…" : suggest ? "تابع بإيميلي الحالي" : "أرسل رمز الدخول"}
           </button>
           <p className="text-center text-[11px] leading-relaxed text-muted">
             يصلك رمز من ٦ أرقام على إيميلك. إن لم تجده خلال دقيقة، تحقّق من مجلد <b>الرسائل المزعجة (Spam)</b> أو <b>الترويجات (Promotions)</b>.
