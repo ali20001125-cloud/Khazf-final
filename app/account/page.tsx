@@ -40,6 +40,7 @@ function AccountInner() {
   const { coffees, tools } = useCatalog();
   const [me, setMe] = useState<Me | null>(null);
   const [tab, setTab] = useState<"orders" | "cashback" | "fav">(params.get("tab") === "fav" ? "fav" : "orders");
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     fetch("/api/customer/me/").then((r) => r.json()).then(setMe).catch(() => setMe({ guest: true }));
@@ -176,9 +177,104 @@ function AccountInner() {
       {/* ربط Google — فقط لمن ليس لديه أي حساب مصادقة (لا Google ولا إيميل) */}
       {!me.hasAuth && !me.googleSession && <ConnectGoogleHint />}
 
-      <button onClick={signOut} className="reveal mx-auto mt-8 block text-[12.5px] font-semibold text-muted">
+      <button onClick={() => setEditing(true)} className="reveal mx-auto mt-8 block text-[12.5px] font-semibold text-accent">
+        تعديل بياناتي
+      </button>
+      <button onClick={signOut} className="reveal mx-auto mt-3 block text-[12.5px] font-semibold text-muted">
         تسجيل الخروج
       </button>
+
+      {editing && <EditProfile me={me} onClose={() => setEditing(false)} />}
+    </div>
+  );
+}
+
+/* ═══ نافذة تعديل البيانات ═══ */
+function EditProfile({ me, onClose }: { me: Me; onClose: () => void }) {
+  const [name, setName] = useState(me.name ?? "");
+  const [email, setEmail] = useState(me.email ?? "");
+  const [phone, setPhone] = useState(me.phone ?? "");
+  const [gov, setGov] = useState(me.governorate ?? "");
+  const [address, setAddress] = useState(me.address ?? "");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [ok, setOk] = useState(false);
+  const phoneChanged = normalizeIqPhone(phone) !== me.phone;
+
+  const save = async () => {
+    setErr("");
+    if (!name.trim()) return setErr("اكتب اسمك");
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) return setErr("إيميل غير صحيح");
+    if (phone && !normalizeIqPhone(phone)) return setErr("رقم هاتف عراقي صحيح");
+    if (!gov) return setErr("اختر محافظتك");
+    setBusy(true);
+    try {
+      const r = await fetch("/api/customer/update/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, governorate: gov, address }),
+      });
+      const data = await r.json();
+      if (!r.ok) { setErr(data.error || "تعذّر الحفظ"); setBusy(false); return; }
+      setOk(true);
+      setTimeout(() => location.reload(), 900);
+    } catch { setErr("تعذّر الاتصال"); setBusy(false); }
+  };
+
+  const inp = "w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-[14px] outline-none focus:border-accent";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm md:items-center" onClick={onClose}>
+      <div className="w-full max-w-md rounded-t-[28px] bg-cream p-6 md:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-line md:hidden" />
+        <h2 className="text-[19px] font-bold">تعديل بياناتي</h2>
+        <p className="mt-1 text-[12px] text-muted">حدّث معلوماتك — تُحفظ فوراً</p>
+
+        <div className="mt-5 space-y-3">
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-muted">الاسم</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} className={inp} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-muted">الإيميل</label>
+            <input dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="اختياري" className={`${inp} text-end`} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-muted">رقم الهاتف</label>
+            <input dir="ltr" inputMode="tel" maxLength={11} value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              className={`font-num ${inp} text-end`} />
+            {phoneChanged && (
+              <p className="mt-1.5 text-[11px] leading-relaxed text-accent">
+                تغيير الرقم ينقل طلباتك ونقاطك ورحلة ولائك للرقم الجديد.
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-muted">المحافظة</label>
+            <select value={gov} onChange={(e) => setGov(e.target.value)} className={`appearance-none ${inp} ${gov ? "" : "text-muted"}`}>
+              <option value="" disabled>اختر محافظتك</option>
+              {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-muted">العنوان (اختياري)</label>
+            <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="أقرب نقطة دالّة" className={inp} />
+          </div>
+
+          {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
+          {ok && <p className="rounded-[12px] bg-olive/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-olive">حُفظت بياناتك ✓</p>}
+
+          <div className="flex gap-2.5 pt-1">
+            <button onClick={onClose} className="flex-1 rounded-[14px] border border-line bg-card py-3.5 text-[14px] font-bold text-muted active:scale-[0.98]">
+              إلغاء
+            </button>
+            <button onClick={save} disabled={busy || ok}
+              className="flex-[1.5] rounded-[14px] bg-olive py-3.5 text-[14px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
+              {busy ? "لحظة…" : "حفظ التعديلات"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
