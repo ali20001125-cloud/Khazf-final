@@ -67,11 +67,15 @@ export default function Header() {
     const update = () => {
       const y = window.scrollY;
       el.classList.toggle("shrunk", y > 40);
-      // لا نخفي الهيدر إذا كانت القائمة أو البحث مفتوحاً
       const locked = el.classList.contains("keep-open");
+      // بصفحة البوكس: شريط البوكس يحلّ محلّ الهيدر — لا نُظهر الهيدر عند الصعود،
+      // يبقى مخفياً حتى نصل قمة الصفحة (حتى لا يزاحم شريط البوكس الـsticky)
+      const boxMode = window.location.pathname.startsWith("/box");
       const goingDown = y > lastY;
       if (locked || y < 120) {
         el.classList.remove("header-hidden");
+      } else if (boxMode) {
+        el.classList.add("header-hidden");            // بالبوكس: مخفي دائماً بعيداً عن القمة
       } else if (goingDown && y - lastY > 6) {
         el.classList.add("header-hidden");
       } else if (!goingDown && lastY - y > 6) {
