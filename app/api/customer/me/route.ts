@@ -8,9 +8,41 @@ import { settleLoyalty } from "@/lib/server/loyalty";
 
 export const runtime = "nodejs";
 
+/**
+ * يشتق اسماً معقولاً من الإيميل:
+ * - يأخذ الجزء قبل @
+ * - يزيل الأرقام والرموز (ali20001125 → ali)
+ * - يفصل الكلمات المدموجة/المفصولة (ahmed.ali أو ahmedali → Ahmed Ali)
+ * - يجعل أول حرف كبير
+ */
+function nameFromEmail(email: string): string {
+  let local = email.split("@")[0];
+  // فصل بالنقطة/الشرطة/الأندرسكور
+  local = local.replace(/[._-]+/g, " ");
+  // إزالة الأرقام
+  local = local.replace(/\d+/g, " ").trim();
+  if (!local) return "صديق خزف";
+  // لو كلمة واحدة مدموجة بأحرف كبيرة (AhmedAli) نفصلها
+  const parts = local.includes(" ")
+    ? local.split(/\s+/)
+    : local.replace(/([a-z])([A-Z])/g, "$1 $2").split(/\s+/);
+  const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  return parts.filter(Boolean).slice(0, 2).map(cap).join(" ") || "صديق خزف";
+}
+
 export async function GET() {
   const { phone, authUser, linked } = await getCustomerIdentity();
-  if (!phone) return NextResponse.json({ guest: true, googleSession: !!authUser, linked: false });
+  if (!phone) {
+    // مسجّل بإيميل/Google بلا رقم بعد — نرجّع إيميله واسماً مشتقاً منه
+    // حتى يظهرا بالحساب ويُملآ بالطلب (الرقم يُطلب عند الطلب فقط)
+    return NextResponse.json({
+      guest: true,
+      googleSession: !!authUser,
+      linked: false,
+      email: authUser?.email ?? null,
+      name: authUser?.email ? nameFromEmail(authUser.email) : null,
+    });
+  }
   let balance = 0;
   await db.transaction(async (tx) => {
     balance = (await settleLoyalty(tx, phone)).balance;
