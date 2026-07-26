@@ -117,8 +117,12 @@ h1, h2, h3, h4 {
 /* ── الهيدر: شفاف ثم صلب ── */
 .site-header {
   transition: background-color 0.4s ease, border-color 0.4s ease,
-    backdrop-filter 0.4s ease;
+    backdrop-filter 0.4s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   border-bottom: 1px solid transparent;
+}
+/* هيدر ذكي: يختفي للأعلى عند النزول، يعود عند الصعود */
+.site-header.header-hidden {
+  transform: translateY(-100%);
 }
 .site-header.solid {
   background: color-mix(in srgb, var(--bg) 88%, transparent);

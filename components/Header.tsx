@@ -62,11 +62,39 @@ export default function Header() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const onScroll = () => el.classList.toggle("shrunk", window.scrollY > 40);
-    onScroll();
+    let lastY = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      el.classList.toggle("shrunk", y > 40);
+      // لا نخفي الهيدر إذا كانت القائمة أو البحث مفتوحاً
+      const locked = el.classList.contains("keep-open");
+      const goingDown = y > lastY;
+      if (locked || y < 120) {
+        el.classList.remove("header-hidden");
+      } else if (goingDown && y - lastY > 6) {
+        el.classList.add("header-hidden");
+      } else if (!goingDown && lastY - y > 6) {
+        el.classList.remove("header-hidden");
+      }
+      lastY = y;
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // أبقِ الهيدر ظاهراً ما دامت القائمة أو البحث مفتوحاً
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.classList.toggle("keep-open", menuOpen || searchOpen);
+    if (menuOpen || searchOpen) el.classList.remove("header-hidden");
+  }, [menuOpen, searchOpen]);
 
   useEffect(() => {
     if (bump === 0 || !cartRef.current) return;
