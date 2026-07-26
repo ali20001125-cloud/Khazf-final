@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Smooth from "@/lib/smooth";
+import StoreChrome from "@/components/StoreChrome";
 import { StoreProvider, GlobalToast, type SiteConfig } from "@/lib/store";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { getSettings } from "@/lib/server/settings";
 import { getCatalog, type CatalogData } from "@/lib/server/catalog";
-import WhatsAppFab from "@/components/WhatsAppFab";
 import VisitTracker from "@/components/VisitTracker";
 import { CatalogProvider } from "@/lib/catalog-context";
 
@@ -113,10 +111,7 @@ export default async function RootLayout({
         <StoreProvider config={config}>
           <Smooth>
             <div className="grain" />
-            <Header />
-            <main>{children}</main>
-            <Footer />
-            <WhatsAppFab />
+            <StoreChrome>{children}</StoreChrome>
             <VisitTracker />
             <GlobalToast />
           </Smooth>
