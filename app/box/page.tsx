@@ -71,7 +71,17 @@ export default function BoxPage() {
   const { addToCart, showToast, setBoxGiftChoice } = useStore();
   const { coffees, boxGiftNames } = useCatalog();
   const gifts = boxGiftNames.map((label, i) => ({ key: label, label, icon: GIFT_ICONS[i % GIFT_ICONS.length] }));
-  const [bags, setBags] = useState<Record<string, number>>({});
+  // نحفظ اختيار الأكياس مؤقتاً حتى لا يضيع عند زيارة صفحة محصول والرجوع
+  const [bags, setBags] = useState<Record<string, number>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const saved = sessionStorage.getItem("khazf_box_bags");
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  useEffect(() => {
+    try { sessionStorage.setItem("khazf_box_bags", JSON.stringify(bags)); } catch {}
+  }, [bags]);
   const [showBar, setShowBar] = useState(false);
   const [gift, setGift] = useState<string | null>(null);
 
@@ -108,6 +118,7 @@ export default function BoxPage() {
     }
     setBoxGiftChoice(gifts.find((g) => g.key === gift)?.label ?? null);
     showToast(`أُضيف بوكس ${count} أكياس للسلة — الخصم النهائي بالسلة`);
+    try { sessionStorage.removeItem("khazf_box_bags"); } catch {}
     router.push("/cart/");
   };
 
@@ -136,22 +147,24 @@ export default function BoxPage() {
         </div>
       </div>
       <div className="mx-auto max-w-3xl px-4 md:px-6">
-        <div className="text-center">
+        {/* العدّاد + التقدّم — يلتصق فوق عند التمرير حتى يبقى ظاهراً */}
+        <div className="sticky top-[64px] z-20 -mx-4 bg-bg/95 px-4 pb-4 pt-3 backdrop-blur md:top-[72px]">
+          <div className="text-center">
           {/* العدّاد — مضغوط */}
-          <div className="mt-2">
+          <div className="mt-0">
             <span
-              className={`big-count inline-block text-[54px] font-bold leading-none transition-colors duration-300 ${
+              className={`big-count inline-block text-[44px] font-bold leading-none transition-colors duration-300 ${
                 count > 0 ? "text-accent" : "text-line"
               }`}
               style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
             >
               {count}
             </span>
-            <p className="mt-0.5 text-[13px] text-muted">{count === 1 ? "كيس" : "أكياس"}</p>
+            <p className="mt-0.5 text-[12px] text-muted">{count === 1 ? "كيس" : "أكياس"}</p>
           </div>
 
           {/* التقدّم والمحطات */}
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-bg-alt">
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-bg-alt">
             <i
               className="block h-full rounded-full bg-accent transition-all duration-500"
               style={{ width: `${Math.min(count / 6, 1) * 100}%` }}
@@ -163,7 +176,7 @@ export default function BoxPage() {
               return (
                 <div key={t.n} className="text-center">
                   <div
-                    className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full border-2 text-[13px] font-bold transition-colors ${
+                    className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 text-[12px] font-bold transition-colors ${
                       on
                         ? t.gold
                           ? "border-gold bg-gold text-olive"
@@ -175,7 +188,7 @@ export default function BoxPage() {
                     {t.n}
                   </div>
                   <p
-                    className={`mt-1.5 text-[10.5px] font-semibold ${
+                    className={`mt-1 text-[10px] font-semibold ${
                       on ? (t.gold ? "text-gold" : "text-accent") : "text-muted"
                     }`}
                   >
@@ -186,9 +199,10 @@ export default function BoxPage() {
             })}
           </div>
 
-          <p className="mt-5 inline-block rounded-full bg-bg-alt px-5 py-2 text-[12.5px] font-semibold">
+          <p className="mt-3 inline-block rounded-full bg-bg-alt px-5 py-1.5 text-[12px] font-semibold">
             {hintFor(count)}
           </p>
+          </div>
         </div>
 
         {/* المحاصيل */}
@@ -253,30 +267,37 @@ export default function BoxPage() {
           })}
         </div>
 
-        {/* الهدية */}
-        {count >= 6 && (
-          <div className="mt-10 rounded-[22px] border border-gold/50 bg-gold/10 p-6 text-center">
-            <Gift size={26} className="mx-auto text-gold" />
-            <h2 className="mt-3 text-xl font-bold">اختر هديتك</h2>
-            <p className="mt-1 text-[13px] text-muted">وصلت لـ ٦ أكياس — هديتك علينا</p>
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              {gifts.map((g) => (
-                <button
-                  key={g.key}
-                  onClick={() => setGift(g.key)}
-                  className={`flex flex-col items-center gap-2.5 rounded-[16px] border-2 py-6 transition-colors ${
-                    gift === g.key
-                      ? "border-gold bg-gold/15"
-                      : "border-line bg-card hover:border-muted"
-                  }`}
-                >
-                  <g.icon size={24} className={gift === g.key ? "text-gold" : "text-muted"} strokeWidth={1.8} />
-                  <span className="text-sm font-bold">{g.label}</span>
-                </button>
-              ))}
-            </div>
+        {/* الهدية — ظاهرة دائماً (تحفيز)، معطّلة حتى الوصول لـ٦ أكياس */}
+        <div className={`mt-10 rounded-[22px] border p-6 text-center transition-all ${
+          count >= 6 ? "border-gold/50 bg-gold/10" : "border-line bg-card"
+        }`}>
+          <Gift size={26} className={`mx-auto ${count >= 6 ? "text-gold" : "text-muted/50"}`} />
+          <h2 className={`mt-3 text-xl font-bold ${count >= 6 ? "" : "text-muted"}`}>
+            {count >= 6 ? "اختر هديتك" : "هديتك المجانية"}
+          </h2>
+          <p className="mt-1 text-[13px] text-muted">
+            {count >= 6
+              ? "وصلت لـ ٦ أكياس — هديتك علينا"
+              : `أضف ${6 - count} ${6 - count === 1 ? "كيساً" : "أكياس"} لتفتح هديتك المجانية`}
+          </p>
+          <div className={`mt-6 grid grid-cols-2 gap-3 transition-opacity ${count >= 6 ? "" : "pointer-events-none opacity-45"}`}>
+            {gifts.map((g) => (
+              <button
+                key={g.key}
+                onClick={() => count >= 6 && setGift(g.key)}
+                disabled={count < 6}
+                className={`flex flex-col items-center gap-2.5 rounded-[16px] border-2 py-6 transition-colors ${
+                  count >= 6 && gift === g.key
+                    ? "border-gold bg-gold/15"
+                    : "border-line bg-card"
+                } ${count >= 6 ? "hover:border-muted" : ""}`}
+              >
+                <g.icon size={24} className={count >= 6 && gift === g.key ? "text-gold" : "text-muted"} strokeWidth={1.8} />
+                <span className="text-sm font-bold">{g.label}</span>
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* الشريط السفلي */}
