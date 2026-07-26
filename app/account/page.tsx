@@ -315,10 +315,6 @@ function SignedOutView() {
   const [err, setErr] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [gov, setGov] = useState("");
-  const [needProfile, setNeedProfile] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -335,7 +331,7 @@ function SignedOutView() {
     await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback/?next=/account/` } });
   };
 
-  // إرسال الرمز للإيميل
+  // إرسال الرمز للإيميل (تسجيل ودخول موحّد — بلا رقم ولا محافظة)
   const sendCode = async () => {
     setErr("");
     if (!/^\S+@\S+\.\S+$/.test(email)) return setErr("اكتب إيميلاً صحيحاً");
@@ -344,34 +340,26 @@ function SignedOutView() {
       const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
       if (!supabaseEnabled) { setErr("غير متاح حالياً"); setBusy(false); return; }
       const sb = supabaseBrowser();
-      // نتحقق: هل الإيميل له حساب زبون (فيه اسم ورقم)؟
-      const chk = await fetch(`/api/customer/exists/?email=${encodeURIComponent(email)}`).then((r) => r.json()).catch(() => ({ exists: false }));
-      setNeedProfile(!chk.exists);
       const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
       if (error) { setErr("تعذّر إرسال الرمز — تأكد من الإيميل"); setBusy(false); return; }
       setStep("otp"); setCooldown(45); setBusy(false);
     } catch { setErr("تعذّر الاتصال"); setBusy(false); }
   };
 
-  // التحقق من الرمز
+  // التحقق من الرمز — دخول مباشر (الرقم والمحافظة تُطلب عند الطلب)
   const verify = async () => {
     setErr("");
     if (code.trim().length < 6) return setErr("اكتب الرمز المكوّن من ٦ أرقام");
-    if (needProfile) {
-      if (!name.trim()) return setErr("اكتب اسمك");
-      if (!normalizeIqPhone(phone)) return setErr("رقم هاتف عراقي صحيح");
-      if (!gov) return setErr("اختر محافظتك");
-    }
     setBusy(true);
     try {
       const { supabaseBrowser } = await import("@/lib/supabase-browser");
       const sb = supabaseBrowser();
       const { data, error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: "email" });
       if (error) { setErr("الرمز غير صحيح أو منتهٍ — أعد الإرسال"); setBusy(false); return; }
-      // حفظ/ربط ملف الزبون
-      await fetch("/api/customer/register/", {
+      // نُسجّل حساب الإيميل (بلا رقم بعد — يُربط عند أول طلب)
+      await fetch("/api/customer/register-email/", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authUserId: data.user?.id, email, name, phone, governorate: gov }),
+        body: JSON.stringify({ authUserId: data.user?.id, email }),
       }).catch(() => {});
       location.reload();
     } catch { setErr("تعذّر الاتصال"); setBusy(false); }
@@ -405,7 +393,7 @@ function SignedOutView() {
             {busy ? "لحظة…" : "أرسل رمز الدخول"}
           </button>
           <p className="text-center text-[11px] leading-relaxed text-muted">
-            يصلك رمز من ٦ أرقام على إيميلك. إن لم تجده خلال دقيقة، تحقّق من مجلد <b>الرسائل المزعجة (Spam)</b>.
+            يصلك رمز من ٦ أرقام على إيميلك. إن لم تجده خلال دقيقة، تحقّق من مجلد <b>الرسائل المزعجة (Spam)</b> أو <b>الترويجات (Promotions)</b>.
           </p>
         </div>
       ) : (
@@ -417,15 +405,6 @@ function SignedOutView() {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
             placeholder="______"
             className={`font-num ${inp} text-center !text-2xl tracking-[0.5em]`} />
-          {needProfile && (<>
-            <p className="pt-1 text-center text-[12px] font-semibold text-muted">أكمل بياناتك (مرة واحدة)</p>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم الكامل" className={inp} />
-            <input dir="ltr" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} maxLength={11} placeholder="07XXXXXXXXX" className={`font-num ${inp} text-end`} />
-            <select value={gov} onChange={(e) => setGov(e.target.value)} className={`appearance-none ${inp} ${gov ? "" : "text-muted"}`}>
-              <option value="" disabled>اختر محافظتك</option>
-              {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </>)}
           {err && <p className="rounded-[12px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
           <button onClick={verify} disabled={busy}
             className="w-full rounded-[14px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
@@ -438,6 +417,9 @@ function SignedOutView() {
           <button onClick={() => { setStep("email"); setCode(""); setErr(""); }} className="w-full text-[12px] text-muted">
             تغيير الإيميل
           </button>
+          <p className="text-center text-[11px] leading-relaxed text-muted">
+            الرمز قد يصل إلى <b>الرسائل المزعجة (Spam)</b> أو <b>الترويجات</b> — تحقّق منها إن تأخّر.
+          </p>
         </div>
       )}
 

@@ -24,7 +24,6 @@ export default function CheckoutPage() {
   const { cart, clearCart, coupon, useCashback, boxGiftChoice, showToast } = useStore();
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
-  const [extrasOpen, setExtrasOpen] = useState(false);
 
   /* الزبون المعروف: بياناته تتعبأ لحالها */
   useEffect(() => {
@@ -34,6 +33,7 @@ export default function CheckoutPage() {
         ...f,
         name: f.name || me.name || "",
         phone: f.phone || me.phone || "",
+        email: f.email || me.email || "",
         governorate: f.governorate || me.governorate || "",
         address: f.address || me.address || "",
       }));
@@ -242,20 +242,11 @@ export default function CheckoutPage() {
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
 
-              {/* ٥) الاسم والإيميل — خلف السهم */}
-              <button type="button" onClick={() => setExtrasOpen((v) => !v)}
-                className="flex items-center justify-between rounded-[14px] border border-dashed border-line px-4 py-3.5 text-[13px] font-semibold text-muted sm:col-span-2">
-                الاسم والإيميل (اختياري)
-                <ChevronDown size={15} className={`transition-transform ${extrasOpen ? "rotate-180" : ""}`} />
-              </button>
-              {extrasOpen && (
-                <>
-                  <input placeholder="الاسم الكامل" value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-                  <input type="email" dir="ltr" placeholder="الإيميل" value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
-                </>
-              )}
+              {/* ٥) الاسم والإيميل — ظاهران مباشرة (الإيميل مهم للفاتورة والتقييم) */}
+              <input placeholder="الاسم الكامل" value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
+              <input type="email" dir="ltr" placeholder="الإيميل" value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
             </div>
           </section>
 
