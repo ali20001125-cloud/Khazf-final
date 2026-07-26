@@ -59,8 +59,8 @@ function AccountInner() {
   /* ═══ زائر تماماً — شاشة دخول احترافية ═══ */
   if (me.guest && !me.googleSession) return <SignedOutView />;
 
-  /* ═══ دخل بـ Google لكن لم يربط رقمه — خطوة الربط ═══ */
-  if (me.guest && me.googleSession) return <LinkStep />;
+  /* دخل بـ Google/إيميل بلا رقم بعد — يدخل حسابه مباشرة (الرقم يُطلب عند الطلب) */
+  // (أُزيلت خطوة LinkStep الإجبارية — لم نعد نطلب الرقم عند الدخول)
 
   /* ═══ حساب كامل ═══ */
   return (
