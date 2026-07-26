@@ -401,10 +401,21 @@ function SignedOutView() {
     setErr("");
     const check = checkEmail(email);
     if (check.error) return setErr(check.error);
-    // نقترح التصحيح مرة واحدة؛ لو الاقتراح معروض والزبون ضغط ثانية = يتابع بإيميله
+    // اقتراح محلي سريع (خطأ إملائي معروف)؛ لو معروض والزبون ضغط ثانية = يتابع
     if (check.suggest && !suggest) { setSuggest(check.suggest); return; }
-    setSuggest("");
     setBusy(true);
+    // فحص النطاق فعلياً (MX): هل يستقبل بريداً؟ — بحذر، لا نمنع عند فشل الفحص
+    try {
+      const dom = await fetch(`/api/customer/verify-domain/?email=${encodeURIComponent(email)}`)
+        .then((r) => r.json()).catch(() => ({ ok: true }));
+      if (!dom.ok) {
+        setBusy(false);
+        if (dom.suggest && !suggest) { setSuggest(dom.suggest); return; }
+        // نطاق غير موجود وبلا اقتراح — لو الزبون مصرّ (ضغط ثانية) نتابع
+        if (!suggest) { setErr("هذا النطاق قد لا يستقبل بريداً — تأكّد من إيميلك"); return; }
+      }
+    } catch { /* تعذّر الفحص — نمرّر بحذر */ }
+    setSuggest("");
     try {
       const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
       if (!supabaseEnabled) { setErr("غير متاح حالياً"); setBusy(false); return; }
