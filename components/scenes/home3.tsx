@@ -247,42 +247,39 @@ export function CropsRail() {
 
 /* ═══════════ ٤) دعوة البوكس — النسخة المعتمدة، محسّنة ═══════════ */
 export function BoxTeaser() {
+  const rungs = [
+    { n: "٣", t: "خصم ١٠٪" },
+    { n: "٤", t: "خصم ٢٠٪" },
+    { n: "٥", t: "توصيل مجاني" },
+    { n: "٦", t: "اختر هديتك المجانية", gold: true },
+  ];
   return (
     <section className="px-4 py-16 md:px-8 md:py-24">
-      <div className="reveal mx-auto max-w-6xl overflow-hidden rounded-[26px] bg-olive px-8 py-16 text-center text-olive-text md:py-20">
-        <p className="font-num text-[10px] tracking-[0.4em] opacity-60">صندوق خزف</p>
-        <h2 className="mx-auto mt-4 max-w-lg text-3xl font-bold md:text-4xl md:leading-snug">
-          صندوقك الخاص — تختاره، فتوفّر أكثر
-        </h2>
-        <p className="mx-auto mt-4 max-w-md text-[13.5px] leading-relaxed opacity-80">
-          اجمع ثلاثة أكياس فأكثر من محاصيلك المفضّلة، وكل كيس تضيفه يكبّر مكافأتك.
-        </p>
-        <div className="reveal-group mx-auto mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { n: "٣", t: "خصم ١٠٪" },
-            { n: "٤", t: "خصم ٢٠٪" },
-            { n: "٥", t: "توصيل مجاني" },
-            { n: "٦", t: "اختر هديتك", gold: true },
-          ].map((x) => (
-            <div
-              key={x.n}
-              className={`rounded-[16px] border px-3 py-5 transition-transform duration-300 hover:-translate-y-1 ${
-                x.gold ? "border-gold/60 bg-gold/10" : "border-olive-text/15 bg-olive-text/5"
-              }`}
-            >
-              <span
-                className={`block text-3xl font-bold ${x.gold ? "text-gold" : ""}`}
-                style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-              >
-                {x.n}
-              </span>
-              <span className={`mt-1.5 block text-[11px] font-semibold ${x.gold ? "text-gold" : "opacity-85"}`}>
-                {x.t}
-              </span>
+      <div className="reveal mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-line">
+        {/* الرأس المميّز */}
+        <div className="bg-olive px-8 py-11 text-center text-olive-text">
+          <p className="amiri text-[32px] font-bold leading-tight text-gold" style={{ fontFamily: "'Amiri', serif" }}>
+            صندوق خزف
+          </p>
+          <p className="mx-auto mt-2.5 max-w-sm text-[13.5px] leading-relaxed opacity-85">
+            صندوقك الخاص من محاصيلك المفضّلة — كل كيس تضيفه يكبّر مكافأتك
+          </p>
+        </div>
+        {/* سُلّم المكافآت */}
+        <div className="reveal-group bg-card p-2 md:p-3">
+          {rungs.map((r) => (
+            <div key={r.n}
+              className={`flex items-center gap-4 rounded-[14px] px-5 py-4 transition-colors ${
+                r.gold ? "bg-gold" : "hover:bg-bg"
+              }`}>
+              <span className={`font-num text-[22px] font-bold ${r.gold ? "text-ink" : "text-accent"}`}>{r.n}</span>
+              <span className={`text-[14px] font-semibold ${r.gold ? "text-ink" : ""}`}>{r.t}</span>
+              {r.gold && <span className="ms-auto text-[11px] font-bold text-ink/70">أعلى مكافأة</span>}
             </div>
           ))}
         </div>
-        <div className="mt-9">
+        {/* الزر */}
+        <div className="bg-card px-6 pb-7 pt-1 text-center">
           <Link href="/box/" className="btn btn-clay magnetic" data-strength="22">
             اصنع صندوقك
           </Link>
