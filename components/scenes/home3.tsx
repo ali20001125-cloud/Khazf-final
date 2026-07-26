@@ -250,10 +250,13 @@ export function BoxTeaser() {
   return (
     <section className="px-4 py-16 md:px-8 md:py-24">
       <div className="reveal mx-auto max-w-6xl overflow-hidden rounded-[26px] bg-olive px-8 py-16 text-center text-olive-text md:py-20">
-        <p className="font-num text-[10px] tracking-[0.4em] opacity-60">BUILD YOUR BOX</p>
+        <p className="font-num text-[10px] tracking-[0.4em] opacity-60">صندوق خزف</p>
         <h2 className="mx-auto mt-4 max-w-lg text-3xl font-bold md:text-4xl md:leading-snug">
-          كل كيس تضيفه… مكافأة أكبر
+          صندوقك الخاص — تختاره، فتوفّر أكثر
         </h2>
+        <p className="mx-auto mt-4 max-w-md text-[13.5px] leading-relaxed opacity-80">
+          اجمع ثلاثة أكياس فأكثر من محاصيلك المفضّلة، وكل كيس تضيفه يكبّر مكافأتك.
+        </p>
         <div className="reveal-group mx-auto mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { n: "٣", t: "خصم ١٠٪" },
@@ -281,7 +284,7 @@ export function BoxTeaser() {
         </div>
         <div className="mt-9">
           <Link href="/box/" className="btn btn-clay magnetic" data-strength="22">
-            ابدأ بناء بوكسك
+            اصنع صندوقك
           </Link>
         </div>
       </div>

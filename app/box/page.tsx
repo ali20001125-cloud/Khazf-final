@@ -4,8 +4,6 @@ import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
 import { Minus, Plus, Gift, Coffee as CoffeeIcon, Layers } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
@@ -25,52 +23,29 @@ const GIFT_ICONS = [CoffeeIcon, Layers, GiftIcon];
 
 /* ══ المقدّمة المثبّتة: بطاقات بحركات متنوّعة ══ */
 function BoxIntro() {
-  const wrap = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (reduced() || !wrap.current) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>(".fcard");
-      const dots = gsap.utils.toArray<HTMLElement>(".pd");
-      gsap.set(cards[0], { scale: 0.6, opacity: 0 });
-      gsap.set(cards[1], { xPercent: 60, rotation: 8, opacity: 0 });
-      gsap.set(cards[2], { yPercent: 50, scale: 1.15, opacity: 0 });
-      const setDot = (i: number) => dots.forEach((d, j) => d.classList.toggle("on", j === i));
-      const tl = gsap.timeline({ scrollTrigger: { trigger: wrap.current, start: "top top", end: "bottom bottom", pin: ".pin-stage", scrub: 1 } });
-      tl.to(cards[0], { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)", onStart: () => setDot(0) }, 0)
-        .to(cards[0], { scale: 1.3, opacity: 0, rotation: -6, duration: 0.5, ease: "power2.in" }, 1)
-        .to(cards[1], { xPercent: 0, rotation: 0, opacity: 1, duration: 0.6, ease: "power3.out", onStart: () => setDot(1) }, 1.1)
-        .to(cards[1], { xPercent: -60, rotation: -8, opacity: 0, duration: 0.5, ease: "power2.in" }, 2.1)
-        .to(cards[2], { yPercent: 0, scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.5)", onStart: () => setDot(2) }, 2.2)
-        .to(cards[2], { scale: 1, opacity: 1, duration: 0.4 }, 3);
-    }, wrap);
-    return () => ctx.revert();
-  }, []);
-
   const steps = [
-    { k: "٠١ · الاختيار", h: "محاصيلك التي تختارها", p: "أربعة محاصيل مختصّة من أربع أراضٍ. امزج أو كرّر ما يناسب ذوقك — كل كيس ٢٥٠ غرامًا." },
-    { k: "٠٢ · التكوين", h: "ثلاثة أكياس فأكثر", p: "لا حدّ أقصى. كلّما أضفت كيسًا، زاد توفيرك — يصل الخصم إلى ٢٠٪." },
-    { k: "٠٣ · المكافأة", h: "مكافآت تكبر معك", p: "توصيل مجّاني عند خمسة أكياس، وهديّة تختارها عند ستّة — دون رموز أو شروط." },
+    { n: "١", h: "اختر محاصيلك", p: "أربعة محاصيل مختصّة — امزج أو كرّر ما يناسب ذوقك. كل كيس ٢٥٠ غراماً." },
+    { n: "٢", h: "ثلاثة أكياس فأكثر", p: "كلّما أضفت كيساً زاد توفيرك — يصل الخصم إلى ٢٠٪." },
+    { n: "٣", h: "مكافآت تكبر معك", p: "توصيل مجّاني عند خمسة أكياس، وهديّة تختارها عند ستّة." },
   ];
-
   return (
-    <div ref={wrap} style={{ height: "360vh", position: "relative" }}>
-      <style>{`.pd.on{background:var(--accent);width:22px;border-radius:99px}`}</style>
-      <div className="pin-stage flex h-screen flex-col items-center justify-center px-5 text-center">
-        <p className="font-num text-[10px] tracking-[0.4em] text-muted">BUILD YOUR BOX</p>
-        <h1 className="mt-2 text-[24px] font-bold md:text-3xl">اصنع صندوقك في ثلاث خطوات</h1>
-        <div className="relative mt-7 h-[210px] w-full max-w-[320px]">
-          {steps.map((st, i) => (
-            <div key={i} className="fcard absolute inset-0 flex flex-col items-center justify-center rounded-[22px] border border-line bg-card px-6 py-7 text-center shadow-[0_24px_60px_-28px_rgba(61,66,48,0.4)]">
-              <p className="font-amiri text-[13px] font-bold tracking-wide text-muted" style={{ fontFamily: "'Amiri', serif" }}>{st.k}</p>
-              <h3 className="mt-1.5 text-[21px] font-bold">{st.h}</h3>
-              <p className="mt-2 max-w-[260px] text-[13px] leading-relaxed text-muted">{st.p}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-6 flex gap-2">
-          {[0,1,2].map((i) => <span key={i} className={`pd h-2 w-2 rounded-full bg-line transition-all ${i===0?"on":""}`} />)}
-        </div>
+    <div className="mx-auto max-w-3xl px-4 pt-28 md:px-6 md:pt-32">
+      <div className="text-center">
+        <p className="reveal font-num text-[10px] tracking-[0.4em] text-muted">BUILD YOUR BOX</p>
+        <h1 className="reveal mt-2 text-[28px] font-bold md:text-4xl">اصنع صندوقك</h1>
+        <p className="reveal mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-muted">
+          صندوقك الخاص من قهوة خزف — تختار محاصيله بنفسك، والمكافأة تكبر مع كل كيس تضيفه.
+        </p>
+      </div>
+      {/* ثلاث خطوات بسيطة واضحة */}
+      <div className="reveal mt-9 grid gap-3 sm:grid-cols-3">
+        {steps.map((st) => (
+          <div key={st.n} className="rounded-[20px] border border-line bg-card p-5 text-center">
+            <span className="font-num mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-olive text-[15px] font-bold text-olive-text">{st.n}</span>
+            <h3 className="mt-3 text-[16px] font-bold">{st.h}</h3>
+            <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{st.p}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -87,6 +62,8 @@ function hintFor(count: number): string {
 }
 
 const discountFor = (c: number) => (c >= 4 ? 0.2 : c >= 3 ? 0.1 : 0);
+// تقريب لأعلى 250 (نفس منطق الطلب والسلة) — الزبون يرى النسبة، والحساب مقرّب
+const roundUp250 = (n: number) => Math.ceil(Math.max(0, n) / 250) * 250;
 
 export default function BoxPage() {
   const scope = useMotion();
@@ -107,7 +84,7 @@ export default function BoxPage() {
     [bags]
   );
   const discount = discountFor(count);
-  const total = Math.round(subtotal * (1 - discount));
+  const total = roundUp250(subtotal * (1 - discount));
   const savings = subtotal - total;
 
   const setBag = (slug: string, n: number) => {
@@ -159,18 +136,9 @@ export default function BoxPage() {
         </div>
       </div>
       <div className="mx-auto max-w-3xl px-4 md:px-6">
-        {/* رأس مضغوط */}
         <div className="text-center">
-          <p className="reveal font-num text-[10px] tracking-[0.4em] text-muted">
-            BUILD YOUR BOX
-          </p>
-          <h1 className="reveal mt-2 text-[26px] font-bold md:text-3xl">اصنع صندوقك</h1>
-          <p className="reveal mt-1.5 text-[13px] text-muted">
-            اختر أكياسك بنفسك — والمكافأة تكبر مع كل كيس
-          </p>
-
           {/* العدّاد — مضغوط */}
-          <div className="mt-5">
+          <div className="mt-2">
             <span
               className={`big-count inline-block text-[54px] font-bold leading-none transition-colors duration-300 ${
                 count > 0 ? "text-accent" : "text-line"
