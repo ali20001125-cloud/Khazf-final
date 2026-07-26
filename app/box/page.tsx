@@ -147,24 +147,15 @@ export default function BoxPage() {
         </div>
       </div>
       <div className="mx-auto max-w-3xl px-4 md:px-6">
-        {/* العدّاد + التقدّم — يلتصق فوق عند التمرير حتى يبقى ظاهراً */}
-        <div className="sticky top-[64px] z-20 -mx-4 bg-bg/95 px-4 pb-4 pt-3 backdrop-blur md:top-[72px]">
+        {/* التقدّم — يلتصق بأعلى الشاشة مباشرة عند التمرير (بلا فراغ) */}
+        <div className="sticky top-0 z-20 -mx-4 bg-bg/95 px-4 pb-3 pt-3 backdrop-blur">
           <div className="text-center">
-          {/* العدّاد — مضغوط */}
-          <div className="mt-0">
-            <span
-              className={`big-count inline-block text-[44px] font-bold leading-none transition-colors duration-300 ${
-                count > 0 ? "text-accent" : "text-line"
-              }`}
-              style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-            >
-              {count}
-            </span>
-            <p className="mt-0.5 text-[12px] text-muted">{count === 1 ? "كيس" : "أكياس"}</p>
+          {/* شريط التقدّم + عدّاد صغير مدمج */}
+          <div className="mb-2 flex items-center justify-center gap-2">
+            <span className={`font-num text-[18px] font-bold ${count > 0 ? "text-accent" : "text-muted"}`}>{count}</span>
+            <span className="text-[12px] text-muted">{count === 1 ? "كيس" : "أكياس"}</span>
           </div>
-
-          {/* التقدّم والمحطات */}
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-bg-alt">
+          <div className="h-2 overflow-hidden rounded-full bg-bg-alt">
             <i
               className="block h-full rounded-full bg-accent transition-all duration-500"
               style={{ width: `${Math.min(count / 6, 1) * 100}%` }}
