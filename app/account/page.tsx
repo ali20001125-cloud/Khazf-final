@@ -63,67 +63,65 @@ function AccountInner() {
   // (أُزيلت خطوة LinkStep الإجبارية — لم نعد نطلب الرقم عند الدخول)
 
   /* ═══ حساب كامل ═══ */
+  const inCycle = (me.journeyOrders ?? 0) % 6;
+  const nextLevel = (me.journeyLevels ?? []).find((l) => l.level === inCycle + 1);
+
   return (
-    <div ref={scope} className="mx-auto max-w-3xl px-4 pb-24 pt-28 md:px-8 md:pt-32">
-      {/* بطاقة الرصيد + الرحلة */}
-      <div className="reveal rounded-[24px] bg-olive p-6 text-olive-text md:p-7">
-        <div className="flex items-start justify-between">
-          <div className="min-w-0">
-            <p className="text-[15px] font-bold">أهلاً، {me.name || "صديق خزف"}</p>
-            {(me.phone || me.email) && (
-              <p className="font-num mt-0.5 truncate text-[11px] opacity-65" dir="ltr">
-                {me.phone}{me.phone && me.email ? " · " : ""}{me.email}
-              </p>
-            )}
-            <p className="font-num mt-4 text-3xl font-bold">
-              {(me.pointsValueDinars ?? 0).toLocaleString("en")}<span className="ms-1 text-base font-semibold">د.ع</span>
-            </p>
-            <p className="font-num mt-1 text-[11.5px] opacity-70">رصيد الكاش باك · {me.pointsBalance ?? 0} نقطة</p>
-          </div>
-          <span className="font-num rounded-full bg-gold px-4 py-2 text-[13px] font-bold text-olive">
-            {((me.journeyOrders ?? 0) % 6)}/6
-          </span>
+    <div ref={scope} className="mx-auto max-w-2xl px-5 pb-24 pt-28 md:pt-32">
+      {/* ترويسة: تحية + بيانات مختصرة */}
+      <div className="reveal mb-6">
+        <h1 className="text-[26px] font-bold tracking-tight">أهلاً، {me.name || "صديق خزف"}</h1>
+        {(me.email || me.phone) && (
+          <p className="font-num mt-1.5 text-[12.5px] text-muted" dir="ltr">
+            {[me.phone, me.email].filter(Boolean).join("  ·  ")}
+          </p>
+        )}
+      </div>
+
+      {/* بطاقة الرصيد — هادئة، الرقم هو البطل */}
+      <div className="reveal rounded-[22px] bg-olive p-7 text-olive-text">
+        <p className="text-[12px] font-semibold opacity-70">رصيد الكاش باك</p>
+        <p className="font-num mt-1.5 text-[40px] font-bold leading-none">
+          {(me.pointsValueDinars ?? 0).toLocaleString("en")}
+          <span className="ms-2 text-lg font-semibold opacity-80">د.ع</span>
+        </p>
+        <p className="font-num mt-2 text-[11.5px] opacity-65">{me.pointsBalance ?? 0} نقطة · تُخصم تلقائياً من طلبك القادم</p>
+      </div>
+
+      {/* رحلة الولاء — شريط بسيط وواضح */}
+      <div className="reveal mt-4 rounded-[22px] border border-line bg-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-[14px] font-bold">رحلة الولاء</p>
+          <span className="font-num text-[12px] font-semibold text-muted">{inCycle}/6</span>
         </div>
-        {/* شريط الرحلة — التقدّم بالدورة الحالية · المكافأة القادمة مُبرزة */}
-        <div className="mt-6 flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {(me.journeyLevels ?? []).slice(0, 6).map((l) => {
-            const inCycle = (me.journeyOrders ?? 0) % 6;   // المكتملة بالدورة الحالية
-            const nextLevel = inCycle + 1;                  // المكافأة القادمة
-            const done = l.level <= inCycle;                // اكتملت
-            const isNext = l.level === nextLevel;           // القادمة
+            const done = l.level <= inCycle;
+            const isNext = l.level === inCycle + 1;
             return (
-              <div key={l.level} className="flex-1 text-center">
-                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold transition-all ${
-                  done ? "bg-gold text-olive"
-                  : isNext ? "bg-olive-text text-olive ring-2 ring-gold"
-                  : "bg-olive-text/15 text-olive-text/70"}`}>
-                  {done ? "✓" : l.level}
-                </div>
-                <p className={`mt-1.5 text-[8px] leading-tight ${isNext ? "font-bold opacity-100" : "opacity-80"}`}>{rewardLabel(l)}</p>
+              <div key={l.level}
+                className={`flex h-9 flex-1 items-center justify-center rounded-full text-[12px] font-bold transition-all ${
+                  done ? "bg-olive text-olive-text"
+                  : isNext ? "bg-gold/25 text-ink ring-1 ring-gold"
+                  : "bg-bg text-muted/50"}`}>
+                {done ? "✓" : l.level}
               </div>
             );
           })}
         </div>
-        {/* رسالة المكافأة القادمة */}
-        {(() => {
-          const inCycle = (me.journeyOrders ?? 0) % 6;
-          const nextLevel = inCycle + 1;
-          const nl = (me.journeyLevels ?? []).find((l) => l.level === nextLevel);
-          if (!nl) return null;
-          return (
-            <p className="mt-4 rounded-[12px] bg-olive-text/10 px-4 py-2.5 text-center text-[12px] font-semibold">
-              طلبك القادم يحمل لك: <span className="text-gold">{rewardLabel(nl)}</span>
-            </p>
-          );
-        })()}
+        {nextLevel && (
+          <p className="mt-4 text-center text-[12.5px] text-muted">
+            طلبك القادم يمنحك <span className="font-bold text-accent">{rewardLabel(nextLevel)}</span>
+          </p>
+        )}
       </div>
 
-      {/* التبويبات */}
-      <div className="reveal mt-5 flex gap-2">
+      {/* التبويبات — واضحة */}
+      <div className="reveal mt-6 flex gap-2">
         {([["orders", "طلباتي", Package], ["cashback", "الكاش باك", Wallet], ["fav", "المفضلة", Heart]] as const).map(([k, label, Icon]) => (
           <button key={k} onClick={() => setTab(k)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-[14px] border py-3 text-[13px] font-bold transition-all ${
-              tab === k ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted"
+            className={`flex flex-1 items-center justify-center gap-2 rounded-[14px] py-3 text-[13px] font-bold transition-all ${
+              tab === k ? "bg-ink text-cream" : "bg-card text-muted"
             }`}>
             <Icon size={15} /> {label}
           </button>
@@ -131,13 +129,13 @@ function AccountInner() {
       </div>
 
       {/* المحتوى */}
-      <div className="reveal mt-5">
+      <div className="reveal mt-4">
         {tab === "orders" && (
           (me.orders ?? []).length > 0 ? (
             <div className="space-y-2.5">
               {me.orders!.map((o) => (
                 <Link key={o.orderNumber} href={`/invoice/?n=${o.orderNumber}&p=${me.phone}`}
-                  className="flex items-center justify-between rounded-[16px] border border-line bg-card px-5 py-4 transition-all hover:border-muted">
+                  className="flex items-center justify-between rounded-[16px] border border-line bg-card px-5 py-4 transition-all hover:border-muted active:scale-[0.99]">
                   <div>
                     <p className="font-num text-[14px] font-bold">{o.orderNumber}</p>
                     <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {new Date(o.createdAt).toLocaleDateString("ar-IQ", { dateStyle: "medium" })}</p>
@@ -153,12 +151,12 @@ function AccountInner() {
         )}
 
         {tab === "cashback" && (
-          <div className="rounded-[20px] border border-line bg-card p-6 text-center">
-            <Wallet size={22} className="mx-auto text-accent" />
-            <p className="font-num mt-3 text-2xl font-bold">{(me.pointsValueDinars ?? 0).toLocaleString("en")} د.ع</p>
-            <p className="mt-1 text-[12px] text-muted">{me.pointsBalance ?? 0} نقطة — تُخصم تلقائياً من طلبك الجاي</p>
-            <p className="mt-4 text-[11.5px] leading-relaxed text-muted">
-              كل ١٬٠٠٠ دينار تشتريها = نقطة كاش باك، تتفعّل فور توصيل طلبك
+          <div className="rounded-[20px] border border-line bg-card p-7 text-center">
+            <Wallet size={24} className="mx-auto text-accent" />
+            <p className="font-num mt-4 text-3xl font-bold">{(me.pointsValueDinars ?? 0).toLocaleString("en")} د.ع</p>
+            <p className="mt-1.5 text-[12px] text-muted">{me.pointsBalance ?? 0} نقطة</p>
+            <p className="mt-5 text-[11.5px] leading-relaxed text-muted">
+              كل ١٬٠٠٠ دينار تشتريها = نقطة كاش باك، تتفعّل فور توصيل طلبك وتُخصم من طلبك القادم
             </p>
           </div>
         )}
@@ -174,15 +172,19 @@ function AccountInner() {
         )}
       </div>
 
-      {/* ربط Google — فقط لمن ليس لديه أي حساب مصادقة (لا Google ولا إيميل) */}
+      {/* ربط Google — فقط لمن ليس لديه أي حساب مصادقة */}
       {!me.hasAuth && !me.googleSession && <ConnectGoogleHint />}
 
-      <button onClick={() => setEditing(true)} className="reveal mx-auto mt-8 block text-[12.5px] font-semibold text-accent">
-        تعديل بياناتي
-      </button>
-      <button onClick={signOut} className="reveal mx-auto mt-3 block text-[12.5px] font-semibold text-muted">
-        تسجيل الخروج
-      </button>
+      {/* أزرار الحساب */}
+      <div className="reveal mt-8 flex items-center justify-center gap-6">
+        <button onClick={() => setEditing(true)} className="text-[13px] font-bold text-accent">
+          تعديل بياناتي
+        </button>
+        <span className="h-4 w-px bg-line" />
+        <button onClick={signOut} className="text-[13px] font-semibold text-muted">
+          تسجيل الخروج
+        </button>
+      </div>
 
       {editing && <EditProfile me={me} onClose={() => setEditing(false)} />}
     </div>
