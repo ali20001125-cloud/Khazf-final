@@ -23,5 +23,15 @@ export async function GET(req: Request) {
     );
     await sb.auth.exchangeCodeForSession(code);
   }
-  return NextResponse.redirect(new URL(next, url.origin));
+  // نبني التوجيه بالدومين الحقيقي — لا url.origin (يعطي 0.0.0.0 على الخادم).
+  // الأولوية: SITE_URL ← x-forwarded-host ← host ← احتياطي khazf.shop
+  const fwdHost = req.headers.get("x-forwarded-host");
+  const host = req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const base =
+    process.env.SITE_URL ??
+    (fwdHost ? `${proto}://${fwdHost}` : null) ??
+    (host && !host.includes("0.0.0.0") && !host.includes("localhost") ? `${proto}://${host}` : null) ??
+    "https://khazf.shop";
+  return NextResponse.redirect(new URL(next, base));
 }
