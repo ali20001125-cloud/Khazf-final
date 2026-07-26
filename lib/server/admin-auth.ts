@@ -29,7 +29,7 @@ export async function getAdmin(): Promise<{ name: string; email: string | null }
   const jar = await cookies();
 
   if (supabaseConfigured()) {
-    /* جلسة Supabase (تُضبط عبر @supabase/ssr في /admin/login) ثم التحقق من جدول admins */
+    /* جلسة Supabase (تُضبط عبر @supabase/ssr في /alikhazf25/login) ثم التحقق من جدول admins */
     const { createServerClient } = await import("@supabase/ssr");
     const sb = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -7,17 +7,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, ExternalLink, LogOut } from "lucide-react";
 
 const nav = [
-  { href: "/admin/", label: "لوحة القيادة" },
-  { href: "/admin/orders/", label: "الطلبات", badge: "pending" as const },
-  { href: "/admin/analytics/", label: "التحليلات" },
-  { href: "/admin/products/", label: "المنتجات" },
-  { href: "/admin/inventory/", label: "المخزون والوجبات", badge: "lowStock" as const },
-  { href: "/admin/customers/", label: "العملاء" },
-  { href: "/admin/coupons/", label: "أكواد الخصم" },
-  { href: "/admin/loyalty/", label: "الولاء والرحلة" },
-  { href: "/admin/reviews/", label: "التقييمات", badge: "pendingReviews" as const },
-  { href: "/admin/banners/", label: "البنرات" },
-  { href: "/admin/settings/", label: "الإعدادات" },
+  { href: "/alikhazf25/", label: "لوحة القيادة" },
+  { href: "/alikhazf25/orders/", label: "الطلبات", badge: "pending" as const },
+  { href: "/alikhazf25/analytics/", label: "التحليلات" },
+  { href: "/alikhazf25/products/", label: "المنتجات" },
+  { href: "/alikhazf25/inventory/", label: "المخزون والوجبات", badge: "lowStock" as const },
+  { href: "/alikhazf25/customers/", label: "العملاء" },
+  { href: "/alikhazf25/coupons/", label: "أكواد الخصم" },
+  { href: "/alikhazf25/loyalty/", label: "الولاء والرحلة" },
+  { href: "/alikhazf25/reviews/", label: "التقييمات", badge: "pendingReviews" as const },
+  { href: "/alikhazf25/banners/", label: "البنرات" },
+  { href: "/alikhazf25/settings/", label: "الإعدادات" },
 ];
 
 type Stats = { pending: number; pendingReviews: number; lowStock: number };
@@ -45,7 +45,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     };
     const poll = async () => {
       try {
-        const r = await fetch("/api/admin/stats/");
+        const r = await fetch("/api/alikhazf25/stats/");
         if (!r.ok) return;
         const d: Stats = await r.json();
         if (!alive) return;
@@ -82,14 +82,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }, [pathname, flash]);
 
   const logout = async () => {
-    await fetch("/api/admin/logout/", { method: "POST" });
-    router.push("/admin/login/");
+    await fetch("/api/alikhazf25/logout/", { method: "POST" });
+    router.push("/alikhazf25/login/");
   };
 
   const List = () => (
     <nav className="space-y-0.5 text-[13.5px]">
       {nav.map((n) => {
-        const active = n.href === "/admin/" ? pathname === "/admin" || pathname === "/admin/" : pathname.startsWith(n.href.slice(0, -1));
+        const active = n.href === "/alikhazf25/" ? pathname === "/alikhazf25" || pathname === "/alikhazf25/" : pathname.startsWith(n.href.slice(0, -1));
         const b = n.badge ? stats[n.badge] : 0;
         return (
           <Link key={n.href} href={n.href}
@@ -130,7 +130,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <button onClick={() => setOpen(true)} aria-label="القائمة" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-bg-alt"><Menu size={19} /></button>
         <p className="font-bold">لوحة خزف</p>
         {stats.pending > 0 ? (
-          <Link href="/admin/orders/" className="font-num rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-olive-text">{stats.pending}</Link>
+          <Link href="/alikhazf25/orders/" className="font-num rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-olive-text">{stats.pending}</Link>
         ) : <span className="w-9" />}
       </div>
       {open && (

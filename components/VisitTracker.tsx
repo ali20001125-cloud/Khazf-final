@@ -29,7 +29,7 @@ export default function VisitTracker() {
   const pathname = usePathname();
   useEffect(() => {
     // لا نتتبّع لوحة الإدارة
-    if (pathname?.startsWith("/admin")) return;
+    if (pathname?.startsWith("/alikhazf25")) return;
     const body = JSON.stringify({
       sessionId: sessionId(),
       path: pathname,
