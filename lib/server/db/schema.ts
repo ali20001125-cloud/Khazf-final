@@ -98,6 +98,10 @@ export const products = pgTable(
 
     /* — الأدوات — */
     subcategoryId: integer("subcategory_id").references(() => subcategories.id, { onDelete: "set null" }),
+    /* تفاصيل الأداة المرنة (JSON): البطل، الميزات، المواصفات، الأجزاء المشروحة،
+       النقاط التفاعلية، المقاسات، الألوان (مع صورها)، التوافق، محتويات العبوة.
+       null للقهوة. البنية موثّقة في lib/tool-specs.ts */
+    toolSpecs: jsonb("tool_specs"),
 
     /* — سلوك المخزون (الرصيد نفسه محسوب من الوجبات — لا حقل هنا) — */
     stockThreshold: integer("stock_threshold").notNull().default(0), // غرام للقهوة، قطعة للأدوات
