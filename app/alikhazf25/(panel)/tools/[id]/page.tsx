@@ -2,31 +2,32 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { PageTitle } from "@/components/admin/ui";
-import CoffeeForm from "../CoffeeForm";
-import { updateProduct, createProduct } from "../actions";
+import ToolForm from "../ToolForm";
+import { updateProduct, createProduct } from "../../products/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function CoffeeEdit({ params }: { params: Promise<{ id: string }> }) {
+export default async function ToolEdit({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const places = await db.select({ id: s.places.id, name: s.places.name }).from(s.places).orderBy(s.places.sort);
+  const subs = await db.select({ id: s.subcategories.id, name: s.subcategories.name }).from(s.subcategories).orderBy(s.subcategories.sort);
 
   if (id === "new")
     return (
       <div>
-        <PageTitle title="محصول جديد" />
-        <CoffeeForm places={places} action={createProduct} submitLabel="إنشاء المحصول" />
+        <PageTitle title="أداة جديدة" />
+        <ToolForm places={places} subs={subs} action={createProduct} submitLabel="إنشاء الأداة" />
       </div>
     );
 
   const [p] = await db.select().from(s.products).where(eq(s.products.id, Number(id)));
-  if (!p || p.type !== "COFFEE") notFound();
+  if (!p || p.type !== "TOOL") notFound();
   const pp = await db.select().from(s.productPlaces).where(eq(s.productPlaces.productId, p.id));
 
   return (
     <div>
       <PageTitle title={`تعديل: ${p.name}`} sub={`slug: ${p.slug}`} />
-      <CoffeeForm p={p} places={places} chosenPlaces={pp.map((x) => x.placeId)}
+      <ToolForm p={p} places={places} subs={subs} chosenPlaces={pp.map((x) => x.placeId)}
         action={updateProduct} submitLabel="حفظ التعديلات" />
     </div>
   );
