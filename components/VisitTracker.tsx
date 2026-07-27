@@ -28,8 +28,13 @@ function device(): string {
 export default function VisitTracker() {
   const pathname = usePathname();
   useEffect(() => {
-    // لا نتتبّع لوحة الإدارة
-    if (pathname?.startsWith("/alikhazf25")) return;
+    // لا نتتبّع لوحة الإدارة — ونضع علامة دائمة أن هذا جهاز المدير
+    if (pathname?.startsWith("/alikhazf25")) {
+      try { localStorage.setItem("khazf_is_admin", "1"); } catch {}
+      return;
+    }
+    // جهاز المدير (زار اللوحة سابقاً) — لا نحسب زياراته للمتجر
+    try { if (localStorage.getItem("khazf_is_admin") === "1") return; } catch {}
     const body = JSON.stringify({
       sessionId: sessionId(),
       path: pathname,
