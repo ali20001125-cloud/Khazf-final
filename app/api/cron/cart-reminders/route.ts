@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { and, eq, isNotNull, lt, gt, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, lt, gt, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { emailCartReminder } from "@/lib/server/email";
+import { notifyAbandonedCartTelegram } from "@/lib/server/telegram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,5 +74,46 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, eligible: carts.length, sent });
+  /* ── من له رقم بلا إيميل → إشعار تيليجرام للواتساب اليدوي (بعد 5 دقائق) ── */
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+  const waCarts = await db.select().from(s.abandonedCarts).where(and(
+    isNull(s.abandonedCarts.email),
+    isNotNull(s.abandonedCarts.phone),
+    eq(s.abandonedCarts.recovered, false),
+    eq(s.abandonedCarts.notified, false),
+    lt(s.abandonedCarts.updatedAt, fiveMinAgo),
+    gt(s.abandonedCarts.updatedAt, sevenDaysAgo),
+  )).limit(20);
+
+  let waSent = 0;
+  for (const cart of waCarts) {
+    const items = (cart.items as { name: string; qty: number; price: number }[]) ?? [];
+    if (items.length === 0 || !cart.phone) continue;
+
+    // نص واتساب تسويقي جاهز (بروح خزف — مهذّب بلا إلحاح)
+    const itemNames = items.map((it) => it.name).join("، ");
+    const waMessage =
+      `مرحباً${cart.name ? " " + cart.name : ""} 🤎\n` +
+      `لاحظنا أنك اخترت من خزف: ${itemNames}\n` +
+      `منتجاتك ما زالت محفوظة، ويسعدنا إكمال طلبك متى شئت.\n` +
+      `وإن كان عندك أي سؤال عن المحصول أو طريقة التحضير، نحن هنا.\n` +
+      `khazf.shop`;
+
+    const ok = await notifyAbandonedCartTelegram({
+      name: cart.name,
+      phone: cart.phone,
+      items,
+      itemsTotal: cart.itemsTotal,
+      waMessage,
+    });
+
+    if (ok) {
+      await db.update(s.abandonedCarts)
+        .set({ notified: true, templateSent: "wa", notifiedAt: new Date() })
+        .where(eq(s.abandonedCarts.id, cart.id));
+      waSent++;
+    }
+  }
+
+  return NextResponse.json({ ok: true, eligible: carts.length, sent, waEligible: waCarts.length, waSent });
 }

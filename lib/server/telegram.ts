@@ -64,3 +64,54 @@ export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
     return false;
   }
 }
+
+/* ═══════════ تذكير السلة عبر واتساب (يدوي) ═══════════ */
+
+type AbandonedCartMsg = {
+  name: string | null;
+  phone: string;
+  items: { name: string; qty: number; price: number }[];
+  itemsTotal: number;
+  waMessage: string; // نص الواتساب الجاهز للإرسال
+};
+
+/**
+ * إشعار تيليجرام بسلة متروكة لزبون له رقم بلا إيميل.
+ * يرسل: بيانات الزبون + سلته + نص واتساب جاهز + زر يفتح محادثته مباشرة.
+ * التاجر يقرّر الإرسال يدوياً.
+ */
+export async function notifyAbandonedCartTelegram(c: AbandonedCartMsg): Promise<boolean> {
+  try {
+    const s = await getInternalSettings();
+    if (!s.telegramBotToken || !s.telegramChatId) return false;
+    const money = (n: number) => n.toLocaleString("en");
+    const lines = c.items.map((it) => `• ${it.name} ×${it.qty} — ${money(it.price)}`).join("\n");
+
+    // رقم واتساب دولي (964 بلا صفر البداية)
+    const waNum = c.phone.replace(/[^0-9]/g, "").replace(/^0/, "964");
+    const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(c.waMessage)}`;
+
+    const text =
+      `🛒 <b>سلة متروكة — تذكير واتساب</b>\n` +
+      `━━━━━━━━━━━━\n` +
+      `👤 ${c.name || "زبون"}\n📞 ${c.phone}\n` +
+      `━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━\n` +
+      `💰 <b>${money(c.itemsTotal)} د.ع</b>\n\n` +
+      `📝 <b>الرسالة الجاهزة:</b>\n<code>${c.waMessage}</code>\n\n` +
+      `اضغط الزر لفتح محادثته بالرسالة جاهزة 👇`;
+
+    const base = `https://api.telegram.org/bot${s.telegramBotToken}`;
+    const res = await fetch(`${base}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: s.telegramChatId, text, parse_mode: "HTML", disable_web_page_preview: true,
+        reply_markup: { inline_keyboard: [[{ text: "💬 فتح واتساب الزبون", url: waUrl }]] },
+      }),
+      signal: AbortSignal.timeout(6000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
