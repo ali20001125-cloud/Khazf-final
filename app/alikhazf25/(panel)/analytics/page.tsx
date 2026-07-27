@@ -49,6 +49,19 @@ export default async function AnalyticsPage() {
       COALESCE(SUM(items_total) FILTER (WHERE recovered = false AND updated_at < now() - interval '1 hour'),0)::int AS lost_value
     FROM abandoned_carts`)).rows[0] as unknown as { open: number; lost_value: number };
 
+  // ── إحصائيات تذكير السلة ──
+  const reminderStats = (await db.execute(sql`
+    SELECT
+      COUNT(*) FILTER (WHERE notified = true)::int AS sent,
+      COUNT(*) FILTER (WHERE notified = true AND recovered = true)::int AS recovered_after,
+      COUNT(*) FILTER (WHERE notified = true AND template_sent = '1')::int AS t1,
+      COUNT(*) FILTER (WHERE notified = true AND template_sent = '2')::int AS t2,
+      COUNT(*) FILTER (WHERE notified = true AND template_sent = '3')::int AS t3
+    FROM abandoned_carts`)).rows[0] as unknown as
+    { sent: number; recovered_after: number; t1: number; t2: number; t3: number };
+  const recoveryRate = reminderStats.sent > 0
+    ? ((reminderStats.recovered_after / reminderStats.sent) * 100).toFixed(0) : "0";
+
   return (
     <div>
       <PageTitle title="التحليلات" sub="زوار الموقع والسلات المهجورة — لحظي من قاعدتك" />
@@ -111,6 +124,33 @@ export default async function AnalyticsPage() {
           )}
         </Card>
       </div>
+
+      {/* إحصائيات تذكير السلة */}
+      {reminderStats.sent > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-[15px] font-bold">تذكيرات السلة المرسلة</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Card className="p-4">
+              <p className="text-[11px] text-muted">أُرسلت</p>
+              <p className="font-num mt-1 text-2xl font-bold">{reminderStats.sent}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-[11px] text-muted">رجعوا واشتروا</p>
+              <p className="font-num mt-1 text-2xl font-bold text-ok">{reminderStats.recovered_after}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-[11px] text-muted">نسبة الاسترجاع</p>
+              <p className="font-num mt-1 text-2xl font-bold text-gold">{recoveryRate}٪</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-[11px] text-muted">توزيع القوالب</p>
+              <p className="font-num mt-1 text-[13px] font-bold">
+                ①{reminderStats.t1} · ②{reminderStats.t2} · ③{reminderStats.t3}
+              </p>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* السلات المهجورة */}
       <div className="mt-6">

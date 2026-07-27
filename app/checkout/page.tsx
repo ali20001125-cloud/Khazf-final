@@ -78,7 +78,7 @@ export default function CheckoutPage() {
       fetch("/api/track/cart/", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId: sid(), phone: form.phone, name: form.name,
+          sessionId: sid(), phone: form.phone, name: form.name, email: form.email,
           items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.priceShown })),
           itemsTotal: subtotal,
         }),

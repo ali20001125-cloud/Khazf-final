@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         sessionId: String(b.sessionId).slice(0, 60),
         phone: b.phone ? String(b.phone).slice(0, 20) : null,
         name: b.name ? String(b.name).slice(0, 60) : null,
+        email: b.email ? String(b.email).slice(0, 120) : null,
         items,
         itemsTotal: Number(b.itemsTotal) || 0,
         recovered: false,
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
         set: {
           phone: b.phone ? String(b.phone).slice(0, 20) : null,
           name: b.name ? String(b.name).slice(0, 60) : null,
+          email: b.email ? String(b.email).slice(0, 120) : null,
           items,
           itemsTotal: Number(b.itemsTotal) || 0,
           updatedAt: new Date(),

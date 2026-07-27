@@ -473,10 +473,13 @@ export const abandonedCarts = pgTable("abandoned_carts", {
   sessionId: text("session_id").notNull().unique(),
   phone: text("phone"),
   name: text("name"),
+  email: text("email"),
   items: jsonb("items").notNull().default(sql`'[]'::jsonb`),
   itemsTotal: integer("items_total").notNull().default(0),
   recovered: boolean("recovered").notNull().default(false),
   notified: boolean("notified").notNull().default(false),
+  templateSent: text("template_sent"),
+  notifiedAt: timestamp("notified_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
