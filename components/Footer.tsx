@@ -46,8 +46,8 @@ export default function Footer() {
   return (
     <footer style={{ background: "var(--deep)" }} className="text-olive-text">
       <div className="mx-auto max-w-6xl px-6 pb-10 pt-16">
-        <div className="grid gap-10 md:grid-cols-[1.2fr_repeat(4,1fr)]">
-          <div>
+        <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-[1.2fr_repeat(4,1fr)]">
+          <div className="col-span-2 sm:col-span-2 md:col-span-1">
             <p className="text-3xl font-bold" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>
               خزف
             </p>

@@ -148,7 +148,7 @@ export default function BoxPage() {
       </div>
       <div className="mx-auto max-w-3xl px-4 md:px-6">
         {/* التقدّم — يلتصق بأعلى الشاشة مباشرة عند التمرير (بلا فراغ) */}
-        <div className="sticky top-0 z-20 -mx-4 bg-bg/95 px-4 pb-3 pt-3 backdrop-blur">
+        <div className="sticky top-0 z-20 -mx-4 border-b border-line bg-bg-alt/97 px-4 pb-3 pt-3 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.15)] backdrop-blur">
           <div className="text-center">
           {/* شريط التقدّم + عدّاد صغير مدمج */}
           <div className="mb-2 flex items-center justify-center gap-2">
