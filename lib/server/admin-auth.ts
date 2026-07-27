@@ -30,28 +30,35 @@ export async function getAdmin(): Promise<{ name: string; email: string | null }
 
   if (supabaseConfigured()) {
     /* جلسة Supabase (تُضبط عبر @supabase/ssr في /alikhazf25/login) ثم التحقق من جدول admins */
-    const { createServerClient } = await import("@supabase/ssr");
-    const sb = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll: () => jar.getAll(), setAll: () => {} } }
-    );
-    const { data } = await sb.auth.getUser();
-    const u = data.user;
-    if (u) {
-    let [row] = await db.select().from(s.admins).where(eq(s.admins.email, u.email ?? ""));
-    if (!row) {
-      /* أول دخول والجدول فارغ = المالك المؤسِّس (مرة واحدة فقط) */
-      const all = await db.select({ id: s.admins.id }).from(s.admins).limit(1);
-      if (all.length === 0 && u.email) {
-        [row] = await db.insert(s.admins)
-          .values({ email: u.email, name: "المالك", authUserId: u.id })
-          .returning();
-      } else return null;
-    }
-    if (!row.authUserId)
-      await db.update(s.admins).set({ authUserId: u.id }).where(eq(s.admins.id, row.id));
-    return { name: row.name, email: row.email };
+    try {
+      const { createServerClient } = await import("@supabase/ssr");
+      const sb = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { cookies: { getAll: () => jar.getAll(), setAll: () => {} } }
+      );
+      const { data } = await sb.auth.getUser();
+      const u = data.user;
+      if (u) {
+        let [row] = await db.select().from(s.admins).where(eq(s.admins.email, u.email ?? ""));
+        if (!row) {
+          /* أول دخول والجدول فارغ = المالك المؤسِّس (مرة واحدة فقط) */
+          const all = await db.select({ id: s.admins.id }).from(s.admins).limit(1);
+          if (all.length === 0 && u.email) {
+            [row] = await db.insert(s.admins)
+              .values({ email: u.email, name: "المالك", authUserId: u.id })
+              .returning();
+          }
+        }
+        if (row) {
+          if (!row.authUserId)
+            await db.update(s.admins).set({ authUserId: u.id }).where(eq(s.admins.id, row.id));
+          return { name: row.name, email: row.email };
+        }
+        /* مستخدم Google مسجّل لكن ليس مديراً — نكمل لفحص كلمة المرور بدل الرفض */
+      }
+    } catch {
+      /* فشل فحص جلسة Supabase — نكمل لكلمة المرور بدل التوقّف */
     }
   }
 
