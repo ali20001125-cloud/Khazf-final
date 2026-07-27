@@ -87,7 +87,26 @@ export async function updateProduct(f: FormData) {
   await requireAdmin();
   await flashSaved();
   const id = Number(f.get("id"));
-  await db.update(s.products).set(parseProduct(f)).where(eq(s.products.id, id));
+  const data = parseProduct(f);
+
+  // حماية: لو النموذج أرسل toolSpecs فارغة تماماً لكن المنتج له تفاصيل محفوظة،
+  // نحتفظ بالموجودة (نتفادى مسحها بالخطأ عند التعديل — مثلاً عند رفع صورة فقط)
+  if (data.type === "TOOL") {
+    const isEmpty = (t: typeof data.toolSpecs) => {
+      if (!t || typeof t !== "object") return true;
+      const o = t as Record<string, unknown>;
+      const arrs = ["features", "specs", "parts", "hotspots", "sizes", "colors", "compat", "boxContents"];
+      const noArrays = arrs.every((k) => !Array.isArray(o[k]) || (o[k] as unknown[]).length === 0);
+      const noHero = !o.hero || String(o.hero).trim() === "";
+      return noArrays && noHero;
+    };
+    if (isEmpty(data.toolSpecs)) {
+      const [existing] = await db.select({ ts: s.products.toolSpecs }).from(s.products).where(eq(s.products.id, id));
+      if (existing?.ts) data.toolSpecs = existing.ts as typeof data.toolSpecs;
+    }
+  }
+
+  await db.update(s.products).set(data).where(eq(s.products.id, id));
   await syncPlaces(id, f);
   revalidatePath("/alikhazf25/products");
   revalidatePath("/");
