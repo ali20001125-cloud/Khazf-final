@@ -13,7 +13,7 @@ export default function ImageUpload({ name, initial }: { name: string; initial?:
     const fd = new FormData();
     fd.append("file", f);
     try {
-      const r = await fetch("/api/alikhazf25/upload/", { method: "POST", body: fd });
+      const r = await fetch("/api/admin/upload/", { method: "POST", body: fd });
       const d = await r.json();
       if (!r.ok) setErr(d.error ?? "فشل الرفع");
       else setUrl(d.url);

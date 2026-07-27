@@ -45,7 +45,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     };
     const poll = async () => {
       try {
-        const r = await fetch("/api/alikhazf25/stats/");
+        const r = await fetch("/api/admin/stats/");
         if (!r.ok) return;
         const d: Stats = await r.json();
         if (!alive) return;
@@ -82,7 +82,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }, [pathname, flash]);
 
   const logout = async () => {
-    await fetch("/api/alikhazf25/logout/", { method: "POST" });
+    await fetch("/api/admin/logout/", { method: "POST" });
     router.push("/alikhazf25/login/");
   };
 

@@ -51,6 +51,14 @@ function parseProduct(f: FormData) {
     })(),
     oosBehavior: (String(f.get("oosBehavior")) === "HIDE" ? "HIDE" : "SHOW_BADGE") as "HIDE" | "SHOW_BADGE",
     allowInBox: f.get("allowInBox") === "on",
+    toolSpecs: (() => {
+      // للأدوات فقط: نقرأ JSON التفاصيل. للقهوة null.
+      if (type !== "TOOL") return null;
+      try {
+        const parsed = JSON.parse(String(f.get("tool_specs") ?? "null"));
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch { return null; }
+    })(),
     images: (() => {
       try { const a = JSON.parse(String(f.get("images") ?? "[]")); return Array.isArray(a) ? a.filter(Boolean) : []; }
       catch { const u = String(f.get("images") ?? "").trim(); return u ? [u] : []; }
