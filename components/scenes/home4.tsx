@@ -59,13 +59,15 @@ export function ToolsSection({
   href: string;
 }) {
   const { tools } = useCatalog();
-  const list = tools.filter((t) => t.cats.includes(cat)).slice(0, 4);
+  const list = tools.filter((t) => t.cats.includes(cat)).slice(0, 7);
   return (
     <section className="mx-auto max-w-6xl px-4 py-14 md:px-8">
       <SectionHead title={title} sub={sub} href={href} />
-      <div className="reveal-group grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
+      <div className="reveal no-scrollbar -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
         {list.map((t) => (
-          <ToolCard key={t.slug} tool={t} />
+          <div key={t.slug} className="w-[210px] shrink-0">
+            <ToolCard tool={t} />
+          </div>
         ))}
       </div>
     </section>
