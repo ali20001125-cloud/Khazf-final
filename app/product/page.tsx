@@ -664,7 +664,7 @@ function ToolView({ tool }: { tool: Tool }) {
     .slice(0, 4);
 
   return (
-    <div ref={scope} className="pb-20 pt-24 md:pt-28">
+    <div ref={scope} className="pb-28 pt-24 md:pt-28">
       {/* ═ البطل: صورة + معلومات الشراء ═ */}
       <section className="mx-auto grid max-w-6xl gap-8 px-4 md:grid-cols-2 md:gap-14 md:px-8">
         {/* الصورة (تتبدّل مع اللون) */}
@@ -909,6 +909,26 @@ function ToolView({ tool }: { tool: Tool }) {
             {similar.map((t) => <ToolCard key={t.slug} tool={t} />)}
           </div>
         </section>
+      )}
+
+      {/* شريط الشراء الثابت (sticky سفلي) */}
+      {!tool.soldOut && (
+        <div className="pv-bar fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 md:px-8">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold">
+                {tool.name}{activeColor ? ` · ${activeColor.name}` : ""}
+              </p>
+              <p className="font-num text-[13px] text-muted">{formatIQD(tool.price * qty)}</p>
+            </div>
+            <button onClick={buy}
+              className={`btn shrink-0 !px-7 !py-3 text-sm transition-colors duration-300 active:scale-[0.97] ${
+                added ? "!bg-ok text-olive-text" : "btn-clay"
+              }`}>
+              {added ? "✓ أُضيف" : "أضف للسلة"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
