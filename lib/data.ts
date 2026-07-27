@@ -43,6 +43,8 @@ export interface Tool {
   desc: string;
   isNew?: boolean;
   soldOut?: boolean;
+  images?: string[];        // صور المنتج (من القاعدة)
+  toolSpecs?: import("@/lib/tool-specs").ToolSpecs | null; // تفاصيل الأداة الراقية
 }
 
 

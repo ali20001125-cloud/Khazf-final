@@ -115,6 +115,8 @@ function toolFromRow(
     desc: p.description ?? "",
     isNew: p.badge === "جديد",
     soldOut: soldOut || undefined,
+    images: p.images ?? [],
+    toolSpecs: (p.toolSpecs as Tool["toolSpecs"]) ?? null,
   };
 }
 
