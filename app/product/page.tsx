@@ -646,8 +646,22 @@ function ToolView({ tool }: { tool: Tool }) {
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeIdx, setSizeIdx] = useState(0);
   const [hotspot, setHotspot] = useState<number | null>(null);
+  const [showBar, setShowBar] = useState(false);
+  const buyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { pushRecent(`t:${tool.slug}`); }, [tool.slug, pushRecent]);
+
+  // الشريط السفلي يظهر فقط عندما يختفي زر الشراء الأصلي عن الشاشة
+  useEffect(() => {
+    const el = buyRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setShowBar(!entry.isIntersecting),
+      { rootMargin: "0px 0px -40px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   // الصورة المعروضة: صورة اللون المختار إن وُجدت، وإلا الصورة الرئيسية
   const activeColor = colors[colorIdx];
@@ -767,7 +781,7 @@ function ToolView({ tool }: { tool: Tool }) {
               )}
             </div>
           ) : (
-            <div className="mt-7 flex items-center gap-3">
+            <div ref={buyRef} className="mt-7 flex items-center gap-3">
               <div className="flex items-center gap-3 rounded-[14px] border border-line bg-card px-3 py-2.5">
                 <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-bg-alt" aria-label="أنقص"><Minus size={15} /></button>
                 <span className="font-num w-6 text-center font-bold">{qty}</span>
@@ -911,9 +925,11 @@ function ToolView({ tool }: { tool: Tool }) {
         </section>
       )}
 
-      {/* شريط الشراء الثابت (sticky سفلي) */}
+      {/* شريط الشراء الثابت — يظهر فقط عند اختفاء زر الشراء الأصلي */}
       {!tool.soldOut && (
-        <div className="pv-bar fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 backdrop-blur-md">
+        <div className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 backdrop-blur-md transition-transform duration-500 ${
+          showBar ? "translate-y-0" : "translate-y-full"
+        }`}>
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 md:px-8">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">

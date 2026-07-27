@@ -153,7 +153,13 @@ export function ToolCard({ tool }: { tool: Tool }) {
   return (
     <div className="group overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
       <Link href={`/product/?t=${tool.slug}`} className="relative block">
-        <ToolVisual tool={tool} className={`aspect-square ${tool.soldOut ? "opacity-55" : ""}`} />
+        {tool.images && tool.images.length > 0 ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={tool.images[0]} alt={tool.name}
+            className={`aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.06] ${tool.soldOut ? "opacity-55" : ""}`} />
+        ) : (
+          <ToolVisual tool={tool} className={`aspect-square ${tool.soldOut ? "opacity-55" : ""}`} />
+        )}
         {tool.isNew && !tool.soldOut && <Badge label="جديد" />}
         {tool.soldOut && (
           <span className="absolute top-3 start-3 rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-bg">
