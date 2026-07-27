@@ -8,7 +8,7 @@ import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { useCatalog } from "@/lib/catalog-context";
 import { useMotion } from "@/lib/motion";
 
-type Me = { guest?: boolean; pointsBalance?: number; pointsValueDinars?: number; name?: string };
+type Me = { guest?: boolean; pointsBalance?: number; pointsValueDinars?: number; name?: string; email?: string | null; phone?: string | null };
 
 export default function CartPage() {
   const scope = useMotion();
@@ -27,6 +27,26 @@ export default function CartPage() {
   useEffect(() => {
     fetch("/api/customer/me").then((r) => r.json()).then(setMe).catch(() => {});
   }, []);
+
+  // التقاط السلة تلقائياً (للتذكير لاحقاً) — مع بيانات المسجّل إن وُجدت
+  useEffect(() => {
+    if (cart.length === 0) return;
+    const sid = () => { try { let id = sessionStorage.getItem("khz_sid"); if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem("khz_sid", id); } return id; } catch { return "anon"; } };
+    const t = setTimeout(() => {
+      fetch("/api/track/cart/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sid(),
+          phone: me.phone ?? null,
+          name: me.name ?? null,
+          email: me.email ?? null,
+          items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.priceShown })),
+          itemsTotal: cart.reduce((t, i) => t + i.priceShown * i.qty, 0),
+        }),
+      }).catch(() => {});
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [cart, me]);
 
   const subtotal = useMemo(() => cart.reduce((t, i) => t + i.priceShown * i.qty, 0), [cart]);
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);

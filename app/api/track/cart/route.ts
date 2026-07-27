@@ -18,6 +18,10 @@ export async function POST(req: Request) {
     const items = Array.isArray(b.items) ? b.items : [];
     if (items.length === 0) return NextResponse.json({ ok: false });
 
+    // نسجّل فقط لمن له وسيلة تواصل (إيميل أو رقم) — المجهول تماماً لا يمكن تذكيره
+    const hasContact = (b.email && String(b.email).includes("@")) || (b.phone && String(b.phone).length >= 10);
+    if (!hasContact) return NextResponse.json({ ok: true, skipped: "no-contact" });
+
     await db
       .insert(s.abandonedCarts)
       .values({
