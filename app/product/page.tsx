@@ -966,7 +966,7 @@ function ReviewsSection({ slug, rating, count }: { slug: string; rating: number;
             <div key={r.id} className="rounded-[18px] border border-line bg-card p-5">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-2 text-sm font-bold">
-                  {r.name}
+                  {r.name?.trim() || "زبون خزف"}
                   {r.verified && (
                     <span className="rounded-full bg-ok/10 px-2 py-0.5 text-[10px] font-bold text-ok">شراء موثّق</span>
                   )}
