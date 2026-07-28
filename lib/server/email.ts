@@ -43,7 +43,7 @@ const wrap = (inner: string, logoUrl?: string | null) => `
   <div style="max-width:560px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e5e0d5">
     <div style="background:#505445;padding:22px;text-align:center">
       ${logoUrl
-        ? `<span style="display:inline-block;background:#fff;border-radius:12px;padding:8px 14px"><img src="${logoUrl}" alt="خزف" style="height:34px;object-fit:contain;vertical-align:middle" /></span>`
+        ? `<span style="display:inline-block;background:#fff;border-radius:12px;padding:12px"><img src="${logoUrl}" alt="خزف" style="display:block;height:38px;width:auto;object-fit:contain" /></span>`
         : `<p style="font-family:Amiri,serif;font-size:24px;font-weight:bold;color:#faf7f0;margin:0">خزف</p>`}
     </div>
     <div style="padding:26px 24px">
@@ -128,7 +128,7 @@ const iqd = (n: number) => n.toLocaleString("en");
 /** رأس الإيميل: لوغو إن وُجد، وإلا "خزف" نصياً */
 function brandHead(logoUrl?: string | null, tagline?: string, bg = "#505445", color = "#faf7f0") {
   const logo = logoUrl
-    ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:10px 16px"><img src="${logoUrl}" alt="خزف" style="height:40px;object-fit:contain;vertical-align:middle" /></span>`
+    ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:14px"><img src="${logoUrl}" alt="خزف" style="display:block;height:44px;width:auto;object-fit:contain" /></span>`
     : `<p style="font-family:Amiri,serif;color:${color};font-size:30px;font-weight:700;margin:0">خزف</p>`;
   return `<div style="background:${bg};padding:32px 30px;text-align:center">
     ${logo}
@@ -185,7 +185,7 @@ function tpl1(d: ReminderData) {
 /** القالب ٢: الغني الدافئ — "نسيتَ فنجانك؟" */
 function tpl2(d: ReminderData) {
   return `<div style="background:linear-gradient(135deg,#505445,#3d4230);padding:36px 30px;text-align:center">
-    ${d.logoUrl ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:10px 16px"><img src="${d.logoUrl}" alt="خزف" style="height:42px;object-fit:contain;vertical-align:middle" /></span>` : `<p style="font-family:Amiri,serif;color:#faf7f0;font-size:30px;font-weight:700;margin:0">خزف</p>`}
+    ${d.logoUrl ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:14px"><img src="${d.logoUrl}" alt="خزف" style="display:block;height:44px;width:auto;object-fit:contain" /></span>` : `<p style="font-family:Amiri,serif;color:#faf7f0;font-size:30px;font-weight:700;margin:0">خزف</p>`}
     <p style="font-family:Amiri,serif;color:#c9a961;font-size:16px;margin:14px 0 0">نسيتَ فنجانك؟</p>
   </div>
   <div style="padding:32px 30px">
