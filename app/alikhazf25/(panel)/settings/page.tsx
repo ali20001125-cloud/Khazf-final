@@ -40,7 +40,7 @@ export default async function SettingsPage() {
               <option value="manual">يدوي (أنت تختار)</option><option value="auto">تلقائي من المبيعات</option>
             </select>
           </Field>
-          <Field label="لوغو خزف (يظهر بالهيرو)" hint="ارفعه من جهازك — أو اتركه فارغاً فيظهر الاسم كتابةً">
+          <Field label="لوغو خزف" hint="يظهر بالصفحة الرئيسية وإيميلات التذكير — ارفعه من جهازك، أو اتركه فارغاً فيظهر الاسم كتابةً">
             <ImageUpload name="logoUrl" initial={pub.logoUrl} />
           </Field>
           <Field label="Meta Pixel ID" hint="من Facebook Events Manager — يفعّل تتبع الإعلانات">
