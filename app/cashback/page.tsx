@@ -37,7 +37,7 @@ export default function CashbackPage() {
       </div>
 
       <p className="reveal mt-10 rounded-[16px] bg-bg-alt px-5 py-4 text-center text-[12.5px] font-semibold text-muted">
-        نقاطك تُفعَّل بعد ٤٨ ساعة من توصيل كل طلب · وتبقى فعّالة ٣ شهور من آخر طلب
+        رصيدك يُفعَّل بعد ٤٨ ساعة من توصيل كل طلب · ويبقى فعّالاً ٣ شهور من آخر طلب
       </p>
     </div>
   );

@@ -85,7 +85,7 @@ function AccountInner() {
           {(me.pointsValueDinars ?? 0).toLocaleString("en")}
           <span className="ms-2 text-lg font-semibold opacity-80">د.ع</span>
         </p>
-        <p className="font-num mt-2 text-[11.5px] opacity-65">{me.pointsBalance ?? 0} نقطة · تُخصم تلقائياً من طلبك القادم</p>
+        <p className="font-num mt-2 text-[11.5px] opacity-65">تُخصم تلقائياً من طلبك القادم</p>
       </div>
 
       {/* رحلة الولاء — شريط بسيط وواضح */}
@@ -154,9 +154,9 @@ function AccountInner() {
           <div className="rounded-[20px] border border-line bg-card p-7 text-center">
             <Wallet size={24} className="mx-auto text-accent" />
             <p className="font-num mt-4 text-3xl font-bold">{(me.pointsValueDinars ?? 0).toLocaleString("en")} د.ع</p>
-            <p className="mt-1.5 text-[12px] text-muted">{me.pointsBalance ?? 0} نقطة</p>
+            <p className="mt-1.5 text-[12px] text-muted">رصيدك من الكاش باك</p>
             <p className="mt-5 text-[11.5px] leading-relaxed text-muted">
-              كل ١٬٠٠٠ دينار تشتريها = نقطة كاش باك، تتفعّل فور توصيل طلبك وتُخصم من طلبك القادم
+              كل ١٬٠٠٠ دينار تشتريها = ٣٠ دينار كاش باك، تتفعّل فور توصيل طلبك وتُخصم من طلبك القادم
             </p>
           </div>
         )}

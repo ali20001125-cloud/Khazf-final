@@ -198,26 +198,25 @@ export async function createOrder(input: CheckoutInput) {
     const deliveryCost = isBasra ? internal.deliveryCostBasra : internal.deliveryCostOther;
     const deliveryNet = deliveryCharged - deliveryCost;
 
-    /* استخدام النقاط على الإجمالي شامل التوصيل — حتى يهبط لرقم يُدفع بالورق */
+    /* استخدام الكاش (بالدنانير مباشرة) — بمضاعفات ٢٥٠، الباقي يبقى بالحساب */
     if (input.usePoints && customer && customer.pointsBalance > 0) {
       const preTotal = Math.max(0, afterDiscounts) + deliveryCharged;
+      // الرصيد بالدنانير مباشرة (pointValue = 1)
       const available = customer.pointsBalance * settings.pointValue;
-      // يُستخدم بمضاعفات ٢٥٠ دينار، لا يتجاوز الرصيد ولا الإجمالي
       const cap = Math.min(available, preTotal);
-      const rawDinars = Math.floor(cap / 250) * 250;
-      // عدد النقاط عدد صحيح دائماً (لا كسور) — نقرّب لأسفل ثم نشتق الدنانير منه
-      pointsUsedCount = Math.floor(rawDinars / settings.pointValue);
-      pointsUsedDinars = pointsUsedCount * settings.pointValue;
+      // يُستخدم بمضاعفات ٢٥٠ دينار — أكبر مضاعف لا يتجاوز الرصيد ولا الإجمالي
+      pointsUsedDinars = Math.floor(cap / 250) * 250;
+      pointsUsedCount = pointsUsedDinars / settings.pointValue; // = الدنانير نفسها (pointValue=1)
     }
 
     /* ── ٧) الإجمالي + التقريب لأعلى ٢٥٠ (مخفي عن الزبون) ── */
     const totalRaw = afterDiscounts - pointsUsedDinars + deliveryCharged;
     const total = roundUp250(totalRaw);
 
-    /* ── ٨) نقاط الكسب: على صافي المنتجات المدفوع فعلاً (بعد كل الخصومات والنقاط المستخدمة، قبل التوصيل)
-       لا كاش على مبلغ مدفوع بالكاش نفسه ── */
+    /* ── ٨) كسب الكاش (بالدنانير): ٣٠ د لكل ١٠٠٠ د منفقة (٣٪) على المنتجات المدفوعة فعلاً،
+       بعد كل الخصومات والكاش المستخدم، قبل التوصيل — لا كاش على مبلغ مدفوع بالكاش ── */
     const earnBase = Math.max(0, afterDiscounts - pointsUsedDinars);
-    const pointsEarned = Math.floor(earnBase / settings.cashbackPerAmount);
+    const pointsEarned = Math.floor(earnBase / settings.cashbackPerAmount) * settings.pointValue;
 
     /* ── ٩) رقم الطلب التسلسلي + إدراج الطلب ── */
     /* رقم داخلي متسلسل (للمالك) */

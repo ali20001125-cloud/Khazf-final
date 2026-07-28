@@ -43,7 +43,7 @@ export default function OffersPage() {
           <Wallet size={20} className="text-gold" />
           <h3 className="mt-3 text-lg font-bold">كاش باك ٣٪ — فلوسك ترجع</h3>
           <p className="mt-2 text-[13px] leading-relaxed text-muted">
-            كل ١٬٠٠٠ دينار من قيمة منتجاتك = نقطة. رصيدك يتجمّع وتستخدمه خصماً بأي طلب.
+            كل ١٬٠٠٠ دينار من قيمة منتجاتك = ٣٠ دينار كاش باك. رصيدك يتجمّع وتستخدمه خصماً بأي طلب.
           </p>
         </div>
         <div className="rounded-[22px] border border-line bg-card p-6">

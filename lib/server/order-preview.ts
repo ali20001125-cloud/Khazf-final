@@ -117,7 +117,7 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
   const deliveryCharged = freeDelivery ? 0 : (settings?.deliveryCustomerPrice ?? 0);
 
   // ٦) الكاش باك — يُستخدم بمضاعفات ٢٥٠ فقط، بحيث الإجمالي يبقى قابلاً للدفع
-  const pointValue = settings?.pointValue ?? 250;
+  const pointValue = settings?.pointValue ?? 1;
   const pointsAvailable = customer ? customer.pointsBalance * pointValue : 0;
   let pointsUsedDinars = 0;
   if (input.usePoints && pointsAvailable > 0) {

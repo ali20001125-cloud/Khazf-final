@@ -239,7 +239,7 @@ export default function CartPage() {
               <input type="checkbox" checked={useCashback} onChange={(e) => setUseCashback(e.target.checked)} className="h-4 w-4 accent-[#c9a961]" />
               <Wallet size={16} className="text-gold" />
               <span className="text-[13px] font-bold">
-                استخدم رصيدك — <span className="font-num">{me.pointsBalance}</span> نقطة (<span className="font-num">{formatIQD(me.pointsValueDinars ?? 0)}</span>)
+                استخدم رصيدك — <span className="font-num">{formatIQD(me.pointsValueDinars ?? 0)}</span> كاش باك
               </span>
             </label>
           )}

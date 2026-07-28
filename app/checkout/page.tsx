@@ -184,7 +184,7 @@ export default function CheckoutPage() {
           </a>
           {done.pointsEarned > 0 && (
             <div className="flex items-center gap-2 rounded-[12px] bg-gold/10 px-4 py-3 text-[13px] font-bold text-gold">
-              <Sparkles size={15} /> ربحت <span className="font-num">{done.pointsEarned}</span> نقطة — تُفعَّل فور توصيل طلبك
+              <Sparkles size={15} /> ربحت <span className="font-num">{formatIQD(done.pointsEarned)}</span> كاش باك — يُفعَّل فور توصيل طلبك
             </div>
           )}
           {done.nextRewardMessage && (
