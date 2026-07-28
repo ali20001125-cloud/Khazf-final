@@ -110,11 +110,11 @@ const iqd = (n: number) => n.toLocaleString("en");
 /** رأس الإيميل: لوغو إن وُجد، وإلا "خزف" نصياً */
 function brandHead(logoUrl?: string | null, tagline?: string, bg = "#505445", color = "#faf7f0") {
   const logo = logoUrl
-    ? `<img src="${logoUrl}" alt="خزف" style="height:44px;object-fit:contain" />`
+    ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:10px 16px"><img src="${logoUrl}" alt="خزف" style="height:40px;object-fit:contain;vertical-align:middle" /></span>`
     : `<p style="font-family:Amiri,serif;color:${color};font-size:30px;font-weight:700;margin:0">خزف</p>`;
   return `<div style="background:${bg};padding:32px 30px;text-align:center">
     ${logo}
-    ${tagline ? `<p style="color:#c9a961;font-size:13px;margin:10px 0 0;letter-spacing:1px">${tagline}</p>` : ""}
+    ${tagline ? `<p style="color:#c9a961;font-size:13px;margin:14px 0 0;letter-spacing:1px">${tagline}</p>` : ""}
   </div>`;
 }
 
@@ -167,8 +167,8 @@ function tpl1(d: ReminderData) {
 /** القالب ٢: الغني الدافئ — "نسيتَ فنجانك؟" */
 function tpl2(d: ReminderData) {
   return `<div style="background:linear-gradient(135deg,#505445,#3d4230);padding:36px 30px;text-align:center">
-    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="height:46px;object-fit:contain" />` : `<p style="font-family:Amiri,serif;color:#faf7f0;font-size:30px;font-weight:700;margin:0">خزف</p>`}
-    <p style="font-family:Amiri,serif;color:#c9a961;font-size:16px;margin:8px 0 0">نسيتَ فنجانك؟</p>
+    ${d.logoUrl ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:10px 16px"><img src="${d.logoUrl}" alt="خزف" style="height:42px;object-fit:contain;vertical-align:middle" /></span>` : `<p style="font-family:Amiri,serif;color:#faf7f0;font-size:30px;font-weight:700;margin:0">خزف</p>`}
+    <p style="font-family:Amiri,serif;color:#c9a961;font-size:16px;margin:14px 0 0">نسيتَ فنجانك؟</p>
   </div>
   <div style="padding:32px 30px">
     <h1 style="font-size:22px;color:#332b24;margin:0 0 8px">قهوتك تنتظر${d.name ? "، " + d.name : ""}</h1>
@@ -223,8 +223,8 @@ const templates = [
 export async function emailCartReminder(d: ReminderData, templateIndex: number): Promise<string | null> {
   if (!d.email) return null;
   const tpl = templates[templateIndex % templates.length];
-  const html = `<div style="font-family:'IBM Plex Sans Arabic',Tahoma,Arial;direction:rtl;background:#e8e6e1;padding:24px 12px">
-    <div style="max-width:600px;margin:auto;background:#fdfcfa;border-radius:16px;overflow:hidden">${tpl.build(d)}</div>
+  const html = `<div style="font-family:'IBM Plex Sans Arabic',Tahoma,Arial;direction:rtl;background:#e8e6e1;padding:10px 6px">
+    <div style="max-width:600px;margin:auto;background:#fdfcfa;border-radius:14px;overflow:hidden">${tpl.build(d)}</div>
   </div>`;
   await sendMail(d.email, tpl.subject, html);
   return tpl.id;
