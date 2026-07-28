@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore } from "@/lib/store";
@@ -12,7 +12,8 @@ import { useMotion } from "@/lib/motion";
 import { CoffeeCard, ToolCard } from "@/components/Cards";
 
 type JL = { level: number; rewardType: string; value: number; giftName: string | null };
-type Order = { orderNumber: string; status: string; total: number; createdAt: string };
+type OrderItem = { productId: number | null; slug: string | null; name: string; variant: string; qty: number };
+type Order = { orderNumber: string; status: string; total: number; createdAt: string; items?: OrderItem[] };
 type Me = {
   guest?: boolean; googleSession?: boolean; linked?: boolean; hasAuth?: boolean;
   email?: string | null;
@@ -36,8 +37,37 @@ export default function AccountPage() {
 function AccountInner() {
   const scope = useMotion();
   const params = useSearchParams();
-  const { favorites } = useStore();
+  const { favorites, addToCart, showToast } = useStore();
   const { coffees, tools } = useCatalog();
+
+  // إعادة طلب سابق: يضيف المنتجات المتوفّرة للسلة (يتحقّق من التوفّر والسعر الحالي)
+  const reorder = (items: OrderItem[]) => {
+    let added = 0, skipped = 0;
+    for (const it of items) {
+      if (!it.slug) { skipped++; continue; } // هدايا/بنود بلا منتج
+      const coffee = coffees.find((c) => c.slug === it.slug);
+      const tool = tools.find((t) => t.slug === it.slug);
+      if (coffee) {
+        const price = it.variant === "G500" ? coffee.prices.g500
+          : it.variant === "G1000" ? coffee.prices.g1000 : coffee.prices.g250;
+        if (price == null) { skipped++; continue; }
+        const label = it.variant === "G500" ? "٥٠٠غ" : it.variant === "G1000" ? "كيلو" : "٢٥٠غ";
+        addToCart({ slug: coffee.slug, variant: it.variant as "G250" | "G500" | "G1000",
+          grind: "حبوب كاملة", name: coffee.name, meta: `${label} · حبوب كاملة`, priceShown: price }, it.qty, true);
+        added++;
+      } else if (tool) {
+        addToCart({ slug: tool.slug, variant: "PIECE", grind: "", name: tool.name,
+          meta: "", priceShown: tool.price }, it.qty, true);
+        added++;
+      } else {
+        skipped++; // المنتج لم يعد متوفّراً
+      }
+    }
+    if (added > 0) showToast(skipped > 0
+      ? `أُضيف ${added} منتج للسلة · ${skipped} لم يعد متوفّراً`
+      : `أُضيفت منتجات طلبك للسلة`);
+    else showToast("عذراً، منتجات هذا الطلب لم تعد متوفّرة");
+  };
   const [me, setMe] = useState<Me | null>(null);
   const [tab, setTab] = useState<"orders" | "cashback" | "fav">(params.get("tab") === "fav" ? "fav" : "orders");
   const [editing, setEditing] = useState(false);
@@ -134,17 +164,26 @@ function AccountInner() {
           (me.orders ?? []).length > 0 ? (
             <div className="space-y-2.5">
               {me.orders!.map((o) => (
-                <Link key={o.orderNumber} href={`/invoice/?n=${o.orderNumber}&p=${me.phone}`}
-                  className="flex items-center justify-between rounded-[16px] border border-line bg-card px-5 py-4 transition-all hover:border-muted active:scale-[0.99]">
-                  <div>
-                    <p className="font-num text-[14px] font-bold">{o.orderNumber}</p>
-                    <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {new Date(o.createdAt).toLocaleDateString("ar-IQ", { dateStyle: "medium" })}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-num text-[13px] font-bold">{formatIQD(o.total)}</span>
-                    <ChevronLeft size={16} className="text-muted" />
-                  </div>
-                </Link>
+                <div key={o.orderNumber}
+                  className="rounded-[16px] border border-line bg-card px-5 py-4">
+                  <Link href={`/invoice/?n=${o.orderNumber}&p=${me.phone}`}
+                    className="flex items-center justify-between transition-all active:scale-[0.99]">
+                    <div>
+                      <p className="font-num text-[14px] font-bold">{o.orderNumber}</p>
+                      <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {new Date(o.createdAt).toLocaleDateString("ar-IQ", { dateStyle: "medium" })}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-num text-[13px] font-bold">{formatIQD(o.total)}</span>
+                      <ChevronLeft size={16} className="text-muted" />
+                    </div>
+                  </Link>
+                  {(o.items?.length ?? 0) > 0 && (
+                    <button onClick={() => reorder(o.items!)}
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-[11px] border border-clay/30 bg-clay/5 py-2.5 text-[12.5px] font-bold text-clay transition-colors hover:bg-clay/10 active:scale-[0.98]">
+                      <RotateCcw size={14} /> إعادة الطلب
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           ) : <Empty icon={Package} text="ما عندك طلبات بعد" cta />

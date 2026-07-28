@@ -115,6 +115,24 @@ export async function emailReviewRequest(o: { email: string | null; name: string
   `, logo));
 }
 
+/** رسالة ترحيب لأول تسجيل */
+export async function emailWelcome(o: { email: string | null; name: string }) {
+  if (!o.email) return;
+  const logo = await getLogo();
+  const site = process.env.SITE_URL ?? "https://khazf.shop";
+  await sendMail(o.email, `أهلاً بك في خزف 🤎`, wrap(`
+    <p style="font-size:16px;font-weight:bold">أهلاً بك يا ${o.name} 🤎</p>
+    <p style="font-size:13px;line-height:1.9">
+      يسعدنا انضمامك إلى خزف. من اللحظة التي تختار فيها فنجانك،<br/>
+      نحن هنا لنمنحك قهوة مختصة محمّصة بعناية، توصَل إلى بابك.
+    </p>
+    <p style="font-size:13px;line-height:1.9">
+      ومع كل طلب، يتجمّع رصيدك من الكاش باك — تستخدمه خصماً في طلباتك القادمة.
+    </p>
+    <a href="${site}" style="display:inline-block;background:#A66A4C;color:#fff;padding:11px 28px;border-radius:10px;font-size:14px;font-weight:bold;text-decoration:none;margin-top:6px">تصفّح المحاصيل</a>
+  `, logo));
+}
+
 /* ═══════════════ تذكير السلة المتروكة ═══════════════ */
 
 type CartItem = { name: string; qty: number; price: number };

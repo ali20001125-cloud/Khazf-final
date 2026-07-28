@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getSupabaseUser } from "@/lib/server/customer-identity";
 import { setCustomerCookie } from "@/lib/server/customer-session";
+import { emailWelcome } from "@/lib/server/email";
 
 export const runtime = "nodejs";
 
@@ -46,6 +47,9 @@ export async function POST(req: Request) {
     }).where(eq(s.customers.phone, phone));
   } else {
     await db.insert(s.customers).values({ phone, authUserId, name: gName, governorate, address: address || "", email: email || user?.email || null });
+    // ترحيب لأول تسجيل (لا يوقف العملية إن فشل)
+    const welcomeEmail = (email || user?.email || "").trim();
+    if (welcomeEmail) emailWelcome({ email: welcomeEmail, name: gName }).catch(() => {});
   }
 
   await setCustomerCookie(phone);

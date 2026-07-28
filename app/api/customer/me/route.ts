@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getCustomerIdentity } from "@/lib/server/customer-identity";
 import { getSettings } from "@/lib/server/settings";
@@ -52,12 +52,35 @@ export async function GET() {
   const orders = await db
     .select({
       orderNumber: s.orders.orderNumber, status: s.orders.status,
-      total: s.orders.total, createdAt: s.orders.createdAt,
+      total: s.orders.total, createdAt: s.orders.createdAt, id: s.orders.id,
     })
     .from(s.orders)
     .where(eq(s.orders.customerPhone, phone))
     .orderBy(desc(s.orders.createdAt))
     .limit(10);
+
+  // منتجات كل طلب (لإعادة الطلب) — القابلة فقط (لها product_id ووزن/سعر)
+  const orderIds = orders.map((o) => o.id);
+  let itemsByOrder: Record<number, { productId: number | null; slug: string | null; name: string; variant: string; qty: number }[]> = {};
+  if (orderIds.length > 0) {
+    const allItems = await db
+      .select({
+        orderId: s.orderItems.orderId, productId: s.orderItems.productId,
+        slug: s.products.slug,
+        name: s.orderItems.nameSnapshot, variant: s.orderItems.variant, qty: s.orderItems.qty,
+      })
+      .from(s.orderItems)
+      .leftJoin(s.products, eq(s.products.id, s.orderItems.productId))
+      .where(inArray(s.orderItems.orderId, orderIds));
+    itemsByOrder = allItems.reduce((acc, it) => {
+      (acc[it.orderId] ??= []).push({ productId: it.productId, slug: it.slug, name: it.name, variant: it.variant, qty: it.qty });
+      return acc;
+    }, {} as typeof itemsByOrder);
+  }
+  const ordersWithItems = orders.map((o) => ({
+    orderNumber: o.orderNumber, status: o.status, total: o.total, createdAt: o.createdAt,
+    items: itemsByOrder[o.id] ?? [],
+  }));
   // لو إيميل/اسم الزبون فارغ بالجدول لكن عنده حساب مصادقة بإيميل → نستخدم إيميل المصادقة
   const effectiveEmail = c.email || authUser?.email || null;
   const effectiveName = (c.name && c.name !== "زبون خزف")
@@ -69,6 +92,6 @@ export async function GET() {
     pointsBalance: balance, pointsValueDinars: balance * (await getSettings()).pointValue,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
     journeyLevels: (await db.select({ level: s.journeyLevels.level, rewardType: s.journeyLevels.rewardType, value: s.journeyLevels.value, giftName: s.journeyLevels.giftName }).from(s.journeyLevels).orderBy(asc(s.journeyLevels.level))),
-    orders,
+    orders: ordersWithItems,
   });
 }
