@@ -43,7 +43,7 @@ const wrap = (inner: string, logoUrl?: string | null) => `
   <div style="max-width:560px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e5e0d5">
     <div style="background:#f4f1ea;padding:20px;text-align:center;border-bottom:2px solid #c9a961">
       ${logoUrl
-        ? `<img src="${logoUrl}" alt="خزف" style="display:inline-block;height:40px;width:auto;object-fit:contain" />`
+        ? `<img src="${logoUrl}" alt="خزف" style="display:block;height:40px;width:auto;object-fit:contain;margin:0 auto" />`
         : `<p style="font-family:Amiri,serif;font-size:26px;font-weight:bold;color:#a66a4c;margin:0">خزف</p>`}
       <div style="width:34px;height:1px;background:#c9a961;margin:11px auto 0"></div>
     </div>
@@ -129,7 +129,7 @@ const iqd = (n: number) => n.toLocaleString("en");
 /** رأس الإيميل: لوغو إن وُجد، وإلا "خزف" نصياً */
 function brandHead(logoUrl?: string | null, tagline?: string) {
   const logo = logoUrl
-    ? `<img src="${logoUrl}" alt="خزف" style="display:inline-block;height:42px;width:auto;object-fit:contain" />`
+    ? `<img src="${logoUrl}" alt="خزف" style="display:block;height:42px;width:auto;object-fit:contain;margin:0 auto" />`
     : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`;
   return `<div style="background:#f4f1ea;padding:22px 30px;text-align:center;border-bottom:2px solid #c9a961">
     ${logo}
@@ -186,7 +186,7 @@ function tpl1(d: ReminderData) {
 /** القالب ٢: الغني الدافئ — "نسيتَ فنجانك؟" */
 function tpl2(d: ReminderData) {
   return `<div style="background:#f4f1ea;padding:22px 30px;text-align:center;border-bottom:2px solid #c9a961">
-    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="display:inline-block;height:42px;width:auto;object-fit:contain" />` : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`}
+    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="display:block;height:42px;width:auto;object-fit:contain;margin:0 auto" />` : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`}
     <p style="font-family:Amiri,serif;color:#a66a4c;font-size:15px;margin:10px 0 0">نسيتَ فنجانك؟</p>
     <div style="width:34px;height:1px;background:#c9a961;margin:10px auto 0"></div>
   </div>
@@ -209,7 +209,7 @@ function tpl2(d: ReminderData) {
 /** القالب ٣: الكريمي الذهبي — "سلّتك ما زالت دافئة" */
 function tpl3(d: ReminderData) {
   return `<div style="background:#f4f1ea;padding:22px 30px;text-align:center;border-bottom:2px solid #c9a961">
-    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="display:inline-block;height:42px;width:auto;object-fit:contain" />` : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`}
+    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="display:block;height:42px;width:auto;object-fit:contain;margin:0 auto" />` : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`}
     <div style="width:34px;height:1px;background:#c9a961;margin:10px auto 0"></div>
     <p style="color:#a66a4c;font-size:12px;margin:10px 0 0;letter-spacing:2px">سلّتك ما زالت دافئة</p>
   </div>
