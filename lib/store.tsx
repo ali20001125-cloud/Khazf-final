@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { BoxTier } from "@/lib/server/db/schema";
+import { fbTrack } from "@/lib/fbpixel";
 
 /* ═══════ إعدادات الموقع (تصل من القاعدة عبر layout) ═══════ */
 export interface SiteConfig {
@@ -121,6 +122,10 @@ export function StoreProvider({
       });
       setBump((b) => b + 1);
       if (!silent) showToast(`أُضيف «${item.name}» إلى السلة`);
+      fbTrack("AddToCart", {
+        content_name: item.name, content_ids: [item.slug],
+        content_type: "product", value: item.priceShown * qty, currency: "IQD",
+      });
     },
     [showToast]
   );

@@ -6,6 +6,7 @@ import { Check, HandCoins, Gift, Sparkles, ArrowLeft , ChevronDown } from "lucid
 import { formatIQD, governorates } from "@/lib/data";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
+import { fbTrack } from "@/lib/fbpixel";
 import { useMotion } from "@/lib/motion";
 
 const inputCls =
@@ -24,6 +25,19 @@ export default function CheckoutPage() {
   const { cart, clearCart, coupon, useCashback, boxGiftChoice, showToast } = useStore();
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
+
+  /* حدث بدء الدفع (مرة واحدة عند فتح الصفحة مع سلة غير فارغة) */
+  useEffect(() => {
+    if (cart.length === 0) return;
+    fbTrack("InitiateCheckout", {
+      content_ids: cart.map((i) => i.slug),
+      content_type: "product",
+      num_items: cart.reduce((t, i) => t + i.qty, 0),
+      value: cart.reduce((t, i) => t + i.priceShown * i.qty, 0),
+      currency: "IQD",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* الزبون المعروف: بياناته تتعبأ لحالها */
   useEffect(() => {

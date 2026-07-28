@@ -21,6 +21,7 @@ import { formatIQD, productFaq,
 import { useCatalog } from "@/lib/catalog-context";
 import { useMotion, reduced } from "@/lib/motion";
 import { useStore } from "@/lib/store";
+import { fbTrack } from "@/lib/fbpixel";
 import BagArt from "@/components/BagArt";
 import { CoffeeCard, ToolCard, Stars, ToolVisual } from "@/components/Cards";
 
@@ -85,7 +86,11 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   /* شوهد مؤخراً */
   useEffect(() => {
     pushRecent(`c:${coffee.slug}`);
-  }, [coffee.slug, pushRecent]);
+    fbTrack("ViewContent", {
+      content_name: coffee.name, content_ids: [coffee.slug],
+      content_type: "product", value: coffee.prices.g250, currency: "IQD",
+    });
+  }, [coffee.slug, pushRecent, coffee.name, coffee.prices.g250]);
 
   const share = (kind: "copy" | "wa" | "tg") => {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -649,7 +654,13 @@ function ToolView({ tool }: { tool: Tool }) {
   const [showBar, setShowBar] = useState(false);
   const buyRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { pushRecent(`t:${tool.slug}`); }, [tool.slug, pushRecent]);
+  useEffect(() => {
+    pushRecent(`t:${tool.slug}`);
+    fbTrack("ViewContent", {
+      content_name: tool.name, content_ids: [tool.slug],
+      content_type: "product", value: tool.price, currency: "IQD",
+    });
+  }, [tool.slug, pushRecent, tool.name, tool.price]);
 
   // الشريط السفلي يظهر فقط عندما يختفي زر الشراء الأصلي عن الشاشة
   useEffect(() => {
