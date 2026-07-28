@@ -202,10 +202,12 @@ export async function createOrder(input: CheckoutInput) {
     if (input.usePoints && customer && customer.pointsBalance > 0) {
       const preTotal = Math.max(0, afterDiscounts) + deliveryCharged;
       const available = customer.pointsBalance * settings.pointValue;
-      // يُستخدم بمضاعفات ٢٥٠ فقط، لا يتجاوز الرصيد ولا الإجمالي
+      // يُستخدم بمضاعفات ٢٥٠ دينار، لا يتجاوز الرصيد ولا الإجمالي
       const cap = Math.min(available, preTotal);
-      pointsUsedDinars = Math.floor(cap / 250) * 250;
-      pointsUsedCount = pointsUsedDinars / settings.pointValue;
+      const rawDinars = Math.floor(cap / 250) * 250;
+      // عدد النقاط عدد صحيح دائماً (لا كسور) — نقرّب لأسفل ثم نشتق الدنانير منه
+      pointsUsedCount = Math.floor(rawDinars / settings.pointValue);
+      pointsUsedDinars = pointsUsedCount * settings.pointValue;
     }
 
     /* ── ٧) الإجمالي + التقريب لأعلى ٢٥٠ (مخفي عن الزبون) ── */
