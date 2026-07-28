@@ -56,7 +56,13 @@ export default function CartPage() {
     coupon?.type === "PERCENT" ? Math.round((afterBox * coupon.value) / 100)
     : coupon?.type === "FIXED" ? Math.min(coupon.value, afterBox)
     : 0;
-  const pointsDinars = useCashback ? Math.min(me.pointsValueDinars ?? 0, afterBox - couponDiscount) : 0;
+  // الكاش يُستخدم بمضاعفات ٢٥٠ دينار (نفس منطق الخادم) — الباقي يبقى بالحساب
+  const cashAvailable = me.pointsValueDinars ?? 0;
+  const cashPreTotal = afterBox - couponDiscount + (box.freeDelivery || coupon?.type === "FREE_DELIVERY" ? 0 : config.deliveryPrice);
+  const pointsDinars = useCashback
+    ? Math.floor(Math.min(cashAvailable, cashPreTotal) / 250) * 250
+    : 0;
+  const cashRemaining = cashAvailable - pointsDinars;
   const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
   const delivery = freeDelivery ? 0 : config.deliveryPrice;
   const previewTotal = Math.max(0, afterBox - couponDiscount - pointsDinars) + delivery;
@@ -235,13 +241,20 @@ export default function CartPage() {
 
           {/* الرصيد */}
           {!me.guest && (me.pointsBalance ?? 0) > 0 && (
-            <label className="flex cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-bg p-3.5">
-              <input type="checkbox" checked={useCashback} onChange={(e) => setUseCashback(e.target.checked)} className="h-4 w-4 accent-[#c9a961]" />
-              <Wallet size={16} className="text-gold" />
-              <span className="text-[13px] font-bold">
-                استخدم رصيدك — <span className="font-num">{formatIQD(me.pointsValueDinars ?? 0)}</span> كاش باك
-              </span>
-            </label>
+            <div>
+              <label className="flex cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-bg p-3.5">
+                <input type="checkbox" checked={useCashback} onChange={(e) => setUseCashback(e.target.checked)} className="h-4 w-4 accent-[#c9a961]" />
+                <Wallet size={16} className="text-gold" />
+                <span className="text-[13px] font-bold">
+                  استخدم رصيدك — <span className="font-num">{formatIQD(me.pointsValueDinars ?? 0)}</span> كاش باك
+                </span>
+              </label>
+              {useCashback && pointsDinars > 0 && (
+                <p className="mt-2 px-1 text-[12px] text-muted">
+                  استُخدم <span className="font-num">{formatIQD(pointsDinars)}</span> من رصيدك · يبقى <span className="font-num">{formatIQD(cashRemaining)}</span> في حسابك
+                </p>
+              )}
+            </div>
           )}
 
           {/* الأرقام */}
