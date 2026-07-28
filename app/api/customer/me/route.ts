@@ -58,9 +58,14 @@ export async function GET() {
     .where(eq(s.orders.customerPhone, phone))
     .orderBy(desc(s.orders.createdAt))
     .limit(10);
+  // لو إيميل/اسم الزبون فارغ بالجدول لكن عنده حساب مصادقة بإيميل → نستخدم إيميل المصادقة
+  const effectiveEmail = c.email || authUser?.email || null;
+  const effectiveName = (c.name && c.name !== "زبون خزف")
+    ? c.name
+    : (authUser?.email ? nameFromEmail(authUser.email) : c.name);
   return NextResponse.json({
     googleSession: !!authUser, linked, hasAuth: !!c.authUserId,
-    phone: c.phone, name: c.name, email: c.email, governorate: c.governorate, address: c.address,
+    phone: c.phone, name: effectiveName, email: effectiveEmail, governorate: c.governorate, address: c.address,
     pointsBalance: balance, pointsValueDinars: balance * (await getSettings()).pointValue,
     journeyOrders: c.journeyOrders, journeyActive: c.journeyActive,
     journeyLevels: (await db.select({ level: s.journeyLevels.level, rewardType: s.journeyLevels.rewardType, value: s.journeyLevels.value, giftName: s.journeyLevels.giftName }).from(s.journeyLevels).orderBy(asc(s.journeyLevels.level))),

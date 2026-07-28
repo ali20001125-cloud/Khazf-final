@@ -18,6 +18,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "طلب غير صالح" }, { status: 400 });
   }
   try {
+    // لو الزبون مسجّل بإيميل ولم يكتبه بالنموذج → نجيبه من المصادقة تلقائياً
+    const authForFill = await getSupabaseUser();
+    if (authForFill?.email) {
+      if (!body.email?.trim()) body.email = authForFill.email;
+      if (!body.name?.trim() || body.name.trim() === "زبون خزف") {
+        const local = authForFill.email.split("@")[0].replace(/[0-9._-]+/g, " ").trim();
+        if (local) body.name = local.split(" ").filter(Boolean).slice(0, 2)
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      }
+    }
     const result = await createOrder(body);
 
     /* ═ أمان الهوية ═
