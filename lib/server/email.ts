@@ -41,14 +41,15 @@ export async function sendMail(to: string, subject: string, html: string) {
 const wrap = (inner: string, logoUrl?: string | null) => `
 <div style="font-family:'IBM Plex Sans Arabic',Tahoma,Arial;direction:rtl;background:#e8e6e1;padding:10px 6px">
   <div style="max-width:560px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e5e0d5">
-    <div style="background:#505445;padding:22px;text-align:center">
+    <div style="background:#f4f1ea;padding:20px;text-align:center;border-bottom:2px solid #c9a961">
       ${logoUrl
-        ? `<span style="display:inline-block;background:#fff;border-radius:12px;padding:12px"><img src="${logoUrl}" alt="خزف" style="display:block;height:38px;width:auto;object-fit:contain" /></span>`
-        : `<p style="font-family:Amiri,serif;font-size:24px;font-weight:bold;color:#faf7f0;margin:0">خزف</p>`}
+        ? `<img src="${logoUrl}" alt="خزف" style="display:inline-block;height:40px;width:auto;object-fit:contain" />`
+        : `<p style="font-family:Amiri,serif;font-size:26px;font-weight:bold;color:#a66a4c;margin:0">خزف</p>`}
+      <div style="width:34px;height:1px;background:#c9a961;margin:11px auto 0"></div>
     </div>
-    <div style="padding:26px 24px">
+    <div style="padding:22px 22px">
       ${inner}
-      <p style="font-size:11px;color:#8a8577;margin-top:24px">خزف — قهوة مختصة، توصيل لكل العراق</p>
+      <p style="font-size:11px;color:#8a8577;margin-top:20px">خزف — قهوة مختصة، توصيل لكل العراق</p>
     </div>
   </div>
 </div>`;
@@ -126,13 +127,13 @@ type ReminderData = {
 const iqd = (n: number) => n.toLocaleString("en");
 
 /** رأس الإيميل: لوغو إن وُجد، وإلا "خزف" نصياً */
-function brandHead(logoUrl?: string | null, tagline?: string, bg = "#505445", color = "#faf7f0") {
+function brandHead(logoUrl?: string | null, tagline?: string) {
   const logo = logoUrl
-    ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:14px"><img src="${logoUrl}" alt="خزف" style="display:block;height:44px;width:auto;object-fit:contain" /></span>`
-    : `<p style="font-family:Amiri,serif;color:${color};font-size:30px;font-weight:700;margin:0">خزف</p>`;
-  return `<div style="background:${bg};padding:32px 30px;text-align:center">
+    ? `<img src="${logoUrl}" alt="خزف" style="display:inline-block;height:42px;width:auto;object-fit:contain" />`
+    : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`;
+  return `<div style="background:#f4f1ea;padding:22px 30px;text-align:center;border-bottom:2px solid #c9a961">
     ${logo}
-    ${tagline ? `<p style="color:#c9a961;font-size:13px;margin:14px 0 0;letter-spacing:1px">${tagline}</p>` : ""}
+    <div style="width:34px;height:1px;background:#c9a961;margin:11px auto 0"></div>
   </div>`;
 }
 
@@ -166,7 +167,7 @@ function waBtn(whatsapp?: string | null) {
 /** القالب ١: الدافئ الأنيق — "قهوتك تنتظر" */
 function tpl1(d: ReminderData) {
   return brandHead(d.logoUrl, "قهوة مختصة") + `
-  <div style="padding:34px 30px">
+  <div style="padding:26px 30px">
     <h1 style="font-size:23px;color:#332b24;margin:0 0 8px">قهوتك تنتظر${d.name ? "، " + d.name : ""}</h1>
     <p style="font-size:15px;color:#6b6459;line-height:1.8;margin:0 0 24px">تركت بعض المنتجات المختارة في سلتك — لا تزال بانتظارك متى شئت.</p>
     <div style="border:1px solid #e5e2db;border-radius:14px;overflow:hidden;margin-bottom:26px">
@@ -184,11 +185,12 @@ function tpl1(d: ReminderData) {
 
 /** القالب ٢: الغني الدافئ — "نسيتَ فنجانك؟" */
 function tpl2(d: ReminderData) {
-  return `<div style="background:linear-gradient(135deg,#505445,#3d4230);padding:36px 30px;text-align:center">
-    ${d.logoUrl ? `<span style="display:inline-block;background:#fff;border-radius:14px;padding:14px"><img src="${d.logoUrl}" alt="خزف" style="display:block;height:44px;width:auto;object-fit:contain" /></span>` : `<p style="font-family:Amiri,serif;color:#faf7f0;font-size:30px;font-weight:700;margin:0">خزف</p>`}
-    <p style="font-family:Amiri,serif;color:#c9a961;font-size:16px;margin:14px 0 0">نسيتَ فنجانك؟</p>
+  return `<div style="background:#f4f1ea;padding:22px 30px;text-align:center;border-bottom:2px solid #c9a961">
+    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="display:inline-block;height:42px;width:auto;object-fit:contain" />` : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`}
+    <p style="font-family:Amiri,serif;color:#a66a4c;font-size:15px;margin:10px 0 0">نسيتَ فنجانك؟</p>
+    <div style="width:34px;height:1px;background:#c9a961;margin:10px auto 0"></div>
   </div>
-  <div style="padding:32px 30px">
+  <div style="padding:26px 30px">
     <h1 style="font-size:22px;color:#332b24;margin:0 0 8px">قهوتك تنتظر${d.name ? "، " + d.name : ""}</h1>
     <p style="font-size:14px;color:#6b6459;line-height:1.8;margin:0 0 22px">اخترت بعناية — واخترت جيداً. منتجاتك محفوظة، ولحظة التوقّف على بعد نقرة.</p>
     <div style="background:#f7f6f3;border-radius:14px;padding:6px;margin-bottom:22px">
@@ -206,12 +208,12 @@ function tpl2(d: ReminderData) {
 
 /** القالب ٣: الكريمي الذهبي — "سلّتك ما زالت دافئة" */
 function tpl3(d: ReminderData) {
-  return `<div style="background:#f4f1ea;padding:38px 30px 30px;text-align:center;border-bottom:2px solid #c9a961">
-    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="height:48px;object-fit:contain" />` : `<p style="font-family:Amiri,serif;color:#3d4230;font-size:34px;font-weight:700;margin:0">خزف</p>`}
-    <div style="width:40px;height:1px;background:#c9a961;margin:14px auto 0"></div>
-    <p style="color:#a66a4c;font-size:12px;margin:14px 0 0;letter-spacing:2px">سلّتك ما زالت دافئة</p>
+  return `<div style="background:#f4f1ea;padding:22px 30px;text-align:center;border-bottom:2px solid #c9a961">
+    ${d.logoUrl ? `<img src="${d.logoUrl}" alt="خزف" style="display:inline-block;height:42px;width:auto;object-fit:contain" />` : `<p style="font-family:Amiri,serif;color:#a66a4c;font-size:28px;font-weight:700;margin:0">خزف</p>`}
+    <div style="width:34px;height:1px;background:#c9a961;margin:10px auto 0"></div>
+    <p style="color:#a66a4c;font-size:12px;margin:10px 0 0;letter-spacing:2px">سلّتك ما زالت دافئة</p>
   </div>
-  <div style="padding:34px 30px">
+  <div style="padding:26px 30px">
     <p style="font-size:15px;color:#6b6459;line-height:1.9;margin:0 0 26px;text-align:center">أهلاً${d.name ? " " + d.name : ""} — اخترتَ ما يستحق التوقّف عنده.<br>منتجاتك محفوظة بانتظار عودتك.</p>
     <div style="margin-bottom:24px">
       ${d.items.map((it) => `<div style="border:1px solid #e5e2db;border-radius:14px;padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:12px">
