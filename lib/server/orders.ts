@@ -212,8 +212,10 @@ export async function createOrder(input: CheckoutInput) {
     const totalRaw = afterDiscounts - pointsUsedDinars + deliveryCharged;
     const total = roundUp250(totalRaw);
 
-    /* ── ٨) نقاط الكسب: على صافي المنتجات بعد الخصومات وقبل التوصيل ── */
-    const pointsEarned = Math.floor(Math.max(0, afterDiscounts) / settings.cashbackPerAmount);
+    /* ── ٨) نقاط الكسب: على صافي المنتجات المدفوع فعلاً (بعد كل الخصومات والنقاط المستخدمة، قبل التوصيل)
+       لا كاش على مبلغ مدفوع بالكاش نفسه ── */
+    const earnBase = Math.max(0, afterDiscounts - pointsUsedDinars);
+    const pointsEarned = Math.floor(earnBase / settings.cashbackPerAmount);
 
     /* ── ٩) رقم الطلب التسلسلي + إدراج الطلب ── */
     /* رقم داخلي متسلسل (للمالك) */
