@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     // دليل التحضير يُرسل فوراً
     if (source === "guide") {
       const site = process.env.SITE_URL ?? "https://khazf.shop";
-      emailBrewGuide({ email, guideUrl: `${site}/recipes/` }).catch(() => {});
+      emailBrewGuide({ email, guideUrl: `${site}/guide/` }).catch(() => {});
     }
 
     return NextResponse.json({ ok: true });

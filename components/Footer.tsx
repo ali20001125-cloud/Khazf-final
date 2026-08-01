@@ -17,6 +17,7 @@ const cols = [
     links: [
       { href: "/contact/", label: "تواصل معنا" },
       { href: "/track/", label: "تتبع طلبك" },
+      { href: "/guide/", label: "دليل التحضير" },
       { href: "/faq/", label: "الأسئلة الشائعة" },
       { href: "/cashback/", label: "الكاش باك" },
       { href: "/account/", label: "حسابي" },

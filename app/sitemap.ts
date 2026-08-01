@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://khazf.shop";
-  const fixed = ["", "products/", "box/", "recipes/", "journal/", "about/", "faq/", "shipping/", "returns/", "contact/"]
+  const fixed = ["", "products/", "box/", "recipes/", "guide/", "journal/", "about/", "faq/", "shipping/", "returns/", "contact/"]
     .map((p) => ({ url: `${base}/${p}`, changeFrequency: "weekly" as const }));
   try {
     const prods = await db
