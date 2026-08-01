@@ -97,6 +97,36 @@ export default function BoxPage() {
   const total = roundUp250(subtotal * (1 - discount));
   const savings = subtotal - total;
 
+  /* المكسب من الكيس التالي — يحفّز الإضافة بأرقام حقيقية */
+  const nextGain = useMemo(() => {
+    if (count === 0 || coffees.length === 0) return null;
+    const targets = [3, 4, 5, 6].filter((t) => t > count);
+    if (targets.length === 0) return null;
+    const target = targets[0];
+    const need = target - count;
+    // متوسط سعر الكيس بالسلة (تقدير المضاف)
+    const avg = subtotal / Math.max(1, count);
+    const nextSubtotal = subtotal + avg * need;
+    const nextTotal = roundUp250(nextSubtotal * (1 - discountFor(target)));
+    const extraSaving = Math.max(0, (nextSubtotal - nextTotal) - savings);
+    const perk = target === 5 ? "توصيل مجاني" : target === 6 ? "هديتك المجانية" : null;
+    return { need, target, extraSaving: Math.round(extraSaving), perk };
+  }, [count, subtotal, savings, coffees.length]);
+
+  /* بوكس جاهز — لمن لا يريد الاختيار */
+  const fillReady = () => {
+    const avail = coffees.filter((c) => !c.soldOut);
+    if (avail.length === 0) return;
+    const next: Record<string, number> = {};
+    // نوزّع ٤ أكياس على المحاصيل المتاحة (أعلى مستوى خصم)
+    for (let i = 0; i < 4; i++) {
+      const c = avail[i % avail.length];
+      next[c.slug] = (next[c.slug] ?? 0) + 1;
+    }
+    setBags(next);
+    showToast("جهّزنا لك بوكساً متنوّعاً — عدّله كما تحب");
+  };
+
   const setBag = (slug: string, n: number) => {
     setBags((prev) => ({ ...prev, [slug]: Math.max(0, n) }));
     if (!reduced()) {
@@ -190,11 +220,49 @@ export default function BoxPage() {
             })}
           </div>
 
-          <p className="mt-3 inline-block rounded-full bg-bg-alt px-5 py-1.5 text-[12px] font-semibold">
-            {hintFor(count)}
-          </p>
+          {savings > 0 ? (
+            <p className="mt-3 inline-block rounded-full bg-ok/12 px-5 py-1.5 text-[12.5px] font-bold text-ok">
+              وفّرت <span className="font-num">{formatIQD(savings)}</span> حتى الآن
+            </p>
+          ) : (
+            <p className="mt-3 inline-block rounded-full bg-bg-alt px-5 py-1.5 text-[12px] font-semibold">
+              {hintFor(count)}
+            </p>
+          )}
           </div>
         </div>
+
+        {/* بوكس جاهز — لمن لا يريد الاختيار */}
+        {count === 0 && (
+          <button onClick={fillReady}
+            className="reveal mt-6 flex w-full items-center justify-between gap-3 rounded-[18px] border border-gold/35 bg-gold/8 p-4 text-start transition-all active:scale-[0.99]">
+            <div>
+              <p className="text-[14px] font-bold">ما تعرف أيها تختار؟</p>
+              <p className="mt-0.5 text-[12px] text-muted">جهّز لي بوكساً متنوّعاً من ٤ أكياس — خصم ٢٠٪</p>
+            </div>
+            <span className="btn btn-clay shrink-0 !px-5 !py-2.5 text-[13px]">جهّزه لي</span>
+          </button>
+        )}
+
+        {/* المكسب من الكيس التالي — يظهر أثناء البناء */}
+        {nextGain && (nextGain.extraSaving > 0 || nextGain.perk) && (
+          <div className="mt-6 rounded-[18px] border border-accent/30 bg-accent/6 p-4">
+            <p className="text-[13.5px] font-bold leading-snug">
+              أضِف <span className="font-num">{nextGain.need}</span>
+              {nextGain.need === 1 ? " كيساً" : " أكياس"} وتربح
+              {nextGain.extraSaving > 0 && (
+                <> <span className="font-num text-accent">{formatIQD(nextGain.extraSaving)}</span> إضافية</>
+              )}
+              {nextGain.perk && (
+                <>{nextGain.extraSaving > 0 ? " و" : " "}<span className="text-gold">{nextGain.perk}</span></>
+              )}
+            </p>
+            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-bg-alt">
+              <div className="h-full rounded-full bg-clay transition-all duration-500"
+                style={{ width: `${Math.min(100, (count / nextGain.target) * 100)}%` }} />
+            </div>
+          </div>
+        )}
 
         {/* المحاصيل */}
         <div className="reveal-group mt-7 space-y-3">
