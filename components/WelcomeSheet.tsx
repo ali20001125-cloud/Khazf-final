@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchMe } from "@/lib/me";
 import Link from "next/link";
-import { X, Wallet, Gift } from "lucide-react";
+import { X, Wallet, Gift, Truck } from "lucide-react";
 
 export default function WelcomeSheet() {
   const [show, setShow] = useState(false);
@@ -64,6 +64,10 @@ export default function WelcomeSheet() {
           <div className="flex items-center gap-2.5">
             <Gift size={17} className="shrink-0 text-gold" />
             <p className="text-[13px]">رحلة من ستّ طلبات تنتهي بكيس مجاني</p>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Truck size={17} className="shrink-0 text-gold" />
+            <p className="text-[13px]">توصيل مجاني على طلبك الأول</p>
           </div>
         </div>
 

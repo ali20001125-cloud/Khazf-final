@@ -403,7 +403,8 @@ export const settings = pgTable("settings", {
   freeDeliveryThreshold: integer("free_delivery_threshold").notNull().default(0), // 0=معطّل · الإجمالي فوقه = توصيل مجاني
   cashbackPerAmount: integer("cashback_per_amount").notNull().default(1000), // كل ١٠٠٠ د = نقطة
   pointValue: integer("point_value").notNull().default(1),
-  boxGiftPicks: smallint("box_gift_picks").notNull().default(1),  // كم هدية يختار الزبون // النقطة = دينار (الكاش بالدنانير مباشرة)
+  boxGiftPicks: smallint("box_gift_picks").notNull().default(1),  // كم هدية يختار الزبون
+  freeDeliveryFirstOrder: boolean("free_delivery_first_order").notNull().default(true),  // أول طلب توصيله مجاني // النقطة = دينار (الكاش بالدنانير مباشرة)
   loyaltyValidityDays: integer("loyalty_validity_days").notNull().default(90),
   boxDiscountPct: integer("box_discount_pct").notNull().default(20),
   boxTiers: jsonb("box_tiers").$type<BoxTier[]>().notNull()

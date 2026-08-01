@@ -178,6 +178,13 @@ export default function CartPage() {
         ) : null
       )}
 
+      {/* أول طلب — توصيل مجاني للجميع */}
+      {freeDelivery && me.guest && (
+        <div className="reveal mt-5 rounded-[16px] border border-ok/30 bg-ok/8 p-4">
+          <p className="text-[13.5px] font-bold text-ok">توصيل مجاني على طلبك الأول 🤎</p>
+        </div>
+      )}
+
       {config.freeDeliveryThreshold > 0 && !freeDelivery && (() => {
         const remaining = config.freeDeliveryThreshold - subtotal;
         const pct = Math.min(100, (subtotal / config.freeDeliveryThreshold) * 100);

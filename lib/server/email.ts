@@ -185,6 +185,7 @@ export async function emailWelcome(o: { email: string | null; name: string }) {
     <div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin:0 0 16px">
       <p style="font-size:13px;font-weight:bold;color:#3d4230;margin:0 0 8px">ما ينتظرك مع كل طلب</p>
       <p style="font-size:12.5px;line-height:1.9;color:#6b6459;margin:0">
+        توصيل مجاني على طلبك الأول<br/>
         ٣٪ كاش باك يعود إليك خصماً في طلبك القادم<br/>
         ورحلة من ستّ طلبات، في كل محطّة مكافأة — وفي نهايتها كيس قهوة مجاني
       </p>
