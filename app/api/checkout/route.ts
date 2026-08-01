@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     emailOrderCustomer({
       email: body.email?.trim() || null, orderNumber: result.orderNumber,
       name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl,
-      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal })) ?? [],
+      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal, image: it.image })) ?? [],
       itemsSubtotal: result.itemsSubtotal, journeyDiscount: result.journeyDiscount,
       pointsUsed: result.pointsUsedDinars, deliveryCharged: result.deliveryCharged,
       freeDelivery: result.deliveryCharged === 0,
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       journeyDiscount: result.journeyDiscount,
       journeyPct: result.journeyPct,
       pointsUsed: result.pointsUsedDinars,
-      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal })) ?? [],
+      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal, image: it.image })) ?? [],
     }).catch(() => {});
 
     return NextResponse.json(result);

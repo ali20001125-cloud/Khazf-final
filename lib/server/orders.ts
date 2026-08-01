@@ -61,6 +61,7 @@ export async function createOrder(input: CheckoutInput) {
     type Line = {
       productId: number | null;
       variantId?: number | null;
+      image?: string | null;
       name: string;
       variant: "G250" | "G500" | "G1000" | "PIECE" | "GIFT";
       unitPrice: number;
@@ -98,6 +99,7 @@ export async function createOrder(input: CheckoutInput) {
       lines.push({
         productId: p.id,
         variantId: chosen?.id ?? null,
+        image: chosen?.image ?? p.images?.[0] ?? null,
         name: p.name + (chosen ? ` · ${chosen.label}` : "") + (it.grind ? ` · ${it.grind}` : ""),
         variant: it.variant,
         unitPrice: price,
@@ -382,7 +384,10 @@ export async function createOrder(input: CheckoutInput) {
       orderId: order.id,
       orderNumber,
       seqNo,
-      items: lines.map((l) => ({ nameSnapshot: l.name, qty: l.qty, lineTotal: l.lineTotal })),
+      items: lines.map((l) => ({
+        nameSnapshot: l.name, qty: l.qty, lineTotal: l.lineTotal,
+        image: l.image ?? null,
+      })),
       total,
       itemsSubtotal,
       journeyDiscount,

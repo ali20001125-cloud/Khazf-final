@@ -1097,15 +1097,16 @@ function ToolView({ tool }: { tool: Tool }) {
           <h2 className="reveal text-center text-2xl font-bold">تفاصيل تصنع الفرق</h2>
           <div className="mt-8 space-y-4">
             {ts.parts.map((part, i) => (
-              <div key={i} className="reveal flex flex-col overflow-hidden rounded-[20px] border border-line bg-card sm:flex-row">
+              <div key={i} className="reveal flex items-stretch overflow-hidden rounded-[20px] border border-line bg-card">
                 {part.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={part.image} alt={part.title} className="aspect-[4/3] w-full object-cover sm:w-2/5" />
+                  <img src={part.image} alt={part.title}
+                    className="h-[104px] w-[104px] shrink-0 object-cover sm:h-auto sm:w-2/5 sm:self-auto" />
                 )}
-                <div className="flex flex-col justify-center p-6">
-                  {part.tag && <p className="text-[11px] font-bold tracking-wide text-accent">{part.tag}</p>}
-                  <h3 className="mt-1.5 text-[18px] font-bold">{part.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-muted">{part.desc}</p>
+                <div className="flex flex-col justify-center p-4 sm:p-6">
+                  {part.tag && <p className="text-[10.5px] font-bold tracking-wide text-accent">{part.tag}</p>}
+                  <h3 className="mt-1 text-[15px] font-bold sm:text-[18px]">{part.title}</h3>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted sm:text-[13px]">{part.desc}</p>
                 </div>
               </div>
             ))}

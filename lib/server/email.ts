@@ -76,7 +76,7 @@ export async function emailNewOrderAdmin(o: { orderNumber: string; name: string;
 
 export async function emailOrderCustomer(o: {
   email: string | null; orderNumber: string; name: string; total: number; invoiceUrl: string;
-  items?: { name: string; qty: number; line: number }[];
+  items?: { name: string; qty: number; line: number; image?: string | null }[];
   itemsSubtotal?: number; journeyDiscount?: number; pointsUsed?: number;
   deliveryCharged?: number; freeDelivery?: boolean;
   pointsEarned?: number; pointsBalanceAfter?: number;   // كاش باك هذا الطلب والرصيد المتبقي
@@ -86,7 +86,17 @@ export async function emailOrderCustomer(o: {
   const logo = await getLogo();
   const m = (n: number) => n.toLocaleString("en");
   const rowsHtml = (o.items ?? []).map((i) =>
-    `<tr><td style="padding:6px 0;font-size:13px">${i.name} <span style="color:#8A7F70">×${i.qty}</span></td><td style="padding:6px 0;font-size:13px;text-align:left" dir="ltr">${m(i.line)} د.ع</td></tr>`
+    `<tr>
+      <td style="padding:8px 0;font-size:13px">
+        <table style="border-collapse:collapse"><tr>
+          ${i.image
+            ? `<td style="padding:0 0 0 10px;width:46px"><img src="${i.image}" alt="" width="46" height="46" style="width:46px;height:46px;border-radius:9px;object-fit:cover;display:block;border:1px solid #E4DDD0" /></td>`
+            : ""}
+          <td style="font-size:13px">${i.name} <span style="color:#8A7F70">×${i.qty}</span></td>
+        </tr></table>
+      </td>
+      <td style="padding:8px 0;font-size:13px;text-align:left;vertical-align:middle" dir="ltr">${m(i.line)} د.ع</td>
+    </tr>`
   ).join("");
   const line = (label: string, val: string, color = "#1C1A18") =>
     `<tr><td style="padding:3px 0;font-size:12.5px;color:#6E655A">${label}</td><td style="padding:3px 0;font-size:12.5px;text-align:left;color:${color}" dir="ltr">${val}</td></tr>`;
