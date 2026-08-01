@@ -214,7 +214,8 @@ export async function createOrder(input: CheckoutInput) {
     /* ── ٦) التوصيل: سعر موحّد للزبون · التكلفة حسب المحافظة (داخلي) ── */
     const thresholdMet = (settings.freeDeliveryThreshold ?? 0) > 0 && itemsSubtotal >= settings.freeDeliveryThreshold;
     // أول طلب لكل زبون توصيله مجاني (سياسة معلنة للجميع)
-    const isFirstOrder = settings.freeDeliveryFirstOrder && !customer;
+    const isFirstOrder = settings.freeDeliveryFirstOrder && !customer
+      && itemsSubtotal >= (settings.freeDeliveryFirstMin ?? 0);
     const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon || thresholdMet || isFirstOrder;
     const deliveryCharged = freeDelivery ? 0 : settings.deliveryCustomerPrice;
     const isBasra = input.governorate.includes("بصرة");

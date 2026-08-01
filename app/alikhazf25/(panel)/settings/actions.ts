@@ -22,6 +22,8 @@ export async function savePublicSettings(f: FormData) {
   await db.update(s.settings).set({
     deliveryCustomerPrice: n(f, "deliveryCustomerPrice", 3000),
     freeDeliveryThreshold: n(f, "freeDeliveryThreshold", 0),
+    freeDeliveryFirstOrder: f.get("freeDeliveryFirstOrder") === "on",
+    freeDeliveryFirstMin: n(f, "freeDeliveryFirstMin", 15000),
     cashbackPerAmount: n(f, "cashbackPerAmount", 1000),
     pointValue: n(f, "pointValue", 30),
     loyaltyValidityDays: n(f, "loyaltyValidityDays", 90),

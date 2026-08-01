@@ -122,7 +122,8 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
 
   // ٥) التوصيل
   const thresholdMet = (settings?.freeDeliveryThreshold ?? 0) > 0 && itemsSubtotal >= settings.freeDeliveryThreshold;
-  const isFirstOrder = (settings?.freeDeliveryFirstOrder ?? true) && !customer;
+  const isFirstOrder = (settings?.freeDeliveryFirstOrder ?? true) && !customer
+    && itemsSubtotal >= (settings?.freeDeliveryFirstMin ?? 0);
   const freeDelivery = freeDeliveryBox || freeDeliveryJourney || freeDeliveryCoupon || thresholdMet || isFirstOrder;
   const deliveryCharged = freeDelivery ? 0 : (settings?.deliveryCustomerPrice ?? 0);
 

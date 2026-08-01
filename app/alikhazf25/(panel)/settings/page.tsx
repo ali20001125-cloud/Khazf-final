@@ -30,6 +30,16 @@ export default async function SettingsPage() {
           <Field label="عتبة التوصيل المجاني" hint="٠ = معطّل · الطلب فوق هذا المبلغ توصيله مجاني">
             <input name="freeDeliveryThreshold" defaultValue={pub.freeDeliveryThreshold ?? 0} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
+          <Field label="أول طلب توصيله مجاني" hint="سياسة معلنة لكل زبون جديد">
+            <label className="flex items-center gap-2 py-2.5 text-[13px] font-bold">
+              <input type="checkbox" name="freeDeliveryFirstOrder"
+                defaultChecked={pub.freeDeliveryFirstOrder ?? true} className="h-4 w-4 accent-[#505445]" />
+              مفعّل
+            </label>
+          </Field>
+          <Field label="حدّ أول طلب المجاني" hint="أقل مبلغ يستحق التوصيل المجاني — يحميك من الطلبات الصغيرة">
+            <input name="freeDeliveryFirstMin" defaultValue={pub.freeDeliveryFirstMin ?? 15000} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
           <Field label="كل … دينار = نقطة"><input name="cashbackPerAmount" defaultValue={pub.cashbackPerAmount} className={`${inputCls} font-num`} dir="ltr" /></Field>
           <Field label="قيمة النقطة (د.ع)"><input name="pointValue" defaultValue={pub.pointValue} className={`${inputCls} font-num`} dir="ltr" /></Field>
           <Field label="صلاحية الولاء (يوم)"><input name="loyaltyValidityDays" defaultValue={pub.loyaltyValidityDays} className={`${inputCls} font-num`} dir="ltr" /></Field>
