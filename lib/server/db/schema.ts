@@ -510,6 +510,16 @@ export const productVariants = pgTable("product_variants", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const emailLeads = pgTable("email_leads", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  source: text("source").notNull().default("guide"),   // guide | restock | footer
+  productSlug: text("product_slug"),
+  notified: boolean("notified").notNull().default(false),
+  converted: boolean("converted").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const emailLog = pgTable("email_log", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   kind: text("kind").notNull(),

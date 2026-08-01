@@ -193,6 +193,44 @@ export async function emailWelcome(o: { email: string | null; name: string }) {
   `, logo), "welcome");
 }
 
+/** دليل التحضير — يُرسل لمن ترك بريده */
+export async function emailBrewGuide(o: { email: string; guideUrl: string }) {
+  if (!o.email) return;
+  const logo = await getLogo();
+  const site = process.env.SITE_URL ?? "https://khazf.shop";
+  await sendMail(o.email, `دليل تحضير القهوة المختصة — خزف`, wrap(`
+    <p style="font-size:16px;font-weight:bold;margin:0 0 10px">دليلك جاهز 🤎</p>
+    <p style="font-size:13.5px;line-height:1.95;margin:0 0 14px">
+      جمعنا لك النِّسب والخطوات التي نعتمدها في خزف — V60 والفرنش برس والإسبريسو،
+      بالجرامات والوقت ودرجة الماء.
+    </p>
+    <div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin:0 0 16px">
+      <p style="font-size:12.5px;line-height:1.9;color:#6b6459;margin:0">
+        القاعدة الذهبية: ٦٠ غراماً من البن لكل لتر ماء<br/>
+        ماء بين ٩٢ و٩٦ درجة · طحن متوسط للفلتر · وقت التحضير من ٢:٣٠ إلى ٣:٣٠ دقيقة
+      </p>
+    </div>
+    <a href="${o.guideUrl}" style="display:inline-block;background:#A66A4C;color:#fff;padding:12px 30px;border-radius:10px;font-size:14.5px;font-weight:bold;text-decoration:none">افتح الدليل كاملاً</a>
+    <p style="font-size:12.5px;line-height:1.9;margin:16px 0 0;color:#6b6459">
+      وإن أردت قهوة تليق بالدليل — <a href="${site}" style="color:#A66A4C;font-weight:bold;text-decoration:none">محاصيلنا هنا</a>.
+    </p>
+  `, logo), "guide");
+}
+
+/** إشعار عودة منتج نفد */
+export async function emailRestock(o: { email: string; productName: string; url: string }) {
+  if (!o.email) return;
+  const logo = await getLogo();
+  await sendMail(o.email, `${o.productName} عاد للمتجر — خزف`, wrap(`
+    <p style="font-size:16px;font-weight:bold;margin:0 0 10px">${o.productName} عاد 🤎</p>
+    <p style="font-size:13.5px;line-height:1.95;margin:0 0 16px">
+      طلبت أن نُعلمك حين يعود — وها هو متوفّر الآن.
+      الكميات محدودة كالعادة، فبادر إن كنت لا تزال مهتماً.
+    </p>
+    <a href="${o.url}" style="display:inline-block;background:#A66A4C;color:#fff;padding:12px 30px;border-radius:10px;font-size:14.5px;font-weight:bold;text-decoration:none">اطلبه الآن</a>
+  `, logo), "restock");
+}
+
 /* ═══════════════ تذكير السلة المتروكة ═══════════════ */
 
 type CartItem = { name: string; qty: number; price: number };

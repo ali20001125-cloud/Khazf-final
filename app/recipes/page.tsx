@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import LeadCapture from "@/components/LeadCapture";
 import Link from "next/link";
 import { Play, Pause, RotateCcw, Check, ArrowLeft } from "lucide-react";
 import { useMotion } from "@/lib/motion";
@@ -331,6 +332,10 @@ export default function RecipesPage() {
           >
             تريد تفهم أعمق؟ دليل الطحن والأدوات بالمدونة <ArrowLeft size={14} />
           </Link>
+
+          <div className="mt-8">
+            <LeadCapture source="guide" />
+          </div>
         </>
       )}
     </div>

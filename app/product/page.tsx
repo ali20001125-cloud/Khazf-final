@@ -24,6 +24,7 @@ import { useStore } from "@/lib/store";
 import { fbTrack } from "@/lib/fbpixel";
 import { fmtDate } from "@/lib/datetime";
 import ProductJsonLd from "@/components/ProductJsonLd";
+import LeadCapture from "@/components/LeadCapture";
 import BagArt from "@/components/BagArt";
 import { CoffeeCard, ToolCard, Stars, ToolVisual } from "@/components/Cards";
 
@@ -445,6 +446,13 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               {coffee.soldOut ? "نفذ مؤقتاً — يرجع قريباً" : added ? "أُضيف للسلة ✓" : `أضف للسلة — ${formatIQD(unit * qty)}`}
             </button>
           </div>
+
+          {/* نفد؟ نلتقط بريده بدل أن يضيع */}
+          {coffee.soldOut && (
+            <div className="pv-in mt-4 opacity-0">
+              <LeadCapture source="restock" productSlug={coffee.slug} productName={coffee.name} />
+            </div>
+          )}
 
           {/* المشاركة */}
           <div className="pv-in mt-5 flex items-center gap-2 opacity-0">
@@ -1035,25 +1043,8 @@ function ToolView({ tool }: { tool: Tool }) {
 
           {/* الشراء */}
           {tool.soldOut ? (
-            <div className="mt-7 rounded-[18px] border border-line bg-card p-5">
-              {notified ? (
-                <p className="flex items-center gap-2 text-sm font-bold text-ok">
-                  <Check size={16} /> تمام — ننبهك أول ما يرجع «{tool.name}»
-                </p>
-              ) : (
-                <>
-                  <p className="text-sm font-bold">نفد حالياً — نبّهك عند التوفر؟</p>
-                  <div className="mt-3 flex gap-2">
-                    <input type="email" value={notifyEmail} onChange={(e) => setNotifyEmail(e.target.value)}
-                      placeholder="بريدك الإلكتروني" dir="ltr"
-                      className="w-full rounded-[12px] border border-line bg-bg px-4 py-3 text-end text-sm outline-none focus:border-gold" />
-                    <button onClick={() => notifyEmail.includes("@") && setNotified(true)}
-                      className="btn shrink-0 !px-6 !py-3 text-sm text-olive" style={{ background: "var(--gold)" }}>
-                      نبّهني
-                    </button>
-                  </div>
-                </>
-              )}
+            <div className="mt-7">
+              <LeadCapture source="restock" productSlug={tool.slug} productName={tool.name} />
             </div>
           ) : (
             <div ref={buyRef} className="mt-7 flex items-center gap-3">
