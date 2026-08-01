@@ -12,9 +12,15 @@ import WhatsAppFab from "@/components/WhatsAppFab";
 export default function StoreChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/alikhazf25");
+  const isLanding = pathname?.startsWith("/lp/");
 
   if (isAdmin) {
     // لوحة الإدارة تدير هيكلها بنفسها (AdminShell) — بلا كروم المتجر
+    return <main>{children}</main>;
+  }
+
+  if (isLanding) {
+    // صفحة الهبوط: بلا قائمة ولا فوتر — لا مخرج إلا الشراء
     return <main>{children}</main>;
   }
 
