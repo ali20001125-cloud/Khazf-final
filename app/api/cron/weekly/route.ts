@@ -32,10 +32,15 @@ export async function GET(req: Request) {
       (SELECT COALESCE(SUM(product_profit),0) FROM orders WHERE created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS profit,
       (SELECT COUNT(*) FROM customers WHERE created_at >= now() - interval '7 days')::int AS new_customers,
       (SELECT COALESCE(SUM(total),0) FROM orders WHERE created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_revenue,
-      (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_orders
+      (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_orders,
+      (SELECT COUNT(*) FROM auth.users WHERE created_at >= now() - interval '7 days')::int AS new_accounts,
+      (SELECT COUNT(*) FROM auth.users)::int AS total_accounts,
+      (SELECT COUNT(*) FROM customers)::int AS total_customers,
+      (SELECT COUNT(*) FROM email_log WHERE created_at >= now() - interval '7 days')::int AS emails_week
   `)).rows[0] as unknown as {
     visitors: number; orders: number; revenue: number; profit: number;
     new_customers: number; prev_revenue: number; prev_orders: number;
+    new_accounts: number; total_accounts: number; total_customers: number; emails_week: number;
   };
 
   // أفضل ٣ منتجات هذا الأسبوع
@@ -65,7 +70,10 @@ export async function GET(req: Request) {
     `📊 مقارنة بالسابق: <b>${trend}</b>\n` +
     `📈 الربح: <b>${m(stats.profit)} د.ع</b>\n` +
     `🎯 التحويل: <b>${conv}٪</b>\n` +
-    `🆕 عملاء جدد: <b>${m(stats.new_customers)}</b>\n` +
+    `🆕 عملاء جدد (طلبوا): <b>${m(stats.new_customers)}</b>\n` +
+    `📝 حسابات جديدة: <b>${m(stats.new_accounts)}</b>\n` +
+    `👥 إجمالي الحسابات: <b>${m(stats.total_accounts)}</b> · عملاء بطلبات: <b>${m(stats.total_customers)}</b>\n` +
+    `✉️ بريد مُرسل هذا الأسبوع: <b>${m(stats.emails_week)}</b>\n` +
     (top.length > 0
       ? `━━━━━━━━━━━━\n⭐ <b>الأكثر مبيعاً:</b>\n` +
         top.map((t, i) => `${i + 1}. ${t.name} (${t.qty})`).join("\n")

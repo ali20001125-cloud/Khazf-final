@@ -26,16 +26,22 @@ function transport() {
   });
 }
 
-export async function sendMail(to: string, subject: string, html: string) {
+export async function sendMail(to: string, subject: string, html: string, kind = "other") {
   if (!configured() || !to) return;
+  let ok = true;
   try {
     await transport().sendMail({
       from: process.env.MAIL_FROM ?? `خزف <${process.env.SMTP_USER}>`,
       to, subject, html,
     });
   } catch (e) {
+    ok = false;
     console.error("email:", e instanceof Error ? e.message : e);
   }
+  // سجل الإرسال (لمراقبة الحد اليومي) — فشله لا يؤثر
+  try {
+    await db.insert(s.emailLog).values({ kind, recipient: to.slice(0, 160), ok });
+  } catch { /* تجاهل */ }
 }
 
 const wrap = (inner: string, logoUrl?: string | null) => `
@@ -49,7 +55,7 @@ const wrap = (inner: string, logoUrl?: string | null) => `
     </div>
     <div style="padding:22px 22px">
       ${inner}
-      <p style="font-size:11px;color:#8a8577;margin-top:20px">خزف — قهوة مختصة، توصيل لكل العراق</p>
+      <p style="font-size:11px;color:#8a8577;margin-top:20px;line-height:1.85">خزف · نُحمّص بعناية، ونوصل إلى بابك في كل العراق<br/><span style="color:#a8a091">khazf.shop</span></p>
     </div>
   </div>
 </div>`;
@@ -65,7 +71,7 @@ export async function emailNewOrderAdmin(o: { orderNumber: string; name: string;
       الإجمالي: <b>${o.total.toLocaleString("en")} د.ع</b>
     </p>
     <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none">الفاتورة</a>
-  `, logo));
+  `, logo), "admin_order");
 }
 
 export async function emailOrderCustomer(o: {
@@ -98,7 +104,7 @@ export async function emailOrderCustomer(o: {
       <tr><td style="padding:10px 0;font-size:15px;font-weight:bold">الإجمالي (كاش عند الاستلام)</td><td style="padding:10px 0;font-size:17px;font-weight:bold;text-align:left;color:#A66A4C" dir="ltr">${m(o.total)} د.ع</td></tr>
     </table>
     <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none;margin-top:6px">عرض الفاتورة على الموقع</a>
-  `, logo));
+  `, logo), "order_confirm");
 }
 
 export async function emailReviewRequest(o: { email: string | null; name: string; orderNumber: string; reviewUrl: string }) {
@@ -112,7 +118,7 @@ export async function emailReviewRequest(o: { email: string | null; name: string
     </p>
     <a href="${o.reviewUrl}" style="display:inline-block;background:#A66A4C;color:#fff;padding:11px 26px;border-radius:10px;font-size:14px;font-weight:bold;text-decoration:none">قيّم تجربتك</a>
     <p style="font-size:11px;color:#8A7F70;margin-top:14px">أو انسخ الرابط: ${o.reviewUrl}</p>
-  `, logo));
+  `, logo), "review");
 }
 
 /** رسالة ترحيب لأول تسجيل */
@@ -121,16 +127,20 @@ export async function emailWelcome(o: { email: string | null; name: string }) {
   const logo = await getLogo();
   const site = process.env.SITE_URL ?? "https://khazf.shop";
   await sendMail(o.email, `أهلاً بك في خزف 🤎`, wrap(`
-    <p style="font-size:16px;font-weight:bold">أهلاً بك يا ${o.name} 🤎</p>
-    <p style="font-size:13px;line-height:1.9">
-      يسعدنا انضمامك إلى خزف. من اللحظة التي تختار فيها فنجانك،<br/>
-      نحن هنا لنمنحك قهوة مختصة محمّصة بعناية، توصَل إلى بابك.
+    <p style="font-size:17px;font-weight:bold;margin:0 0 10px">أهلاً بك يا ${o.name} 🤎</p>
+    <p style="font-size:13.5px;line-height:1.95;margin:0 0 14px">
+      سعداء بانضمامك. عندنا القهوة ليست مشروباً عابراً — بل لحظة تستحق أن تُصنع بعناية،
+      من اختيار المحصول إلى تحميصه وتوصيله إلى بابك.
     </p>
-    <p style="font-size:13px;line-height:1.9">
-      ومع كل طلب، يتجمّع رصيدك من الكاش باك — تستخدمه خصماً في طلباتك القادمة.
-    </p>
-    <a href="${site}" style="display:inline-block;background:#A66A4C;color:#fff;padding:11px 28px;border-radius:10px;font-size:14px;font-weight:bold;text-decoration:none;margin-top:6px">تصفّح المحاصيل</a>
-  `, logo));
+    <div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin:0 0 16px">
+      <p style="font-size:13px;font-weight:bold;color:#3d4230;margin:0 0 8px">ما ينتظرك مع كل طلب</p>
+      <p style="font-size:12.5px;line-height:1.9;color:#6b6459;margin:0">
+        ٣٪ كاش باك يعود إليك خصماً في طلبك القادم<br/>
+        ورحلة من ستّ طلبات، في كل محطّة مكافأة — وفي نهايتها كيس قهوة مجاني
+      </p>
+    </div>
+    <a href="${site}" style="display:inline-block;background:#A66A4C;color:#fff;padding:12px 30px;border-radius:10px;font-size:14.5px;font-weight:bold;text-decoration:none">ابدأ التسوق</a>
+  `, logo), "welcome");
 }
 
 /* ═══════════════ تذكير السلة المتروكة ═══════════════ */
@@ -264,6 +274,6 @@ export async function emailCartReminder(d: ReminderData, templateIndex: number):
   const html = `<div style="font-family:'IBM Plex Sans Arabic',Tahoma,Arial;direction:rtl;background:#e8e6e1;padding:10px 6px">
     <div style="max-width:600px;margin:auto;background:#fdfcfa;border-radius:14px;overflow:hidden">${tpl.build(d)}</div>
   </div>`;
-  await sendMail(d.email, tpl.subject, html);
+  await sendMail(d.email, tpl.subject, html, `cart_${tpl.id}`);
   return tpl.id;
 }

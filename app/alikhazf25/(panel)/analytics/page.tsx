@@ -62,6 +62,22 @@ export default async function AnalyticsPage() {
   const recoveryRate = reminderStats.sent > 0
     ? ((reminderStats.recovered_after / reminderStats.sent) * 100).toFixed(0) : "0";
 
+  // ── سجل الإيميلات (مراقبة حد ١٠٠/يوم) ──
+  let mail = { today: 0, week: 0, welcome: 0, order_confirm: 0, admin_order: 0, review: 0, cart: 0, failed: 0 };
+  try {
+    mail = (await db.execute(sql`
+      SELECT
+        COUNT(*) FILTER (WHERE created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS today,
+        COUNT(*) FILTER (WHERE created_at >= now() - interval '7 days')::int AS week,
+        COUNT(*) FILTER (WHERE kind='welcome' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS welcome,
+        COUNT(*) FILTER (WHERE kind='order_confirm' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS order_confirm,
+        COUNT(*) FILTER (WHERE kind='admin_order' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS admin_order,
+        COUNT(*) FILTER (WHERE kind='review' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS review,
+        COUNT(*) FILTER (WHERE kind LIKE 'cart_%' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS cart,
+        COUNT(*) FILTER (WHERE ok = false AND created_at >= now() - interval '7 days')::int AS failed
+      FROM email_log`)).rows[0] as unknown as typeof mail;
+  } catch { /* الجدول قد لا يكون منشأً بعد */ }
+
   return (
     <div>
       <PageTitle title="التحليلات" sub="زوار الموقع والسلات المهجورة — لحظي من قاعدتك" />
@@ -123,6 +139,38 @@ export default async function AnalyticsPage() {
             </div>
           )}
         </Card>
+      </div>
+
+      {/* سجل الإيميلات — مراقبة حد ١٠٠/يوم */}
+      <div className="mt-6">
+        <h2 className="mb-3 text-[15px] font-bold">
+          البريد المرسل اليوم
+          <span className={`ms-2 text-[12px] font-bold ${mail.today >= 90 ? "text-accent" : mail.today >= 70 ? "text-gold" : "text-muted"}`}>
+            {mail.today} / 100
+          </span>
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <Card className="p-4">
+            <p className="text-[11px] text-muted">اليوم</p>
+            <p className={`font-num mt-1 text-2xl font-bold ${mail.today >= 90 ? "text-accent" : ""}`}>{mail.today}</p>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg-alt">
+              <div className={`h-full rounded-full ${mail.today >= 90 ? "bg-accent" : mail.today >= 70 ? "bg-gold" : "bg-ok"}`}
+                style={{ width: `${Math.min(100, mail.today)}%` }} />
+            </div>
+          </Card>
+          <Card className="p-4"><p className="text-[11px] text-muted">تأكيد طلب</p><p className="font-num mt-1 text-2xl font-bold">{mail.order_confirm}</p></Card>
+          <Card className="p-4"><p className="text-[11px] text-muted">تذكير سلة</p><p className="font-num mt-1 text-2xl font-bold">{mail.cart}</p></Card>
+          <Card className="p-4"><p className="text-[11px] text-muted">ترحيب</p><p className="font-num mt-1 text-2xl font-bold">{mail.welcome}</p></Card>
+          <Card className="p-4"><p className="text-[11px] text-muted">تقييم</p><p className="font-num mt-1 text-2xl font-bold">{mail.review}</p></Card>
+        </div>
+        {mail.today >= 80 && (
+          <p className="mt-2 rounded-[10px] bg-accent/8 px-3 py-2 text-[12px] font-bold text-accent">
+            اقتربت من حد البريد اليومي (١٠٠) — فكّر برفع خطة البريد
+          </p>
+        )}
+        {mail.failed > 0 && (
+          <p className="mt-2 text-[11.5px] text-muted">فشل إرسال {mail.failed} خلال ٧ أيام</p>
+        )}
       </div>
 
       {/* إحصائيات تذكير السلة */}

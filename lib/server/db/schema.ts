@@ -9,7 +9,7 @@
  */
 
 import {
-  pgTable, pgEnum, serial, integer, smallint, text, boolean,
+  pgTable, pgEnum, serial, bigserial, integer, smallint, text, boolean,
   timestamp, jsonb, primaryKey, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
@@ -482,6 +482,14 @@ export const abandonedCarts = pgTable("abandoned_carts", {
   notifiedAt: timestamp("notified_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const emailLog = pgTable("email_log", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  kind: text("kind").notNull(),
+  recipient: text("recipient"),
+  ok: boolean("ok").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const dailyDigests = pgTable("daily_digests", {

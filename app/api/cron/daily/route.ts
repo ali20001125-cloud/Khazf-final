@@ -34,11 +34,14 @@ export async function GET(req: Request) {
       (SELECT COALESCE(SUM(total),0) FROM orders WHERE created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS revenue,
       (SELECT COALESCE(SUM(product_profit),0) FROM orders WHERE created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS profit,
       (SELECT COUNT(*) FROM abandoned_carts WHERE recovered = false AND updated_at < now() - interval '1 hour' AND updated_at >= now() - interval '1 day')::int AS abandoned,
+      (SELECT COUNT(*) FROM auth.users WHERE created_at >= now() - interval '1 day')::int AS new_accounts,
+      (SELECT COUNT(*) FROM email_log WHERE created_at >= now() - interval '1 day')::int AS emails_today,
       (SELECT COALESCE(SUM(items_total),0) FROM abandoned_carts WHERE recovered = false AND updated_at < now() - interval '1 hour' AND updated_at >= now() - interval '1 day')::int AS abandoned_value,
       (SELECT COUNT(*) FROM customers WHERE created_at >= now() - interval '1 day')::int AS new_customers
   `)).rows[0] as unknown as {
     visitors: number; views: number; orders: number; revenue: number;
     profit: number; abandoned: number; abandoned_value: number; new_customers: number;
+    new_accounts: number; emails_today: number;
   };
 
   // أكثر منتج مبيعاً أمس
@@ -59,7 +62,9 @@ export async function GET(req: Request) {
     `💰 المبيعات: <b>${m(stats.revenue)} د.ع</b>\n` +
     `📈 الربح: <b>${m(stats.profit)} د.ع</b>\n` +
     `🎯 التحويل: <b>${conv}٪</b>\n` +
-    `🆕 عملاء جدد: <b>${m(stats.new_customers)}</b>\n` +
+    `🆕 عملاء جدد (طلبوا): <b>${m(stats.new_customers)}</b>\n` +
+    `📝 حسابات جديدة: <b>${m(stats.new_accounts)}</b>\n` +
+    `✉️ بريد اليوم: <b>${m(stats.emails_today)}</b>/100${stats.emails_today >= 80 ? " ⚠️" : ""}\n` +
     (topProduct ? `⭐ الأكثر مبيعاً: <b>${topProduct.name}</b> (${topProduct.qty})\n` : "") +
     `━━━━━━━━━━━━\n` +
     `🔔 سلات مهجورة: <b>${m(stats.abandoned)}</b>` +
