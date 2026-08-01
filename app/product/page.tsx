@@ -309,7 +309,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             ) : (
               <span className="rounded-full bg-bg-alt px-3 py-1 text-[11px] font-bold text-muted">محصول جديد</span>
             )}
-            <span className="font-num text-[12px] text-muted">({coffee.reviewsCount} مراجعة)</span>
+            {coffee.reviewsCount > 0 && (
+              <span className="font-num text-[12px] text-muted">({coffee.reviewsCount} مراجعة)</span>
+            )}
             {coffee.sca && (
               <span className="flex items-center gap-1.5 rounded-full bg-olive px-3 py-1 text-[11px] font-semibold text-olive-text">
                 <Award size={12} /> SCA <span className="font-num">{coffee.sca}</span>

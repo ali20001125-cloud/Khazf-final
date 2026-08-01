@@ -177,12 +177,12 @@ export function ToolCard({ tool }: { tool: Tool }) {
       <div className="p-4">
         <p className="text-[11px] text-muted">{tool.type}</p>
         <h3 className="mt-0.5 text-lg font-bold">{tool.name}</h3>
-        <div className="mt-1 flex items-center gap-2">
-          <Stars value={tool.rating} />
-          <span className="font-num text-[11px] text-muted">
-            ({tool.reviewsCount})
-          </span>
-        </div>
+        {tool.reviewsCount > 0 && (
+          <div className="mt-1 flex items-center gap-2">
+            <Stars value={tool.rating} />
+            <span className="font-num text-[11px] text-muted">({tool.reviewsCount})</span>
+          </div>
+        )}
         <div className="mt-3 flex items-center justify-between">
           <span className="font-num text-sm font-semibold">
             {formatIQD(tool.price)}
