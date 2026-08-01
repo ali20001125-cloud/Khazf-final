@@ -950,29 +950,38 @@ function ToolView({ tool }: { tool: Tool }) {
                 {pv.map((v, i) => {
                   const out = v.stock < 1;
                   const active = i === pvIdx;
+                  // شكل الخيار يتكيّف: صورة فقط · دائرة لون · اسم · أو مزيج
+                  const showName = !v.label.startsWith("خيار ");
                   return (
-                    <button key={v.id} onClick={() => !out && setPvIdx(i)} disabled={out}
-                      className={`flex items-center gap-2.5 rounded-[13px] border px-3 py-2.5 text-start transition-all duration-200 active:scale-[0.97] ${
-                        out ? "cursor-not-allowed border-line bg-bg-alt/50 opacity-50"
-                        : active ? "border-clay bg-clay/8" : "border-line bg-card hover:border-muted"
-                      }`}>
-                      {v.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={v.image} alt={v.label}
-                          className="h-9 w-9 shrink-0 rounded-[9px] border border-line object-cover" />
-                      ) : v.hex ? (
-                        <span className="h-7 w-7 shrink-0 rounded-full border border-line"
-                          style={{ background: v.hex }} />
-                      ) : null}
-                      <span>
-                        <span className="block text-[13px] font-bold">{v.label}</span>
-                        {(out || v.salePrice != null || v.price != null) && (
-                          <span className="font-num mt-0.5 block text-[11.5px] text-muted">
-                            {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
+                      <button key={v.id} onClick={() => !out && setPvIdx(i)} disabled={out}
+                        title={v.label}
+                        className={`flex items-center gap-2.5 rounded-[13px] border text-start transition-all duration-200 active:scale-[0.97] ${
+                          v.image && !showName && !v.hex ? "p-1.5" : "px-3 py-2.5"
+                        } ${
+                          out ? "cursor-not-allowed border-line bg-bg-alt/50 opacity-50"
+                          : active ? "border-clay bg-clay/8" : "border-line bg-card hover:border-muted"
+                        }`}>
+                        {v.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={v.image} alt={v.label}
+                            className={`shrink-0 rounded-[9px] border border-line object-cover ${
+                              showName || v.hex ? "h-9 w-9" : "h-14 w-14"
+                            }`} />
+                        ) : v.hex ? (
+                          <span className="h-7 w-7 shrink-0 rounded-full border border-line shadow-inner"
+                            style={{ background: v.hex }} />
+                        ) : null}
+                        {(showName || (out && !v.image)) && (
+                          <span>
+                            {showName && <span className="block text-[13px] font-bold">{v.label}</span>}
+                            {(out || v.salePrice != null || v.price != null) && (
+                              <span className="font-num mt-0.5 block text-[11.5px] text-muted">
+                                {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
+                              </span>
+                            )}
                           </span>
                         )}
-                      </span>
-                    </button>
+                      </button>
                   );
                 })}
               </div>

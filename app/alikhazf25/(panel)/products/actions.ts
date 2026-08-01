@@ -103,10 +103,10 @@ async function syncVariants(productId: number, f: FormData) {
     return Number.isFinite(x) && String(v ?? "").trim() !== "" ? x : null;
   };
   const clean = rows
-    .filter((r) => String(r.label ?? "").trim() !== "")
+    .filter((r) => String(r.label ?? "").trim() !== "" || String((r as { hex?: string }).hex ?? "").trim() !== "" || String(r.image ?? "").trim() !== "")
     .map((r, i) => ({
       productId,
-      label: String(r.label).trim().slice(0, 80),
+      label: String(r.label ?? "").trim().slice(0, 80) || `خيار ${i + 1}`,
       kind: ["SIZE", "COLOR", "PACK"].includes(String(r.kind)) ? String(r.kind) : "SIZE",
       // صفر يعني «بلا سعر خاص» → نخزّنه فارغاً ليتراجع للسعر العام
       price: n(r.price) || null,

@@ -30,7 +30,7 @@ export default function VariantsEditor({ initial }: { initial?: VariantRow[] | n
   const [rows, setRows] = useState<VariantRow[]>(initial?.length ? initial : []);
 
   const upd = (i: number, patch: Partial<VariantRow>) =>
-    setRows((r) => r.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
+    setRows((prev) => prev.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
 
   return (
     <div className="space-y-3">
@@ -70,7 +70,7 @@ export default function VariantsEditor({ initial }: { initial?: VariantRow[] | n
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[11.5px] font-bold text-muted">الاسم</label>
+              <label className="mb-1 block text-[11.5px] font-bold text-muted">الاسم <span className="font-normal">(اختياري للألوان)</span></label>
               <input value={v.label} onChange={(e) => upd(i, { label: e.target.value })}
                 placeholder="V02 · ١٠٠ فلتر · أبيض" className={inputCls} />
             </div>

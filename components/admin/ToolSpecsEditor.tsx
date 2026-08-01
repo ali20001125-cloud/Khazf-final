@@ -119,7 +119,8 @@ export default function ToolSpecsEditor({ initial }: { initial?: ToolSpecs | nul
 
 /* ── محرّر قائمة عناصر (كائنات) ── */
 function ListEditor<T>({ title, hint, items, setItems, empty, render }: {
-  title: string; hint: string; items: T[]; setItems: (v: T[]) => void;
+  title: string; hint: string; items: T[];
+  setItems: React.Dispatch<React.SetStateAction<T[]>>;
   empty: T; render: (it: T, set: (v: T) => void) => React.ReactNode;
 }) {
   return (
@@ -134,11 +135,11 @@ function ListEditor<T>({ title, hint, items, setItems, empty, render }: {
         )}
         {items.map((it, i) => (
           <div key={i} className="flex items-start gap-2 rounded-[12px] border border-line bg-card p-2.5">
-            {render(it, (v) => setItems(items.map((x, j) => (j === i ? v : x))))}
-            <button type="button" onClick={() => setItems(items.filter((_, j) => j !== i))} className={btnDel}>حذف</button>
+            {render(it, (v) => setItems((prev) => prev.map((x, j) => (j === i ? v : x))))}
+            <button type="button" onClick={() => setItems((prev) => prev.filter((_, j) => j !== i))} className={btnDel}>حذف</button>
           </div>
         ))}
-        <button type="button" onClick={() => setItems([...items, { ...empty }])} className={btnAdd}>+ إضافة</button>
+        <button type="button" onClick={() => setItems((prev) => [...prev, { ...empty }])} className={btnAdd}>+ إضافة</button>
       </div>
     </div>
   );
@@ -146,7 +147,7 @@ function ListEditor<T>({ title, hint, items, setItems, empty, render }: {
 
 /* ── محرّر قائمة نصوص بسيطة ── */
 function StringListEditor({ title, hint, items, setItems, placeholder }: {
-  title: string; hint: string; items: string[]; setItems: (v: string[]) => void; placeholder: string;
+  title: string; hint: string; items: string[]; setItems: React.Dispatch<React.SetStateAction<string[]>>; placeholder: string;
 }) {
   return (
     <div>
@@ -160,11 +161,11 @@ function StringListEditor({ title, hint, items, setItems, placeholder }: {
         )}
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
-            <input value={it} onChange={(e) => setItems(items.map((x, j) => (j === i ? e.target.value : x)))} className={inp} placeholder={placeholder} />
-            <button type="button" onClick={() => setItems(items.filter((_, j) => j !== i))} className={btnDel}>حذف</button>
+            <input value={it} onChange={(e) => setItems((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))} className={inp} placeholder={placeholder} />
+            <button type="button" onClick={() => setItems((prev) => prev.filter((_, j) => j !== i))} className={btnDel}>حذف</button>
           </div>
         ))}
-        <button type="button" onClick={() => setItems([...items, ""])} className={btnAdd}>+ إضافة</button>
+        <button type="button" onClick={() => setItems((prev) => [...prev, ""])} className={btnAdd}>+ إضافة</button>
       </div>
     </div>
   );
