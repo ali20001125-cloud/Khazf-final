@@ -243,8 +243,9 @@ export async function createOrder(input: CheckoutInput) {
     const pointsEarned = Math.floor(earnBase / settings.cashbackPerAmount) * settings.pointValue;
 
     /* ── ٩) رقم الطلب التسلسلي + إدراج الطلب ── */
-    /* رقم داخلي متسلسل (للمالك) */
-    const seqRow = await tx.execute(sql`SELECT nextval('khazf_internal_seq')::int AS n`);
+    /* رقم داخلي متسلسل (للمالك) — يُحسب من الطلبات الفعلية لا من عدّاد،
+       لأن عدّاد PostgreSQL يتقدّم حتى لو فشلت المحاولة فتظهر قفزات */
+    const seqRow = await tx.execute(sql`SELECT COALESCE(MAX(seq_no), 0) + 1 AS n FROM orders`);
     const seqNo = (seqRow.rows[0] as { n: number }).n;
     /* رقم فاتورة قافز (للزبون) — يقفز ١٣..٤٧ فوق آخر رقم، يبدأ من ١٠٠٠+ */
     const lastRow = await tx.execute(sql`SELECT COALESCE(MAX((regexp_replace(order_number,'\\D','','g'))::int),1000) AS m FROM orders`);
