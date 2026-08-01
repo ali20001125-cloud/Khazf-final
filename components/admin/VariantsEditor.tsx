@@ -35,6 +35,21 @@ export default function VariantsEditor({ initial }: { initial?: VariantRow[] | n
     <div className="space-y-3">
       <input type="hidden" name="variants" value={JSON.stringify(rows)} />
 
+      {rows.length > 0 && (
+        <p className="rounded-[12px] bg-gold/10 px-4 py-3 text-[12.5px] font-bold leading-relaxed text-ink">
+          ما دامت هناك خيارات، النظام يعتمد <span className="text-accent">سعر ومخزون كل خيار</span> فقط —
+          ويتجاهل «سعر القطعة» و«المخزون» في الأعلى.
+          <br />
+          <span className="font-normal text-muted">
+            المخزون الكلي = مجموع الخيارات
+            {(() => {
+              const total = rows.reduce((t, r) => t + (Number(String(r.stock).replace(/[^0-9]/g, "")) || 0), 0);
+              return total > 0 ? ` (حالياً ${total.toLocaleString("en")} قطعة)` : " — لم تُدخل الكميات بعد";
+            })()}
+          </span>
+        </p>
+      )}
+
       {rows.length === 0 && (
         <p className="rounded-[12px] bg-bg-alt px-4 py-3 text-[12.5px] leading-relaxed text-muted">
           بلا خيارات — يُستخدم سعر القطعة ومخزونها من الأعلى.

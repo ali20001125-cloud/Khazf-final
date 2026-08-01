@@ -27,10 +27,10 @@ export default function ToolForm({
       {/* الأساسي */}
       <Card className="grid gap-4 p-5 sm:grid-cols-2">
         <Field label="اسم الأداة"><input name="name" defaultValue={p.name} required className={inputCls} /></Field>
-        <Field label="سعر القطعة" hint="يُستخدم إن لم تُضف خيارات"><input name="pricePiece" defaultValue={p.pricePiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field label="سعر القطعة" hint="للمنتج بلا خيارات فقط — يُتجاهل إن أضفت ألواناً أو مقاسات"><input name="pricePiece" defaultValue={p.pricePiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="سعر العرض" hint="اختياري — يُعرض السعر الأصلي مشطوباً"><input name="salePrice" defaultValue={p.salePrice ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="تكلفة القطعة" hint="لحساب الربح — لا تظهر للزبون"><input name="costPiece" defaultValue={p.costPiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
-        <Field label="المخزون (قطعة)" hint="يُستخدم إن لم تُضف خيارات"><input name="stockPieces" defaultValue={p.stockPieces ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field label="المخزون (قطعة)" hint="للمنتج بلا خيارات فقط — إن أضفت خيارات فالمخزون مجموعها"><input name="stockPieces" defaultValue={p.stockPieces ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="الصنف">
           <select name="subcategoryId" defaultValue={p.subcategoryId ?? ""} className={inputCls}>
             <option value="">اختر الصنف</option>
