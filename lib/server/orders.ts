@@ -302,6 +302,48 @@ export async function createOrder(input: CheckoutInput) {
       }
       let breakdown: { batchId: number; qty: number; unitCost: number }[] | null = null;
       if (l.productId != null) {
+        /* الأدوات التي مخزونها من الخيارات أو من حقل المخزون العام
+           لا تُخصم من الوجبات — خُصمت أعلاه من الخيار، أو تُخصم هنا من الحقل العام */
+        if (!l.isCoffee) {
+          const prod = products.find((p) => p.id === l.productId);
+          const hasBatches = await tx.execute(sql`
+            SELECT COALESCE(SUM(qty_remaining),0)::int AS q
+            FROM inventory_batches WHERE product_id = ${l.productId}`);
+          const batchQty = (hasBatches.rows[0] as { q: number }).q;
+
+          if (l.variantId) {
+            // خُصم من الخيار سابقاً — نسجّل الحركة ونحسب الربح من تكلفة الخيار
+            const v = byVariantId.get(l.variantId);
+            const unitCost = v?.costPrice ?? prod?.costPiece ?? 0;
+            productProfit += l.lineTotal - Math.round(unitCost * l.qty);
+            await tx.insert(s.orderItems).values({
+              orderId: order.id, productId: l.productId, nameSnapshot: l.name,
+              variant: l.variant, unitPrice: l.unitPrice, qty: l.qty,
+              gramsTotal: l.gramsTotal, lineTotal: l.lineTotal,
+              boxGroup: l.boxGroup, isGift: l.isGift, batchBreakdown: null,
+            });
+            continue;
+          }
+
+          if (batchQty === 0 && prod?.stockPieces != null) {
+            // مخزون عام بلا وجبات
+            if (prod.stockPieces < l.qty)
+              throw new Error(`المخزون لا يكفي: ${l.name} — الطلب أُلغي بالكامل`);
+            await tx.update(s.products)
+              .set({ stockPieces: prod.stockPieces - l.qty })
+              .where(eq(s.products.id, l.productId));
+            const unitCost = prod.costPiece ?? 0;
+            productProfit += l.lineTotal - Math.round(unitCost * l.qty);
+            await tx.insert(s.orderItems).values({
+              orderId: order.id, productId: l.productId, nameSnapshot: l.name,
+              variant: l.variant, unitPrice: l.unitPrice, qty: l.qty,
+              gramsTotal: l.gramsTotal, lineTotal: l.lineTotal,
+              boxGroup: l.boxGroup, isGift: l.isGift, batchBreakdown: null,
+            });
+            continue;
+          }
+        }
+
         const need0 = l.isCoffee ? l.gramsTotal : l.qty;
         if (need0 > 0) {
           const batches = await tx

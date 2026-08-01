@@ -245,15 +245,9 @@ h1, h2, h3, h4 {
   to { transform: translateX(33.333%); }
 }
 
-/* ── منطقة ضغط تغطي الصف كاملاً (اللوحة) — الضغط بأي مكان يفتح الرابط ── */
-tr.row-tap { position: relative; }
-tr.row-tap .row-link::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+/* ── منطقة ضغط أوسع بصفوف اللوحة (بلا طبقة ممتدة — كانت تفتح صفّاً خاطئاً) ── */
+tr.row-tap .row-link {
+  display: block;
+  margin: -14px -16px;
+  padding: 14px 16px;
 }
-/* الأزرار والروابط الأخرى تبقى فوق طبقة الضغط */
-tr.row-tap form,
-tr.row-tap button,
-tr.row-tap a:not(.row-link) { position: relative; z-index: 2; }
