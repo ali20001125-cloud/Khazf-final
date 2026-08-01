@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/server/db";
-import { PageTitle, Card, money, dateAr } from "@/components/admin/ui";
+import { PageTitle, Card, Th, Td, money, dateAr } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +61,22 @@ export default async function AnalyticsPage() {
     { sent: number; recovered_after: number; t1: number; t2: number; t3: number };
   const recoveryRate = reminderStats.sent > 0
     ? ((reminderStats.recovered_after / reminderStats.sent) * 100).toFixed(0) : "0";
+
+  // ── قائمة البريد (من ترك بريده بلا شراء) ──
+  let leads = { total: 0, guide: 0, restock: 0, week: 0, converted: 0 };
+  let leadRows: { email: string; source: string; product_slug: string | null; notified: boolean; created_at: string }[] = [];
+  try {
+    leads = (await db.execute(sql`
+      SELECT COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE source='guide')::int AS guide,
+        COUNT(*) FILTER (WHERE source='restock')::int AS restock,
+        COUNT(*) FILTER (WHERE created_at >= now() - interval '7 days')::int AS week,
+        COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM customers c WHERE lower(c.email) = lower(email_leads.email)))::int AS converted
+      FROM email_leads`)).rows[0] as unknown as typeof leads;
+    leadRows = (await db.execute(sql`
+      SELECT email, source, product_slug, notified, created_at::text
+      FROM email_leads ORDER BY created_at DESC LIMIT 200`)).rows as unknown as typeof leadRows;
+  } catch { /* الجدول قد لا يكون منشأً */ }
 
   // ── سجل الإيميلات (مراقبة حد ١٠٠/يوم) ──
   let mail = { today: 0, week: 0, welcome: 0, order_confirm: 0, admin_order: 0, review: 0, cart: 0, failed: 0 };
@@ -140,6 +156,47 @@ export default async function AnalyticsPage() {
           )}
         </Card>
       </div>
+
+      {/* قائمة البريد */}
+      {leads.total > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-[15px] font-bold">قائمة البريد <span className="text-[12px] font-normal text-muted">— تركوا بريدهم بلا شراء</span></h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Card className="p-4"><p className="text-[11px] text-muted">الإجمالي</p><p className="font-num mt-1 text-2xl font-bold">{leads.total}</p></Card>
+            <Card className="p-4"><p className="text-[11px] text-muted">آخر ٧ أيام</p><p className="font-num mt-1 text-2xl font-bold text-gold">{leads.week}</p></Card>
+            <Card className="p-4"><p className="text-[11px] text-muted">دليل التحضير</p><p className="font-num mt-1 text-2xl font-bold">{leads.guide}</p></Card>
+            <Card className="p-4"><p className="text-[11px] text-muted">صاروا زبائن</p><p className="font-num mt-1 text-2xl font-bold text-ok">{leads.converted}</p></Card>
+          </div>
+          <details className="mt-3 rounded-[18px] border border-line bg-card">
+            <summary className="cursor-pointer list-none px-5 py-4 text-[13px] font-bold text-muted">
+              عرض القائمة ({leadRows.length}) — انسخها لحملاتك
+            </summary>
+            <div className="border-t border-line p-4">
+              <textarea readOnly rows={5} dir="ltr"
+                className="font-num w-full rounded-[12px] border border-line bg-bg p-3 text-[12px] outline-none"
+                value={leadRows.map((l) => l.email).join(", ")} />
+              <p className="mt-2 text-[11.5px] text-muted">اضغط داخل الصندوق ثم حدّد الكل وانسخ.</p>
+              <div className="mt-3 max-h-64 overflow-y-auto">
+                <table className="w-full min-w-[520px]">
+                  <thead className="border-b border-line">
+                    <tr><Th>البريد</Th><Th>المصدر</Th><Th>الحالة</Th><Th>التاريخ</Th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {leadRows.map((l, i) => (
+                      <tr key={l.email + i} className="hover:bg-bg-alt/50">
+                        <Td><span className="font-num text-[12.5px]" dir="ltr">{l.email}</span></Td>
+                        <Td className="text-[12px]">{l.source === "restock" ? `تنبيه: ${l.product_slug ?? "—"}` : "دليل التحضير"}</Td>
+                        <Td className="text-[12px]">{l.source === "restock" ? (l.notified ? "أُشعر" : "بانتظار التوفّر") : "أُرسل الدليل"}</Td>
+                        <Td className="font-num text-[11.5px] text-muted">{dateAr(l.created_at)}</Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+        </div>
+      )}
 
       {/* سجل الإيميلات — مراقبة حد ١٠٠/يوم */}
       <div className="mt-6">
