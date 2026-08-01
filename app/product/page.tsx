@@ -654,6 +654,21 @@ function ToolView({ tool }: { tool: Tool }) {
   const [showBar, setShowBar] = useState(false);
   const buyRef = useRef<HTMLDivElement>(null);
 
+  /* خيارات المنتج (مقاس/عبوة/لون) — لكل خيار سعره ومخزونه */
+  const pv = tool.variants ?? [];
+  const [pvIdx, setPvIdx] = useState(() => {
+    const firstAvail = pv.findIndex((v) => v.stock > 0);
+    return firstAvail >= 0 ? firstAvail : 0;
+  });
+  const chosenVariant = pv.length > 0 ? pv[pvIdx] : null;
+  const unitPrice = chosenVariant
+    ? (chosenVariant.salePrice ?? chosenVariant.price)
+    : (tool.salePrice ?? tool.price);
+  const strikePrice = chosenVariant
+    ? (chosenVariant.salePrice != null ? chosenVariant.price : null)
+    : (tool.salePrice != null ? tool.price : null);
+  const variantOut = chosenVariant ? chosenVariant.stock < 1 : false;
+
   useEffect(() => {
     pushRecent(`t:${tool.slug}`);
     fbTrack("ViewContent", {
@@ -679,7 +694,13 @@ function ToolView({ tool }: { tool: Tool }) {
   const heroImage = (activeColor?.image) || tool.images?.[0] || "";
 
   const buy = () => {
-    addToCart({ slug: tool.slug, variant: "PIECE", name: tool.name, priceShown: tool.price }, qty);
+    addToCart({
+      slug: tool.slug, variant: "PIECE", name: tool.name,
+      meta: chosenVariant?.label ?? undefined,
+      priceShown: unitPrice,
+      variantId: chosenVariant?.id ?? null,
+      variantLabel: chosenVariant?.label ?? null,
+    }, qty);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
   };
@@ -729,7 +750,49 @@ function ToolView({ tool }: { tool: Tool }) {
               <span className="font-num text-[12px] text-muted">({tool.reviewsCount})</span>
             </div>
           )}
-          <p className="font-num mt-4 text-3xl font-bold">{formatIQD(tool.price)}</p>
+          <div className="mt-4 flex items-baseline gap-3">
+            <p className="font-num text-3xl font-bold">{formatIQD(unitPrice)}</p>
+            {strikePrice != null && (
+              <>
+                <span className="font-num text-[15px] text-muted line-through">{formatIQD(strikePrice)}</span>
+                <span className="rounded-full bg-accent/12 px-2.5 py-1 text-[11px] font-bold text-accent">
+                  وفّر {formatIQD(strikePrice - unitPrice)}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* خيارات المنتج (مقاس · عبوة · لون) */}
+          {pv.length > 0 && (
+            <div className="mt-6">
+              <p className="mb-2.5 text-[12px] font-bold text-muted">
+                {pv[0].kind === "COLOR" ? "اللون" : pv[0].kind === "PACK" ? "العبوة" : "المقاس"}
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                {pv.map((v, i) => {
+                  const out = v.stock < 1;
+                  const active = i === pvIdx;
+                  return (
+                    <button key={v.id} onClick={() => !out && setPvIdx(i)} disabled={out}
+                      className={`rounded-[13px] border px-4 py-2.5 text-start transition-all duration-200 active:scale-[0.97] ${
+                        out ? "cursor-not-allowed border-line bg-bg-alt/50 opacity-50"
+                        : active ? "border-clay bg-clay/8" : "border-line bg-card hover:border-muted"
+                      }`}>
+                      <span className="block text-[13px] font-bold">{v.label}</span>
+                      <span className="font-num mt-0.5 block text-[11.5px] text-muted">
+                        {out ? "نفد" : formatIQD(v.salePrice ?? v.price)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {chosenVariant && chosenVariant.stock > 0 && chosenVariant.stock <= 5 && (
+                <p className="mt-2 text-[11.5px] font-bold text-accent">
+                  بقي {chosenVariant.stock} فقط
+                </p>
+              )}
+            </div>
+          )}
 
           {/* المقاسات */}
           {sizes.length > 0 && (
@@ -944,15 +1007,15 @@ function ToolView({ tool }: { tool: Tool }) {
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 md:px-8">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">
-                {tool.name}{activeColor ? ` · ${activeColor.name}` : ""}
+                {tool.name}{chosenVariant ? ` · ${chosenVariant.label}` : activeColor ? ` · ${activeColor.name}` : ""}
               </p>
-              <p className="font-num text-[13px] text-muted">{formatIQD(tool.price * qty)}</p>
+              <p className="font-num text-[13px] text-muted">{formatIQD(unitPrice * qty)}</p>
             </div>
-            <button onClick={buy}
-              className={`btn shrink-0 !px-7 !py-3 text-sm transition-colors duration-300 active:scale-[0.97] ${
+            <button onClick={buy} disabled={variantOut}
+              className={`btn shrink-0 !px-7 !py-3 text-sm transition-colors duration-300 active:scale-[0.97] disabled:opacity-50 ${
                 added ? "!bg-ok text-olive-text" : "btn-clay"
               }`}>
-              {added ? "✓ أُضيف" : "أضف للسلة"}
+              {variantOut ? "نفد" : added ? "✓ أُضيف" : "أضف للسلة"}
             </button>
           </div>
         </div>

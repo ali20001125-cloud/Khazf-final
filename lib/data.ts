@@ -45,6 +45,18 @@ export interface Tool {
   soldOut?: boolean;
   images?: string[];        // صور المنتج (من القاعدة)
   toolSpecs?: import("@/lib/tool-specs").ToolSpecs | null; // تفاصيل الأداة الراقية
+  salePrice?: number | null;  // سعر العرض (يُعرض الأصلي مشطوباً)
+  variants?: ToolVariant[];   // خيارات: مقاس/عبوة/لون — لكل خيار سعره ومخزونه
+}
+
+export interface ToolVariant {
+  id: number;
+  label: string;
+  kind: "SIZE" | "COLOR" | "PACK";
+  price: number;
+  salePrice?: number | null;
+  stock: number;
+  image?: string | null;
 }
 
 

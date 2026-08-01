@@ -69,7 +69,7 @@ export default function CheckoutPage() {
     const ctrl = new AbortController();
     setPreviewing(true);
     const body = {
-      items: cart.map((i) => ({ slug: i.slug, variant: i.variant, qty: i.qty, boxGroup: i.boxGroup ?? null })),
+      items: cart.map((i) => ({ slug: i.slug, variant: i.variant, qty: i.qty, boxGroup: i.boxGroup ?? null, variantId: i.variantId ?? null })),
       phone: normalizeIqPhone(form.phone) ?? "",
       governorate: form.governorate,
       couponCode: coupon?.code ?? null,
@@ -135,7 +135,7 @@ export default function CheckoutPage() {
           address: form.address.trim(),
           note: note || null,
           items: cart.map((i) => ({
-            slug: i.slug, variant: i.variant, qty: i.qty, grind: i.grind, boxGroup: i.boxGroup ?? null,
+            slug: i.slug, variant: i.variant, qty: i.qty, grind: i.grind, boxGroup: i.boxGroup ?? null, variantId: i.variantId ?? null,
           })),
           couponCode: coupon?.code ?? null,
           usePoints: useCashback,

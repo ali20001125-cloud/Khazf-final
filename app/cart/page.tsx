@@ -70,7 +70,7 @@ export default function CartPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         signal: ctrl.signal,
         body: JSON.stringify({
-          items: cart.map((i) => ({ slug: i.slug, variant: i.variant, qty: i.qty, boxGroup: i.boxGroup })),
+          items: cart.map((i) => ({ slug: i.slug, variant: i.variant, qty: i.qty, boxGroup: i.boxGroup, variantId: i.variantId ?? null })),
           phone: me.phone ?? "",
           couponCode: coupon?.code ?? null,
           usePoints: useCashback,

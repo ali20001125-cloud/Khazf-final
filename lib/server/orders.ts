@@ -13,6 +13,7 @@ export type CheckoutItem = {
   qty: number;
   grind?: string;
   boxGroup?: number | null;
+  variantId?: number | null;   // خيار المنتج (مقاس/عبوة/لون) إن وُجد
 };
 
 export type CheckoutInput = {
@@ -49,8 +50,17 @@ export async function createOrder(input: CheckoutInput) {
       .where(and(sql`${s.products.slug} IN (${sql.join(slugs.map((x) => sql`${x}`), sql`, `)})`, eq(s.products.active, true)));
     const bySlug = new Map(products.map((p) => [p.slug, p]));
 
+    /* خيارات المنتجات المطلوبة (مقاس/عبوة/لون) */
+    const wantedVariantIds = [...new Set(input.items.map((i) => i.variantId).filter((x): x is number => !!x))];
+    const variantRows = wantedVariantIds.length > 0
+      ? await tx.select().from(s.productVariants).where(
+          sql`${s.productVariants.id} IN (${sql.join(wantedVariantIds.map((x) => sql`${x}`), sql`, `)})`)
+      : [];
+    const byVariantId = new Map(variantRows.map((v) => [v.id, v]));
+
     type Line = {
       productId: number | null;
+      variantId?: number | null;
       name: string;
       variant: "G250" | "G500" | "G1000" | "PIECE" | "GIFT";
       unitPrice: number;
@@ -68,9 +78,17 @@ export async function createOrder(input: CheckoutInput) {
       const p = bySlug.get(it.slug);
       if (!p) throw new Error(`منتج غير متاح: ${it.slug}`);
       const qty = Math.max(1, Math.floor(it.qty));
-      const price =
-        it.variant === "PIECE"
-          ? p.pricePiece
+      // خيار المنتج (إن اختير): سعره ومخزونه يسبقان سعر المنتج العام
+      const chosen = it.variantId ? byVariantId.get(it.variantId) : undefined;
+      if (it.variantId && (!chosen || chosen.productId !== p.id || !chosen.active))
+        throw new Error(`الخيار غير متاح لـ${p.name}`);
+      if (chosen && chosen.stock < qty)
+        throw new Error(`الكمية غير متوفرة: ${p.name} · ${chosen.label}`);
+
+      const price = chosen
+        ? (chosen.salePrice ?? chosen.price)
+        : it.variant === "PIECE"
+          ? (p.salePrice ?? p.pricePiece)
           : it.variant === "G250"
             ? p.priceG250
             : it.variant === "G500"
@@ -79,7 +97,8 @@ export async function createOrder(input: CheckoutInput) {
       if (price == null) throw new Error(`الوزن غير متاح لـ${p.name}`);
       lines.push({
         productId: p.id,
-        name: p.name + (it.grind ? ` · ${it.grind}` : ""),
+        variantId: chosen?.id ?? null,
+        name: p.name + (chosen ? ` · ${chosen.label}` : "") + (it.grind ? ` · ${it.grind}` : ""),
         variant: it.variant,
         unitPrice: price,
         qty,
@@ -269,6 +288,12 @@ export async function createOrder(input: CheckoutInput) {
     /* ── ١٠) خصم المخزون FIFO + الأسطر + الربح ── */
     let productProfit = 0;
     for (const l of lines) {
+      // خصم مخزون الخيار (مقاس/عبوة/لون) — مستقل عن وجبات FIFO
+      if (l.variantId) {
+        await tx.update(s.productVariants)
+          .set({ stock: sql`GREATEST(${s.productVariants.stock} - ${l.qty}, 0)` })
+          .where(eq(s.productVariants.id, l.variantId));
+      }
       let breakdown: { batchId: number; qty: number; unitCost: number }[] | null = null;
       if (l.productId != null) {
         const need0 = l.isCoffee ? l.gramsTotal : l.qty;

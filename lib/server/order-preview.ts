@@ -1,12 +1,12 @@
 import { db } from "@/lib/server/db";
 import * as s from "@/lib/server/db/schema";
-import { and, eq, sql, asc } from "drizzle-orm";
+import { and, eq, sql, sql as sqlRaw, asc } from "drizzle-orm";
 import { normalizeIqPhone } from "@/lib/phone";
 
 const roundUp250 = (n: number) => Math.ceil(Math.max(0, n) / 250) * 250;
 
 export type PreviewInput = {
-  items: { slug: string; variant: "G250" | "G500" | "G1000" | "PIECE"; qty: number; boxGroup?: number | null }[];
+  items: { slug: string; variant: "G250" | "G500" | "G1000" | "PIECE"; qty: number; boxGroup?: number | null; variantId?: number | null }[];
   phone?: string;
   governorate?: string;
   couponCode?: string;
@@ -52,10 +52,19 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
 
   let grossSubtotal = 0;
   const boxLines: { qty: number; total: number }[] = [];
+  const wantedVIds = [...new Set(input.items.map((i) => i.variantId).filter((x): x is number => !!x))];
+  const vRows = wantedVIds.length > 0
+    ? await db.select().from(s.productVariants).where(
+        sqlRaw`${s.productVariants.id} IN (${sqlRaw.join(wantedVIds.map((x) => sqlRaw`${x}`), sqlRaw`, `)})`)
+    : [];
+  const byVId = new Map(vRows.map((v) => [v.id, v]));
+
   for (const it of input.items) {
     const p = bySlug.get(it.slug);
     if (!p) continue;
-    const unit = priceOf(p, it.variant) ?? 0;
+    const ch = it.variantId ? byVId.get(it.variantId) : undefined;
+    const unit = ch ? (ch.salePrice ?? ch.price)
+      : (it.variant === "PIECE" ? (p.salePrice ?? priceOf(p, it.variant)) : priceOf(p, it.variant)) ?? 0;
     const lineTotal = unit * it.qty;
     grossSubtotal += lineTotal;
     if (it.boxGroup != null && it.variant === "G250") boxLines.push({ qty: it.qty, total: lineTotal });

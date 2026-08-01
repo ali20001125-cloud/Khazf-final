@@ -6,7 +6,7 @@
  * • rating/reviewsCount من التقييمات المنشورة فقط (متجر جديد = 0 — لا أرقام مخترعة)
  * • الأدوات تظهر فقط إذا كان أحد أماكنها (إسبريسو/تقطير) فعّالاً
  */
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql, asc } from "drizzle-orm";
 import { db, schema as s } from "./db";
 import { getStockMap } from "./stock";
 import type { Coffee, Tool, ToolCat } from "@/lib/data";
@@ -99,17 +99,26 @@ function toolFromRow(
   stock: number,
   cats: ToolCat[],
   subName: string | null,
-  agg: { avg: number; count: number } | undefined
+  agg: { avg: number; count: number } | undefined,
+  variants: import("@/lib/data").ToolVariant[] = []
 ): Tool | null {
-  const soldOut = stock < 1;
+  // لو للمنتج خيارات: المخزون مجموعها، والسعر المعروض أقل خيار متاح
+  const activeVars = variants.filter((v) => v.stock > 0);
+  const effStock = variants.length > 0
+    ? variants.reduce((t, v) => t + v.stock, 0)
+    : (p.stockPieces ?? stock);
+  const soldOut = effStock < 1;
   if (soldOut && p.oosBehavior === "HIDE") return null;
+  const basePrice = variants.length > 0
+    ? Math.min(...(activeVars.length > 0 ? activeVars : variants).map((v) => v.salePrice ?? v.price))
+    : (p.salePrice ?? p.pricePiece ?? 0);
   return {
     slug: p.slug,
     name: p.name,
     latin: p.latinName ?? p.name,
     type: subName ?? "أدوات",
     cats,
-    price: p.pricePiece ?? 0,
+    price: basePrice,
     rating: agg?.avg ?? 0,
     reviewsCount: agg?.count ?? 0,
     desc: p.description ?? "",
@@ -117,11 +126,25 @@ function toolFromRow(
     soldOut: soldOut || undefined,
     images: p.images ?? [],
     toolSpecs: (p.toolSpecs as Tool["toolSpecs"]) ?? null,
+    salePrice: variants.length > 0 ? null : (p.salePrice ?? null),
+    variants,
   };
 }
 
 /** الجلب الكامل — استدعاء واحد من الـ layout لكل زيارة */
 export async function getCatalog(): Promise<CatalogData> {
+  // خيارات المنتجات (مقاس/عبوة/لون) — استعلام واحد
+  const variantRows = await db.select().from(s.productVariants)
+    .where(eq(s.productVariants.active, true))
+    .orderBy(asc(s.productVariants.sort));
+  const variantsByProduct = new Map<number, import("@/lib/data").ToolVariant[]>();
+  for (const v of variantRows) {
+    const arr = variantsByProduct.get(v.productId) ?? [];
+    arr.push({ id: v.id, label: v.label, kind: v.kind as "SIZE" | "COLOR" | "PACK",
+      price: v.price, salePrice: v.salePrice, stock: v.stock, image: v.image });
+    variantsByProduct.set(v.productId, arr);
+  }
+
   const placesRows = await db
     .select()
     .from(s.places)
@@ -174,7 +197,7 @@ export async function getCatalog(): Promise<CatalogData> {
       if (espActive && slugsHere.includes("espresso_tools")) cats.push("إسبريسو");
       if (dripActive && slugsHere.includes("drip_tools")) cats.push("تقطير");
       if (cats.length === 0) continue; // أماكن الأدوات مُوقَفة → لا تظهر
-      const t = toolFromRow(p, stock, cats, p.subcategoryId ? (subName.get(p.subcategoryId) ?? null) : null, agg.get(p.id));
+      const t = toolFromRow(p, stock, cats, p.subcategoryId ? (subName.get(p.subcategoryId) ?? null) : null, agg.get(p.id), variantsByProduct.get(p.id) ?? []);
       if (t) tools.push(t);
     }
   }

@@ -35,6 +35,8 @@ export interface CartItem {
   priceShown: number; // للعرض فقط — الحساب النهائي من الخادم
   qty: number;
   boxGroup?: number;
+  variantId?: number | null;    // خيار المنتج (مقاس/عبوة/لون)
+  variantLabel?: string | null; // اسم الخيار للعرض
 }
 
 export interface AppliedCoupon {
@@ -67,7 +69,7 @@ interface StoreState {
 const StoreContext = createContext<StoreState | null>(null);
 
 const keyOf = (i: Omit<CartItem, "qty" | "key">) =>
-  [i.slug, i.variant, i.grind ?? "", i.boxGroup ?? ""].join("|");
+  [i.slug, i.variant, i.grind ?? "", i.boxGroup ?? "", i.variantId ?? ""].join("|");
 
 export function StoreProvider({
   children,
