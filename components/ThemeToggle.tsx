@@ -9,7 +9,14 @@ function apply(t: Theme) {
   const dark =
     t === "dark" ||
     (t === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", dark);
+  const root = document.documentElement;
+  // نوقف كل الانتقالات لحظة التبديل — إعادة رسم فورية بلا تقطيع
+  root.classList.add("theme-switching");
+  root.classList.toggle("dark", dark);
+  // نعيدها بعد إطار رسم واحد
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => root.classList.remove("theme-switching"));
+  });
 }
 
 export function useTheme() {

@@ -62,12 +62,12 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                 </thead>
                 <tbody className="divide-y divide-line">
                   {accounts.map((a) => (
-                    <tr key={a.email} className="hover:bg-bg-alt/50">
+                    <tr key={a.email} className="row-tap hover:bg-bg-alt/50">
                       <Td><span className="font-num text-[12.5px]" dir="ltr">{a.email}</span></Td>
                       <Td className="text-[12px]">{a.provider === "google" ? "Google" : "البريد"}</Td>
                       <Td className="text-[12px]">
                         {a.linked_phone
-                          ? <Link href={`/alikhazf25/customers/${a.linked_phone}/`} className="font-bold text-accent">{a.linked_name || a.linked_phone}</Link>
+                          ? <Link href={`/alikhazf25/customers/${a.linked_phone}/`} className="row-link font-bold text-accent">{a.linked_name || a.linked_phone}</Link>
                           : <span className="text-muted">سجّل ولم يطلب</span>}
                       </Td>
                       <Td className="font-num text-[11.5px] text-muted">{dateAr(a.created_at)}</Td>
@@ -86,9 +86,9 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((c) => (
-              <tr key={c.phone} className="hover:bg-bg-alt/50">
+              <tr key={c.phone} className="row-tap hover:bg-bg-alt/50">
                 <Td>
-                  <Link href={`/alikhazf25/customers/${c.phone}/`} className="font-bold text-accent">{c.name}</Link>
+                  <Link href={`/alikhazf25/customers/${c.phone}/`} className="row-link font-bold text-accent">{c.name}</Link>
                   <p className="font-num text-[11px] text-muted" dir="ltr">{c.phone}</p>
                 </Td>
                 <Td>{c.governorate}</Td>

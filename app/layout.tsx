@@ -123,12 +123,29 @@ export default async function RootLayout({
             <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${analytics.ga}');` }} />
           </>
         )}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org", "@type": "Store", name: "خزف",
-          description: DESC, url: SITE, image: config.logoUrl || undefined,
-          address: { "@type": "PostalAddress", addressCountry: "IQ" },
-          priceRange: "IQD", servesCuisine: "قهوة مختصة",
-        }) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([
+          {
+            "@context": "https://schema.org", "@type": "Store", name: "خزف",
+            description: DESC, url: SITE, image: config.logoUrl || undefined,
+            address: { "@type": "PostalAddress", addressCountry: "IQ" },
+            priceRange: "IQD", servesCuisine: "قهوة مختصة",
+          },
+          // Organization + logo — ليظهر لوغو خزف بنتائج بحث Google بدل أيقونة الكوكب
+          {
+            "@context": "https://schema.org", "@type": "Organization",
+            "@id": `${SITE}/#organization`,
+            name: "خزف", alternateName: "Khazf", url: SITE,
+            ...(config.logoUrl ? { logo: { "@type": "ImageObject", url: config.logoUrl }, image: config.logoUrl } : {}),
+            description: DESC,
+          },
+          // WebSite — يفعّل مربّع البحث بنتائج Google
+          {
+            "@context": "https://schema.org", "@type": "WebSite",
+            "@id": `${SITE}/#website`, url: SITE, name: "خزف",
+            inLanguage: "ar",
+            publisher: { "@id": `${SITE}/#organization` },
+          },
+        ]) }} />
         {analytics.pixel && (
           <script dangerouslySetInnerHTML={{ __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${analytics.pixel}');fbq('track','PageView');` }} />
         )}

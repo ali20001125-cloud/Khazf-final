@@ -50,6 +50,15 @@ select {
   transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
 }
 
+/* أثناء تبديل الوضع الليلي: نوقف كل الانتقالات والحركات — يمنع التقطيع */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-alt: var(--bg-alt);
@@ -235,3 +244,16 @@ h1, h2, h3, h4 {
   from { transform: translateX(0); }
   to { transform: translateX(33.333%); }
 }
+
+/* ── منطقة ضغط تغطي الصف كاملاً (اللوحة) — الضغط بأي مكان يفتح الرابط ── */
+tr.row-tap { position: relative; }
+tr.row-tap .row-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+/* الأزرار والروابط الأخرى تبقى فوق طبقة الضغط */
+tr.row-tap form,
+tr.row-tap button,
+tr.row-tap a:not(.row-link) { position: relative; z-index: 2; }

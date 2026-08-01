@@ -183,7 +183,7 @@ export function CropsRail() {
             <p className="font-num text-[10px] tracking-[0.4em] text-muted">THE CROPS</p>
             <h2 className="mt-3 text-3xl font-bold md:text-4xl">محاصيلنا</h2>
           </div>
-          <Link href="/products/" className="hidden items-center gap-1.5 text-sm font-semibold text-accent sm:flex">
+          <Link href="/products/" className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-4 py-2 text-[13px] font-semibold text-accent transition-colors hover:border-accent/40">
             المتجر كامل <ArrowLeft size={15} />
           </Link>
         </div>
@@ -237,6 +237,16 @@ export function CropsRail() {
                 </span>
               </Link>
             ))}
+
+            {/* بطاقة نهاية الشريط — عرض كل المحاصيل */}
+            <Link href="/products/"
+              className="group flex w-[52vw] max-w-[200px] shrink-0 flex-col items-center justify-center gap-3 rounded-[22px] border border-dashed border-line bg-card/50 p-6 text-center transition-all duration-300 hover:border-accent/40">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent transition-transform group-hover:-translate-x-1">
+                <ArrowLeft size={20} />
+              </span>
+              <span className="text-[14px] font-bold">عرض كل المحاصيل</span>
+              <span className="text-[12px] text-muted">والأدوات أيضاً</span>
+            </Link>
 
           </div>
         </div>

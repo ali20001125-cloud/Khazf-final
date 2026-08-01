@@ -722,7 +722,7 @@ function ToolView({ tool }: { tool: Tool }) {
             <ToolVisual tool={tool} className="aspect-square rounded-[24px] border border-line" />
           )}
           {tool.type && (
-            <span className="absolute right-4 top-4 rounded-full bg-ink/90 px-3.5 py-1.5 text-[11px] font-bold text-cream">
+            <span className="absolute right-4 top-4 rounded-full bg-white/95 px-3.5 py-1.5 text-[11.5px] font-bold text-ink shadow-md ring-1 ring-black/5 backdrop-blur-sm">
               {tool.type}
             </span>
           )}

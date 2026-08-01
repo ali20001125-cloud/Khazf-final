@@ -32,9 +32,9 @@ export default async function ToolsPage() {
             {tools.map((p) => {
               const low = p.stock <= p.stock_threshold;
               return (
-                <tr key={p.id} className="hover:bg-bg-alt/50">
+                <tr key={p.id} className="row-tap hover:bg-bg-alt/50">
                   <Td>
-                    <Link href={`/alikhazf25/tools/${p.id}/`} className="font-bold text-accent">{p.name}</Link>
+                    <Link href={`/alikhazf25/tools/${p.id}/`} className="row-link font-bold text-accent">{p.name}</Link>
                     {p.badge && <span className="ms-2 rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">{p.badge}</span>}
                   </Td>
                   <Td className="text-[12px] text-muted">{p.sub_name ?? "—"}</Td>
