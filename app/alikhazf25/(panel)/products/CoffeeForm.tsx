@@ -85,7 +85,7 @@ export default function CoffeeForm({
           <div className="sm:col-span-3">
             <Field label="نِسب التحضير الخاصة" hint="سطر لكل طريقة بالصيغة: V60 = 15غ · 250مل · 94° · 2:45 — اتركه فارغاً لاستخدام النِّسب العامة">
               <textarea name="brew" rows={3} dir="rtl" className={inputCls}
-                placeholder={"V60 = ١٥غ · ٢٥٠مل · ٩٤° · ٢:٤٥\nفرنش برس = ٣٠غ · ٤٥٠مل · ٤:٠٠"}
+                placeholder={"V60 = ٢٠غ · ٣٠٠مل · ٩٢° · ٢:٤٥\nكيمكس = ٣٠غ · ٤٥٠مل · ٩٣° · ٤:٠٠"}
                 defaultValue={Array.isArray(p.brew) ? (p.brew as { name: string; nums: string }[]).map((b) => `${b.name} = ${b.nums}`).join("\n") : ""} />
             </Field>
           </div>

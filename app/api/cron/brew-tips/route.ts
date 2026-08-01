@@ -41,8 +41,8 @@ export async function GET(req: Request) {
     if (coffees.length === 0) continue;
 
     const DEFAULT_BREW = [
-      { name: "V60", nums: "١٥غ · ٢٤٠مل · ٩٤° · ٢:٤٥" },
-      { name: "فرنش برس", nums: "٣٠غ · ٤٥٠مل · ٩٣° · ٤:٠٠" },
+      { name: "V60", nums: "٢٠غ · ٣٠٠مل · ٩٢° · ٢:٤٥" },
+      { name: "كيمكس", nums: "٣٠غ · ٤٥٠مل · ٩٣° · ٤:٠٠" },
     ];
 
     try {

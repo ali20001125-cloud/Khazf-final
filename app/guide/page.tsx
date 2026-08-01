@@ -5,12 +5,12 @@ import { ArrowLeft, Scale, Thermometer, Timer, Package, AlertCircle } from "luci
 import { useMotion } from "@/lib/motion";
 import LeadCapture from "@/components/LeadCapture";
 
+/* النِّسب هنا مطابقة تماماً لحاسبة الوصفات — مصدر واحد للحقيقة */
 const RATIOS = [
-  { method: "V60 · فلتر", ratio: "١:١٦", example: "١٥غ بن · ٢٤٠مل ماء", grind: "متوسط", time: "٢:٣٠ – ٣:٠٠" },
-  { method: "فرنش برس", ratio: "١:١٥", example: "٣٠غ بن · ٤٥٠مل ماء", grind: "خشن", time: "٤:٠٠" },
-  { method: "موكا بوت", ratio: "١:١٠", example: "١٨غ بن · ١٨٠مل ماء", grind: "متوسط-ناعم", time: "٣:٠٠ – ٤:٠٠" },
-  { method: "إسبريسو", ratio: "١:٢", example: "١٨غ بن · ٣٦غ ناتج", grind: "ناعم جداً", time: "٢٥ – ٣٠ ثانية" },
-  { method: "كولد برو", ratio: "١:١٠", example: "١٠٠غ بن · ١ لتر ماء", grind: "خشن جداً", time: "١٢ – ١٦ ساعة" },
+  { method: "إسبريسو", ratio: "١:٢", example: "١٨غ بن · ٣٦غ ناتج", grind: "ناعم جداً", heat: "٩٣°", time: "٢٥ – ٣٠ ثانية" },
+  { method: "V60", ratio: "١:١٥", example: "٢٠غ بن · ٣٠٠مل ماء", grind: "وسط — مثل ملح الطعام", heat: "٩٢°", time: "٢:٤٥ تقريباً" },
+  { method: "كيمكس", ratio: "١:١٥", example: "٣٠غ بن · ٤٥٠مل ماء", grind: "وسط-خشن", heat: "٩٣°", time: "٤:٠٠ تقريباً" },
+  { method: "أيروبرس", ratio: "١:١٦", example: "١٥غ بن · ٢٤٠مل ماء", grind: "وسط-ناعم", heat: "٩٠°", time: "١:٣٠ – ٢:٠٠" },
 ];
 
 const MISTAKES = [
@@ -34,8 +34,8 @@ export default function GuidePage() {
       {/* القواعد الأربع */}
       <div className="reveal-group mt-10 grid gap-4 sm:grid-cols-2">
         {[
-          { Icon: Scale, t: "النسبة قبل كل شيء", d: "٦٠ غراماً من البن لكل لتر ماء — نقطة البداية التي تُعدّل منها حسب ذوقك." },
-          { Icon: Thermometer, t: "حرارة الماء", d: "بين ٩٢ و٩٦ درجة. اترك الماء المغلي دقيقة قبل الصبّ." },
+          { Icon: Scale, t: "النسبة قبل كل شيء", d: "نبدأ من ١:١٥ — أي ٢٠ غراماً من البن لكل ٣٠٠ مل ماء، ثم تعدّلها على ذوقك." },
+          { Icon: Thermometer, t: "حرارة الماء", d: "بين ٩٠ و٩٣ درجة حسب الطريقة. اترك الماء المغلي دقيقة قبل الصبّ." },
           { Icon: Timer, t: "الوقت", d: "لكل طريقة نافذتها. خارجها تخرج المرارة أو تبقى النكهة حبيسة." },
           { Icon: Package, t: "الطحن عند التحضير", d: "القهوة المطحونة تفقد عطرها خلال دقائق. اطحن ما تشربه فقط." },
         ].map(({ Icon, t, d }) => (
@@ -59,6 +59,7 @@ export default function GuidePage() {
               <th className="px-4 py-3 text-start font-bold">النسبة</th>
               <th className="px-4 py-3 text-start font-bold">مثال</th>
               <th className="px-4 py-3 text-start font-bold">الطحن</th>
+              <th className="px-4 py-3 text-start font-bold">الحرارة</th>
               <th className="px-4 py-3 text-start font-bold">الوقت</th>
             </tr>
           </thead>
@@ -69,6 +70,7 @@ export default function GuidePage() {
                 <td className="font-num px-4 py-3.5 text-[13px] text-accent">{r.ratio}</td>
                 <td className="font-num px-4 py-3.5 text-[12.5px] text-muted">{r.example}</td>
                 <td className="px-4 py-3.5 text-[12.5px] text-muted">{r.grind}</td>
+                <td className="font-num px-4 py-3.5 text-[12.5px] text-muted">{r.heat}</td>
                 <td className="font-num px-4 py-3.5 text-[12.5px] text-muted">{r.time}</td>
               </tr>
             ))}

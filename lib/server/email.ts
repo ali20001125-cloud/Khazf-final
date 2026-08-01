@@ -206,8 +206,8 @@ export async function emailBrewGuide(o: { email: string; guideUrl: string }) {
     </p>
     <div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin:0 0 16px">
       <p style="font-size:12.5px;line-height:1.9;color:#6b6459;margin:0">
-        القاعدة الذهبية: ٦٠ غراماً من البن لكل لتر ماء<br/>
-        ماء بين ٩٢ و٩٦ درجة · طحن متوسط للفلتر · وقت التحضير من ٢:٣٠ إلى ٣:٣٠ دقيقة
+        القاعدة: نبدأ من ١:١٥ — ٢٠ غراماً من البن لكل ٣٠٠ مل ماء<br/>
+        ماء بين ٩٠ و٩٣ درجة حسب الطريقة · طحن وسط للفلتر · ٢:٤٥ تقريباً على V60
       </p>
     </div>
     <a href="${o.guideUrl}" style="display:inline-block;background:#A66A4C;color:#fff;padding:12px 30px;border-radius:10px;font-size:14.5px;font-weight:bold;text-decoration:none">افتح الدليل كاملاً</a>
