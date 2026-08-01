@@ -69,8 +69,8 @@ export default function BoxPage() {
   const scope = useMotion();
   const router = useRouter();
   const { addToCart, showToast, setBoxGiftChoice } = useStore();
-  const { coffees, boxGiftNames } = useCatalog();
-  const gifts = boxGiftNames.map((label, i) => ({ key: label, label, icon: GIFT_ICONS[i % GIFT_ICONS.length] }));
+  const { coffees, boxGifts } = useCatalog();
+  const gifts = boxGifts.map((g, i) => ({ ...g, key: g.name, icon: GIFT_ICONS[i % GIFT_ICONS.length] }));
   // نحفظ اختيار الأكياس مؤقتاً حتى لا يضيع عند زيارة صفحة محصول والرجوع
   const [bags, setBags] = useState<Record<string, number>>(() => {
     if (typeof window === "undefined") return {};
@@ -116,7 +116,7 @@ export default function BoxPage() {
         n, true
       );
     }
-    setBoxGiftChoice(gifts.find((g) => g.key === gift)?.label ?? null);
+    setBoxGiftChoice(gifts.find((g) => g.key === gift)?.name ?? null);
     showToast(`أُضيف بوكس ${count} أكياس للسلة — الخصم النهائي بالسلة`);
     try { sessionStorage.removeItem("khazf_box_bags"); } catch {}
     router.push("/cart/");
@@ -272,21 +272,34 @@ export default function BoxPage() {
               : `أضف ${6 - count} ${6 - count === 1 ? "كيساً" : "أكياس"} لتفتح هديتك المجانية`}
           </p>
           <div className={`mt-6 grid grid-cols-2 gap-3 transition-opacity ${count >= 6 ? "" : "pointer-events-none opacity-45"}`}>
-            {gifts.map((g) => (
+            {gifts.map((g) => {
+              const picked = count >= 6 && gift === g.key;
+              return (
               <button
                 key={g.key}
                 onClick={() => count >= 6 && setGift(g.key)}
                 disabled={count < 6}
-                className={`flex flex-col items-center gap-2.5 rounded-[16px] border-2 py-6 transition-colors ${
-                  count >= 6 && gift === g.key
-                    ? "border-gold bg-gold/15"
-                    : "border-line bg-card"
+                className={`flex flex-col items-center gap-2 overflow-hidden rounded-[16px] border-2 p-3 transition-colors ${
+                  picked ? "border-gold bg-gold/15" : "border-line bg-card"
                 } ${count >= 6 ? "hover:border-muted" : ""}`}
               >
-                <g.icon size={24} className={count >= 6 && gift === g.key ? "text-gold" : "text-muted"} strokeWidth={1.8} />
-                <span className="text-sm font-bold">{g.label}</span>
+                {g.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={g.image} alt={g.name}
+                    className="aspect-square w-full rounded-[11px] bg-white object-contain" />
+                ) : (
+                  <span className="flex aspect-square w-full items-center justify-center rounded-[11px] bg-bg-alt">
+                    <g.icon size={26} className={picked ? "text-gold" : "text-muted"} strokeWidth={1.8} />
+                  </span>
+                )}
+                <span className="text-[13.5px] font-bold leading-tight">{g.name}</span>
+                {g.price != null && (
+                  <span className="font-num text-[11.5px] text-muted line-through">{formatIQD(g.price)}</span>
+                )}
+                {g.note && <span className="text-[11px] text-muted">{g.note}</span>}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

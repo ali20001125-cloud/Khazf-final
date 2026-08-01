@@ -21,7 +21,7 @@ const FALLBACK: SiteConfig = {
   topBarMessages: [], instagram: "khazf.roaster", logoUrl: null,
 };
 
-const EMPTY_CATALOG: CatalogData = { coffees: [], tools: [], places: [], boxGiftNames: [], banners: [] };
+const EMPTY_CATALOG: CatalogData = { coffees: [], tools: [], places: [], boxGiftNames: [], boxGifts: [], boxGiftPicks: 1, banners: [] };
 
 async function loadCatalog(): Promise<CatalogData> {
   try {
@@ -103,6 +103,8 @@ export default async function RootLayout({
             coffees: catalog.coffees,
             tools: catalog.tools,
             boxGiftNames: catalog.boxGiftNames,
+            boxGifts: catalog.boxGifts,
+            boxGiftPicks: catalog.boxGiftPicks,
             banners: catalog.banners,
             toolsEnabled: catalog.tools.length > 0,
             activePlaces: catalog.places.map((pl) => pl.slug),

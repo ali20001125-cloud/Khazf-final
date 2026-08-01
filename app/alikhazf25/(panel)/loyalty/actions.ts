@@ -21,8 +21,15 @@ export async function saveLevel(f: FormData) {
 export async function addGift(f: FormData) {
   await requireAdmin();
   await flashSaved();
-  const name = String(f.get("name") ?? "").trim();
-  if (name) await db.insert(s.boxGifts).values({ name });
+  const productId = Number(f.get("productId")) || null;
+  let name = String(f.get("name") ?? "").trim();
+  const note = String(f.get("note") ?? "").trim() || null;
+  // لو اختير منتج ولم يُكتب اسم، نأخذ اسم المنتج
+  if (productId && !name) {
+    const [p] = await db.select({ n: s.products.name }).from(s.products).where(eq(s.products.id, productId));
+    name = p?.n ?? "";
+  }
+  if (name) await db.insert(s.boxGifts).values({ name, productId, note });
   revalidatePath("/alikhazf25/loyalty"); revalidatePath("/");
 }
 

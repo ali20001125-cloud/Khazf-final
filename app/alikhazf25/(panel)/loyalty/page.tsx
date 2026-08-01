@@ -1,4 +1,4 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { db, schema as s } from "@/lib/server/db";
 import { PageTitle, Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
@@ -9,6 +9,11 @@ export const dynamic = "force-dynamic";
 export default async function LoyaltyPage() {
   const levels = await db.select().from(s.journeyLevels).orderBy(asc(s.journeyLevels.level));
   const gifts = await db.select().from(s.boxGifts).orderBy(asc(s.boxGifts.sort));
+  const giftablesRaw = await db.select({
+    id: s.products.id, name: s.products.name,
+    pricePiece: s.products.pricePiece, salePrice: s.products.salePrice,
+  }).from(s.products).where(eq(s.products.type, "TOOL")).orderBy(asc(s.products.name));
+  const giftables = giftablesRaw.map((p) => ({ id: p.id, name: p.name, price: p.salePrice ?? p.pricePiece }));
   return (
     <div>
       <PageTitle title="الولاء والرحلة" sub="٦ مستويات تُصرف تلقائياً بالطلب التالي · هدايا البوكس (٦ أكياس)" />
@@ -50,9 +55,21 @@ export default async function LoyaltyPage() {
             </li>
           ))}
         </ul>
-        <form action={addGift} className="mt-4 flex gap-2">
-          <input name="name" placeholder="هدية جديدة…" className={inputCls} />
-          <SubmitBtn>أضف</SubmitBtn>
+        <form action={addGift} className="mt-4 space-y-2">
+          <select name="productId" className={inputCls} defaultValue="">
+            <option value="">— اختر منتجاً من المتجر (تظهر صورته وسعره للزبون) —</option>
+            {giftables.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}{p.price ? ` — ${p.price.toLocaleString("en")} د.ع` : ""}</option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <input name="name" placeholder="اسم بديل (اختياري)" className={inputCls} />
+            <input name="note" placeholder="سطر توضيحي (اختياري)" className={inputCls} />
+            <SubmitBtn>أضف</SubmitBtn>
+          </div>
+          <p className="text-[11.5px] text-muted">
+            اختر منتجاً ليرى الزبون صورته وقيمته الحقيقية — أو اكتب اسماً فقط لهدية بلا منتج.
+          </p>
         </form>
       </Card>
 

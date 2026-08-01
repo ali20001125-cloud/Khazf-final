@@ -42,6 +42,8 @@ export interface CatalogData {
   tools: Tool[];
   places: CatalogPlace[];
   boxGiftNames: string[];
+  boxGifts: { id: number; name: string; image: string | null; price: number | null; note: string | null }[];
+  boxGiftPicks: number;
   banners: PromoBanner[];
 }
 
@@ -161,10 +163,10 @@ export async function getCatalog(): Promise<CatalogData> {
   const dripActive = placesRows.some((p) => p.slug === "drip_tools");
 
   const rows = await db.select().from(s.products).where(eq(s.products.active, true));
-  if (rows.length === 0) return { coffees: [], tools: [], places: [], boxGiftNames: [], banners: [] };
+  if (rows.length === 0) return { coffees: [], tools: [], places: [], boxGiftNames: [], boxGifts: [], boxGiftPicks: 1, banners: [] };
 
   const ids = rows.map((r) => r.id);
-  const [stockMap, pp, subs, aggRows, gifts, bannerRows] = await Promise.all([
+  const [stockMap, pp, subs, aggRows, gifts, bannerRows, cfgRows] = await Promise.all([
     getStockMap(ids),
     db.select().from(s.productPlaces).where(inArray(s.productPlaces.productId, ids)),
     db.select().from(s.subcategories),
@@ -179,7 +181,9 @@ export async function getCatalog(): Promise<CatalogData> {
       .groupBy(s.reviews.productId),
     db.select().from(s.boxGifts).where(eq(s.boxGifts.active, true)).orderBy(s.boxGifts.sort),
     db.select().from(s.banners).where(eq(s.banners.active, true)).orderBy(s.banners.sort),
+    db.select({ picks: s.settings.boxGiftPicks }).from(s.settings).where(eq(s.settings.id, 1)),
   ]);
+  const settingsRow = cfgRows?.[0];
 
   const subName = new Map(subs.map((x) => [x.id, x.name]));
   const agg = new Map(aggRows.map((a) => [a.productId, { avg: a.avg, count: a.count }]));
@@ -215,6 +219,17 @@ export async function getCatalog(): Promise<CatalogData> {
     tools,
     places: placesRows.map((p) => ({ slug: p.slug, name: p.name })),
     boxGiftNames: gifts.map((g) => g.name),
+    boxGifts: gifts.map((g) => {
+      const prod = g.productId ? rows.find((p) => p.id === g.productId) : undefined;
+      return {
+        id: g.id,
+        name: g.name || prod?.name || "هدية",
+        image: g.image || prod?.images?.[0] || null,
+        price: prod ? (prod.salePrice ?? prod.pricePiece ?? prod.priceG250 ?? null) : null,
+        note: g.note ?? null,
+      };
+    }),
+    boxGiftPicks: settingsRow?.picks ?? 1,
     banners: bannerRows
       .filter((b) => (!b.startsAt || b.startsAt <= now) && (!b.endsAt || b.endsAt >= now))
       .map((b) => ({ text: b.text, promoText: b.promoText, promoLink: b.promoLink })),

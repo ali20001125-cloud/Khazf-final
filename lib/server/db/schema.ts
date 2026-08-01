@@ -336,6 +336,10 @@ export const journeyLevels = pgTable("journey_levels", {
 export const boxGifts = pgTable("box_gifts", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  productId: integer("product_id").references(() => products.id, { onDelete: "set null" }),
+  variantId: integer("variant_id"),      // خيار محدّد (لون/مقاس) إن لزم
+  image: text("image"),                  // صورة الهدية (تُشتقّ من المنتج إن تُركت)
+  note: text("note"),                    // سطر توضيحي اختياري
   sort: integer("sort").notNull().default(0),
   active: boolean("active").notNull().default(true),
 });
@@ -396,7 +400,8 @@ export const settings = pgTable("settings", {
   deliveryCustomerPrice: integer("delivery_customer_price").notNull().default(3000), // موحّد لكل العراق
   freeDeliveryThreshold: integer("free_delivery_threshold").notNull().default(0), // 0=معطّل · الإجمالي فوقه = توصيل مجاني
   cashbackPerAmount: integer("cashback_per_amount").notNull().default(1000), // كل ١٠٠٠ د = نقطة
-  pointValue: integer("point_value").notNull().default(1), // النقطة = دينار (الكاش بالدنانير مباشرة)
+  pointValue: integer("point_value").notNull().default(1),
+  boxGiftPicks: smallint("box_gift_picks").notNull().default(1),  // كم هدية يختار الزبون // النقطة = دينار (الكاش بالدنانير مباشرة)
   loyaltyValidityDays: integer("loyalty_validity_days").notNull().default(90),
   boxDiscountPct: integer("box_discount_pct").notNull().default(20),
   boxTiers: jsonb("box_tiers").$type<BoxTier[]>().notNull()

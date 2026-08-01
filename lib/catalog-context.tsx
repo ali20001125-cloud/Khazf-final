@@ -9,6 +9,8 @@ export interface CatalogValue {
   coffees: Coffee[];
   tools: Tool[];
   boxGiftNames: string[];
+  boxGifts: { id: number; name: string; image: string | null; price: number | null; note: string | null }[];
+  boxGiftPicks: number;
   banners: PromoBanner[];
   toolsEnabled: boolean;
   activePlaces: string[]; // slugs المفعّلة
