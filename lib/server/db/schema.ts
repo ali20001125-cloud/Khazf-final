@@ -94,7 +94,10 @@ export const products = pgTable(
     priceG250: integer("price_g250"),
     priceG500: integer("price_g500"),
     priceG1000: integer("price_g1000"),
-    pricePiece: integer("price_piece"), // للأدوات
+    pricePiece: integer("price_piece"),
+  salePrice: integer("sale_price"),        // سعر العرض (يُعرض الأصلي مشطوباً)
+  costPiece: integer("cost_piece"),        // تكلفة القطعة (للأدوات)
+  stockPieces: integer("stock_pieces"),    // مخزون الأدوات بلا خيارات // للأدوات
 
     /* — الأدوات — */
     subcategoryId: integer("subcategory_id").references(() => subcategories.id, { onDelete: "set null" }),
@@ -482,6 +485,21 @@ export const abandonedCarts = pgTable("abandoned_carts", {
   notifiedAt: timestamp("notified_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const productVariants = pgTable("product_variants", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  kind: text("kind").notNull().default("SIZE"),   // SIZE | COLOR | PACK
+  price: integer("price").notNull(),
+  salePrice: integer("sale_price"),
+  costPrice: integer("cost_price"),
+  stock: integer("stock").notNull().default(0),
+  image: text("image"),
+  sort: smallint("sort").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const emailLog = pgTable("email_log", {

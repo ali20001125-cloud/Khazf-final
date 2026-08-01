@@ -3,6 +3,7 @@
 import { Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
 import MultiImageUpload from "@/components/admin/MultiImageUpload";
 import ToolSpecsEditor from "@/components/admin/ToolSpecsEditor";
+import VariantsEditor, { type VariantRow } from "@/components/admin/VariantsEditor";
 import type { schema as s } from "@/lib/server/db";
 import type { ToolSpecs } from "@/lib/tool-specs";
 
@@ -11,9 +12,9 @@ type Place = { id: number; name: string };
 type Sub = { id: number; name: string };
 
 export default function ToolForm({
-  p = {}, places, subs, chosenPlaces = [], action, submitLabel,
+  p = {}, places, subs, chosenPlaces = [], variants = [], action, submitLabel,
 }: {
-  p?: P; places: Place[]; subs: Sub[]; chosenPlaces?: number[];
+  p?: P; places: Place[]; subs: Sub[]; chosenPlaces?: number[]; variants?: VariantRow[];
   action: (f: FormData) => Promise<void>; submitLabel: string;
 }) {
   const toolSpecs = (p.toolSpecs as ToolSpecs | null) ?? null;
@@ -26,18 +27,30 @@ export default function ToolForm({
       {/* الأساسي */}
       <Card className="grid gap-4 p-5 sm:grid-cols-2">
         <Field label="اسم الأداة"><input name="name" defaultValue={p.name} required className={inputCls} /></Field>
-        <Field label="سعر القطعة"><input name="pricePiece" defaultValue={p.pricePiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field label="سعر القطعة" hint="يُستخدم إن لم تُضف خيارات"><input name="pricePiece" defaultValue={p.pricePiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field label="سعر العرض" hint="اختياري — يُعرض السعر الأصلي مشطوباً"><input name="salePrice" defaultValue={p.salePrice ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field label="تكلفة القطعة" hint="لحساب الربح — لا تظهر للزبون"><input name="costPiece" defaultValue={p.costPiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field label="المخزون (قطعة)" hint="يُستخدم إن لم تُضف خيارات"><input name="stockPieces" defaultValue={p.stockPieces ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="الصنف">
           <select name="subcategoryId" defaultValue={p.subcategoryId ?? ""} className={inputCls}>
             <option value="">اختر الصنف</option>
             {subs.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         </Field>
-        <Field label="الوصف المختصر"><input name="description" defaultValue={p.description ?? ""} className={inputCls} /></Field>
+        <div className="sm:col-span-2">
+          <Field label="الوصف المختصر"><input name="description" defaultValue={p.description ?? ""} className={inputCls} /></Field>
+        </div>
         <div className="sm:col-span-2">
           <Field label="صور الأداة" hint="ارفع عدة صور — الأولى الرئيسية"><MultiImageUpload name="images" initial={p.images ?? []} /></Field>
         </div>
         <label className="flex items-center gap-2 pb-1 text-[13px] font-bold"><input type="checkbox" name="active" defaultChecked={p.active ?? true} className="h-4 w-4 accent-[#505445]" /> ظاهر بالمتجر</label>
+      </Card>
+
+      {/* الخيارات */}
+      <Card className="p-5">
+        <p className="mb-1 text-[14px] font-bold text-accent">خيارات المنتج</p>
+        <p className="mb-4 text-[12px] text-muted">أحجام (V01/V02) · عبوات (٥٠/١٠٠ فلتر) · ألوان — لكل خيار سعره ومخزونه</p>
+        <VariantsEditor initial={variants} />
       </Card>
 
       {/* تفاصيل الأداة */}

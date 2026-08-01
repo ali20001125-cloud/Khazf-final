@@ -43,6 +43,9 @@ function parseProduct(f: FormData) {
     priceG500: num(f.get("priceG500")),
     priceG1000: num(f.get("priceG1000")),
     pricePiece: num(f.get("pricePiece")),
+    salePrice: num(f.get("salePrice")),
+    costPiece: num(f.get("costPiece")),
+    stockPieces: num(f.get("stockPieces")),
     subcategoryId: num(f.get("subcategoryId")),
     stockThreshold: (() => {
       const bags = num(f.get("stockThresholdBags"));
@@ -79,8 +82,43 @@ export async function createProduct(f: FormData) {
   const data = parseProduct(f);
   const [row] = await db.insert(s.products).values(data).returning({ id: s.products.id });
   await syncPlaces(row.id, f);
+  if (data.type === "TOOL") await syncVariants(row.id, f);
   revalidatePath("/alikhazf25/products");
   revalidatePath("/");
+}
+
+
+/** يزامن خيارات المنتج (أحجام/ألوان/عبوات) من النموذج */
+async function syncVariants(productId: number, f: FormData) {
+  const raw = f.get("variants");
+  if (raw == null) return; // النموذج لم يرسل الحقل — لا نلمس الخيارات
+  let rows: { id?: number; label: string; kind: string; price: unknown; salePrice?: unknown;
+    costPrice?: unknown; stock: unknown; image?: string | null; active?: boolean }[] = [];
+  try { rows = JSON.parse(String(raw)); } catch { return; }
+  if (!Array.isArray(rows)) return;
+
+  const n = (v: unknown) => {
+    const x = Number(String(v ?? "").replace(/[^0-9-]/g, ""));
+    return Number.isFinite(x) && String(v ?? "").trim() !== "" ? x : null;
+  };
+  const clean = rows
+    .filter((r) => String(r.label ?? "").trim() !== "" && n(r.price) != null)
+    .map((r, i) => ({
+      productId,
+      label: String(r.label).trim().slice(0, 80),
+      kind: ["SIZE", "COLOR", "PACK"].includes(String(r.kind)) ? String(r.kind) : "SIZE",
+      price: n(r.price) as number,
+      salePrice: n(r.salePrice),
+      costPrice: n(r.costPrice),
+      stock: n(r.stock) ?? 0,
+      image: String(r.image ?? "").trim() || null,
+      sort: i,
+      active: r.active !== false,
+    }));
+
+  // نستبدل الخيارات بالكامل (أبسط وأأمن من المطابقة الجزئية)
+  await db.delete(s.productVariants).where(eq(s.productVariants.productId, productId));
+  if (clean.length > 0) await db.insert(s.productVariants).values(clean);
 }
 
 export async function updateProduct(f: FormData) {
@@ -108,6 +146,7 @@ export async function updateProduct(f: FormData) {
 
   await db.update(s.products).set(data).where(eq(s.products.id, id));
   await syncPlaces(id, f);
+  if (data.type === "TOOL") await syncVariants(id, f);
   revalidatePath("/alikhazf25/products");
   revalidatePath("/");
 }

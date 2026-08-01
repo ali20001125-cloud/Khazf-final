@@ -23,12 +23,19 @@ export default async function ToolEdit({ params }: { params: Promise<{ id: strin
   const [p] = await db.select().from(s.products).where(eq(s.products.id, Number(id)));
   if (!p || p.type !== "TOOL") notFound();
   const pp = await db.select().from(s.productPlaces).where(eq(s.productPlaces.productId, p.id));
+  const vRows = await db.select().from(s.productVariants)
+    .where(eq(s.productVariants.productId, p.id)).orderBy(s.productVariants.sort);
+  const variants = vRows.map((v) => ({
+    id: v.id, label: v.label, kind: v.kind as "SIZE" | "COLOR" | "PACK",
+    price: v.price, salePrice: v.salePrice, costPrice: v.costPrice,
+    stock: v.stock, image: v.image, active: v.active,
+  }));
 
   return (
     <div>
       <PageTitle title={`تعديل: ${p.name}`} sub={`slug: ${p.slug}`} />
       <ToolForm p={p} places={places} subs={subs} chosenPlaces={pp.map((x) => x.placeId)}
-        action={updateProduct} submitLabel="حفظ التعديلات" />
+        variants={variants} action={updateProduct} submitLabel="حفظ التعديلات" />
     </div>
   );
 }
