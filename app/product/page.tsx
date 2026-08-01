@@ -13,7 +13,7 @@ import {
   Cherry, Citrus, Flower2, Cookie, Nut, Coffee as CoffeeIcon,
   Droplet, Flame, Layers, Sparkles, Sun, Droplets, Globe, Mountain,
   Filter, FlaskConical, Timer,
-  ArrowLeft,
+  ArrowLeft, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { formatIQD, productFaq,
   type Coffee, type Tool,
@@ -22,6 +22,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useMotion, reduced } from "@/lib/motion";
 import { useStore } from "@/lib/store";
 import { fbTrack } from "@/lib/fbpixel";
+import ProductJsonLd from "@/components/ProductJsonLd";
 import BagArt from "@/components/BagArt";
 import { CoffeeCard, ToolCard, Stars, ToolVisual } from "@/components/Cards";
 
@@ -209,6 +210,22 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
   return (
     <div ref={scope} className="pb-28 pt-24 md:pt-28">
+      <ProductJsonLd
+        name={coffee.name}
+        description={coffee.trigger || coffee.story || undefined}
+        image={coffee.images?.[0] || coffee.image || undefined}
+        slug={`c:${coffee.slug}`}
+        price={coffee.prices.g250}
+        inStock={!coffee.soldOut}
+        rating={coffee.rating || undefined}
+        reviewsCount={coffee.reviewsCount || undefined}
+        faq={[
+          ...(coffee.country ? [{ q: `من أين ${coffee.name}؟`, a: `${coffee.name} محصول من ${coffee.country}${coffee.region ? ` — منطقة ${coffee.region}` : ""}.` }] : []),
+          ...(coffee.roast ? [{ q: `ما درجة تحميص ${coffee.name}؟`, a: `تحميص ${coffee.roast}.` }] : []),
+          ...(coffee.notes?.length ? [{ q: `ما نكهات ${coffee.name}؟`, a: coffee.notes.join("، ") + "." }] : []),
+          ...(coffee.process ? [{ q: `ما طريقة معالجة ${coffee.name}؟`, a: `معالجة ${coffee.process}.` }] : []),
+        ]}
+      />
       {/* ════ القسم الأول: قرار الشراء — بلا نزول ════ */}
       <section className="mx-auto grid max-w-6xl gap-8 px-4 md:grid-cols-2 md:gap-14 md:px-8">
         {/* معرض الصور — العمود الثابت عبر الصفحة */}
@@ -691,7 +708,16 @@ function ToolView({ tool }: { tool: Tool }) {
 
   // الصورة المعروضة: صورة اللون المختار إن وُجدت، وإلا الصورة الرئيسية
   const activeColor = colors[colorIdx];
-  const heroImage = (activeColor?.image) || tool.images?.[0] || "";
+  // معرض الصور: صورة اللون المختار أولاً، ثم كل صور المنتج
+  const gallery = (() => {
+    const list = [...(tool.images ?? [])];
+    const colorImg = activeColor?.image || chosenVariant?.image;
+    if (colorImg) return [colorImg, ...list.filter((x) => x !== colorImg)];
+    return list;
+  })();
+  const [imgIdx, setImgIdx] = useState(0);
+  useEffect(() => { setImgIdx(0); }, [activeColor?.image, chosenVariant?.id]);
+  const heroImage = gallery[imgIdx] ?? gallery[0] ?? "";
 
   const buy = () => {
     addToCart({
@@ -711,20 +737,66 @@ function ToolView({ tool }: { tool: Tool }) {
 
   return (
     <div ref={scope} className="pb-28 pt-24 md:pt-28">
+      <ProductJsonLd
+        name={tool.name}
+        description={tool.desc || ts?.hero || undefined}
+        image={gallery[0]}
+        slug={`t:${tool.slug}`}
+        price={unitPrice}
+        inStock={!tool.soldOut && !variantOut}
+        rating={tool.rating || undefined}
+        reviewsCount={tool.reviewsCount || undefined}
+        faq={(ts?.specs ?? []).slice(0, 4).map((sp) => ({
+          q: `${sp.key} — ${tool.name}؟`, a: String(sp.value),
+        }))}
+      />
       {/* ═ البطل: صورة + معلومات الشراء ═ */}
       <section className="mx-auto grid max-w-6xl gap-8 px-4 md:grid-cols-2 md:gap-14 md:px-8">
-        {/* الصورة (تتبدّل مع اللون) */}
-        <div className="relative">
-          {heroImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={heroImage} alt={tool.name} className="aspect-square w-full rounded-[24px] border border-line bg-card object-contain" />
-          ) : (
-            <ToolVisual tool={tool} className="aspect-square rounded-[24px] border border-line" />
-          )}
-          {tool.type && (
-            <span className="absolute right-4 top-4 rounded-full bg-white/95 px-3.5 py-1.5 text-[11.5px] font-bold text-ink shadow-md ring-1 ring-black/5 backdrop-blur-sm">
-              {tool.type}
-            </span>
+        {/* الصورة + معرض قابل للتمرير */}
+        <div>
+          <div className="relative">
+            {heroImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={heroImage} alt={tool.name} className="aspect-square w-full rounded-[24px] border border-line bg-card object-contain" />
+            ) : (
+              <ToolVisual tool={tool} className="aspect-square rounded-[24px] border border-line" />
+            )}
+            {tool.type && (
+              <span className="absolute right-4 top-4 rounded-full bg-white/95 px-3.5 py-1.5 text-[11.5px] font-bold text-ink shadow-md ring-1 ring-black/5 backdrop-blur-sm">
+                {tool.type}
+              </span>
+            )}
+            {gallery.length > 1 && (
+              <>
+                <button onClick={() => setImgIdx((i) => (i - 1 + gallery.length) % gallery.length)}
+                  aria-label="الصورة السابقة"
+                  className="absolute end-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-md ring-1 ring-black/5 transition-transform active:scale-90">
+                  <ChevronRight size={18} />
+                </button>
+                <button onClick={() => setImgIdx((i) => (i + 1) % gallery.length)}
+                  aria-label="الصورة التالية"
+                  className="absolute start-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-md ring-1 ring-black/5 transition-transform active:scale-90">
+                  <ChevronLeft size={18} />
+                </button>
+                <span className="font-num absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-cream">
+                  {imgIdx + 1} / {gallery.length}
+                </span>
+              </>
+            )}
+          </div>
+
+          {gallery.length > 1 && (
+            <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1">
+              {gallery.map((src, i) => (
+                <button key={src + i} onClick={() => setImgIdx(i)}
+                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-[12px] border-2 transition-all ${
+                    i === imgIdx ? "border-clay" : "border-line opacity-70 hover:opacity-100"
+                  }`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="h-full w-full bg-card object-contain" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

@@ -10,6 +10,14 @@ export default function FaqPage() {
   const [open, setOpen] = useState<number | null>(0);
   return (
     <div ref={scope} className="mx-auto max-w-2xl px-4 pb-24 pt-32 md:px-6">
+      {/* بيانات منظّمة — تتيح ظهور الأسئلة والأجوبة مباشرة بنتائج البحث */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: faqGeneral.map((f) => ({
+          "@type": "Question", name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }) }} />
       <h1 className="reveal text-3xl font-bold md:text-4xl">الأسئلة الشائعة</h1>
       <div className="reveal mt-8 divide-y divide-line rounded-[20px] border border-line bg-card">
         {faqGeneral.map((f, i) => (
