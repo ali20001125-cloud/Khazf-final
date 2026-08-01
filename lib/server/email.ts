@@ -231,6 +231,35 @@ export async function emailRestock(o: { email: string; productName: string; url:
   `, logo), "restock");
 }
 
+/** وصفات محاصيله — تُرسل بعد يومين من التوصيل */
+export async function emailBrewTips(o: {
+  email: string | null; name: string;
+  coffees: { name: string; notes: string[]; roast: string | null; brew: { name: string; nums: string }[] }[];
+}) {
+  if (!o.email || o.coffees.length === 0) return;
+  const logo = await getLogo();
+  const site = process.env.SITE_URL ?? "https://khazf.shop";
+
+  const blocks = o.coffees.map((c) => `
+    <div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin:0 0 12px">
+      <p style="font-size:14.5px;font-weight:bold;color:#3d4230;margin:0 0 4px">${c.name}</p>
+      ${c.notes.length ? `<p style="font-size:12px;color:#A66A4C;margin:0 0 8px">${c.notes.join(" · ")}${c.roast ? ` · تحميص ${c.roast}` : ""}</p>` : ""}
+      ${c.brew.map((b) => `<p style="font-size:12.5px;line-height:1.85;color:#6b6459;margin:0"><b style="color:#3d4230">${b.name}</b> — ${b.nums}</p>`).join("")}
+    </div>`).join("");
+
+  await sendMail(o.email, `كيف تحضّر محاصيلك — خزف`, wrap(`
+    <p style="font-size:16px;font-weight:bold;margin:0 0 10px">وصلتك قهوتك يا ${o.name} 🤎</p>
+    <p style="font-size:13.5px;line-height:1.95;margin:0 0 14px">
+      جمعنا لك النِّسب التي نراها الأنسب لكل محصول طلبته — جرّبها كنقطة بداية، ثم اضبطها على ذوقك.
+    </p>
+    ${blocks}
+    <p style="font-size:12.5px;line-height:1.9;margin:4px 0 14px;color:#6b6459">
+      إن جاءت مرّة، خشّن الطحن قليلاً. وإن جاءت حامضة، نعّمه. التعديل بخطوة واحدة في كل مرة.
+    </p>
+    <a href="${site}/guide/" style="display:inline-block;background:#A66A4C;color:#fff;padding:12px 30px;border-radius:10px;font-size:14.5px;font-weight:bold;text-decoration:none">دليل التحضير كاملاً</a>
+  `, logo), "brew_tips");
+}
+
 /** إعلان منتج جديد لقائمة البريد */
 export async function emailNewProduct(o: {
   email: string; productName: string; url: string;

@@ -83,6 +83,7 @@ export const products = pgTable(
     roast: text("roast"),
   roastedOn: date("roasted_on"),   // تاريخ التحميص (يُعرض ٣٠ يوماً ثم يختفي)
   announce: boolean("announce").notNull().default(false),  // أعلنه لقائمة البريد
+  brew: jsonb("brew"),   // نِسب التحضير الخاصة: [{name, nums}]
     altitude: text("altitude"),
     sca: smallint("sca"),
     notes: text("notes").array().notNull().default(sql`'{}'::text[]`), // الإيحاءات

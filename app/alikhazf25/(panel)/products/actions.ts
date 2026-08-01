@@ -33,6 +33,17 @@ function parseProduct(f: FormData) {
     roast: String(f.get("roast") ?? "").trim() || null,
     roastedOn: String(f.get("roastedOn") ?? "").trim() || null,
     announce: f.get("announce") === "on",
+    brew: (() => {
+      const raw = String(f.get("brew") ?? "").trim();
+      if (!raw) return null;
+      const rows = raw.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+        const i = l.indexOf("=");
+        return i > 0
+          ? { name: l.slice(0, i).trim(), nums: l.slice(i + 1).trim() }
+          : { name: l, nums: "" };
+      }).filter((r) => r.name);
+      return rows.length > 0 ? rows : null;
+    })(),
     altitude: String(f.get("altitude") ?? "").trim() || null,
     sca: num(f.get("sca")),
     notes: String(f.get("notes") ?? "").split("،").map((x) => x.trim()).filter(Boolean),

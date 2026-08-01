@@ -89,7 +89,7 @@ function coffeeFromRow(
     images: p.images ?? [],
     rating: agg?.avg ?? 0,
     reviewsCount: agg?.count ?? 0,
-    brew: BREW_DEFAULT,
+    brew: (Array.isArray(p.brew) && p.brew.length > 0 ? p.brew : BREW_DEFAULT) as Coffee["brew"],
     isNew: isNew || p.badge === "جديد",
     soldOut: soldOut || undefined,
     stockLow:
