@@ -91,8 +91,11 @@ function Badge({ label }: { label: string }) {
 export function CoffeeCard({ coffee }: { coffee: Coffee }) {
   const { addToCart } = useStore();
   return (
-    <div className="group overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
-      <Link href={`/product/?c=${coffee.slug}`} className="relative block">
+    <div className="group relative overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
+      {/* رابط ممتد: الضغط بأي مكان من البطاقة يفتح المنتج */}
+      <Link href={`/product/?c=${coffee.slug}`} aria-label={coffee.name}
+        className="absolute inset-0 z-[1]" />
+      <div className="relative block">
         <div className="flex aspect-square items-center justify-center overflow-hidden bg-white">
           {coffee.image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -106,9 +109,9 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
           )}
         </div>
         {coffee.isNew && <Badge label="جديد" />}
-        <FavBtn id={`c:${coffee.slug}`} />
-      </Link>
-      <Link href={`/product/?c=${coffee.slug}`} className="block p-4">
+        <div className="relative z-[2]"><FavBtn id={`c:${coffee.slug}`} /></div>
+      </div>
+      <div className="block p-4">
         <p className="text-[11px] text-muted">{coffee.country}</p>
         <h3 className="mt-0.5 text-lg font-bold">{coffee.name}</h3>
         {coffee.reviewsCount > 0 && (
@@ -136,14 +139,14 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
               });
             }}
             aria-label={coffee.soldOut ? "نفذ مؤقتاً" : `أضف ${coffee.name}`}
-            className={`flex h-9 items-center justify-center rounded-full text-olive-text transition-transform active:scale-90 ${
+            className={`relative z-[2] flex h-9 items-center justify-center rounded-full text-olive-text transition-transform active:scale-90 ${
               coffee.soldOut ? "w-auto cursor-default bg-bg-alt px-3 text-[11px] font-bold !text-muted" : "w-9 bg-accent hover:scale-105"
             }`}
           >
             {coffee.soldOut ? "نفذ مؤقتاً" : <Plus size={17} />}
           </button>
         </div>
-      </Link>
+      </div>
     </div>
   );
 }
@@ -151,8 +154,11 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
 export function ToolCard({ tool }: { tool: Tool }) {
   const { addToCart, showToast } = useStore();
   return (
-    <div className="group overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
-      <Link href={`/product/?t=${tool.slug}`} className="relative block">
+    <div className="group relative overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
+      {/* رابط ممتد: الضغط بأي مكان من البطاقة يفتح المنتج */}
+      <Link href={`/product/?t=${tool.slug}`} aria-label={tool.name}
+        className="absolute inset-0 z-[1]" />
+      <div className="relative block">
         {tool.images && tool.images.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={tool.images[0]} alt={tool.name}
@@ -166,13 +172,11 @@ export function ToolCard({ tool }: { tool: Tool }) {
             نفد
           </span>
         )}
-        <FavBtn id={`t:${tool.slug}`} />
-      </Link>
+        <div className="relative z-[2]"><FavBtn id={`t:${tool.slug}`} /></div>
+      </div>
       <div className="p-4">
         <p className="text-[11px] text-muted">{tool.type}</p>
-        <Link href={`/product/?t=${tool.slug}`}>
-          <h3 className="mt-0.5 text-lg font-bold">{tool.name}</h3>
-        </Link>
+        <h3 className="mt-0.5 text-lg font-bold">{tool.name}</h3>
         <div className="mt-1 flex items-center gap-2">
           <Stars value={tool.rating} />
           <span className="font-num text-[11px] text-muted">
@@ -188,7 +192,7 @@ export function ToolCard({ tool }: { tool: Tool }) {
               onClick={() => showToast("راح ننبهك أول ما يرجع")}
               aria-label="نبّهني عند التوفر"
               title="نبّهني عند التوفر"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-gold hover:text-gold active:scale-90"
+              className="relative z-[2] flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-gold hover:text-gold active:scale-90"
             >
               <Bell size={15} />
             </button>
@@ -198,7 +202,7 @@ export function ToolCard({ tool }: { tool: Tool }) {
                 addToCart({ slug: tool.slug, variant: "PIECE", name: tool.name, priceShown: tool.price })
               }
               aria-label={`أضف ${tool.name}`}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-olive-text transition-transform hover:scale-105 active:scale-90"
+              className="relative z-[2] flex h-9 w-9 items-center justify-center rounded-full bg-accent text-olive-text transition-transform hover:scale-105 active:scale-90"
             >
               <Plus size={17} />
             </button>

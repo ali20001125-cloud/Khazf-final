@@ -49,6 +49,7 @@ interface StoreState {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, "qty" | "key">, qty?: number, silent?: boolean) => void;
   removeFromCart: (key: string) => void;
+  convertToBox: () => void;
   setQty: (key: string, qty: number) => void;
   clearCart: () => void;
   toast: string | null;
@@ -155,6 +156,18 @@ export function StoreProvider({
     [showToast]
   );
 
+  /** يحوّل أكياس القهوة العادية (٢٥٠غ) إلى بوكس واحد — ليُطبَّق خصم الكمية */
+  const convertToBox = useCallback(() => {
+    setCart((prev) => {
+      const group = Date.now();
+      return prev.map((i) =>
+        i.variant === "G250" && i.boxGroup == null
+          ? { ...i, boxGroup: group, key: [i.slug, i.variant, i.grind ?? "", group, i.variantId ?? ""].join("|") }
+          : i
+      );
+    });
+  }, []);
+
   const removeFromCart = useCallback(
     (key: string) => setCart((p) => p.filter((i) => i.key !== key)),
     []
@@ -179,7 +192,7 @@ export function StoreProvider({
     <SiteConfigContext.Provider value={config}>
       <StoreContext.Provider
         value={{
-          cart, addToCart, removeFromCart, setQty, clearCart,
+          cart, addToCart, removeFromCart, setQty, clearCart, convertToBox,
           toast, showToast, bump,
           useCashback, setUseCashback,
           coupon, setCoupon,

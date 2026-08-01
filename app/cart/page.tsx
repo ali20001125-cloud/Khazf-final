@@ -16,7 +16,7 @@ export default function CartPage() {
   const config = useSiteConfig();
   const { coffees } = useCatalog();
   const {
-    cart, setQty, removeFromCart, addToCart,
+    cart, setQty, removeFromCart, addToCart, convertToBox,
     coupon, setCoupon, useCashback, setUseCashback,
     boxGiftChoice, showToast,
   } = useStore();
@@ -51,6 +51,28 @@ export default function CartPage() {
 
   const subtotal = useMemo(() => cart.reduce((t, i) => t + i.priceShown * i.qty, 0), [cart]);
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
+
+  /* فرصة البوكس: أكياس قهوة عادية (٢٥٠غ) خارج البوكس — نحسب كم يوفّر لو حوّلها */
+  const boxChance = useMemo(() => {
+    const loose = cart.filter((i) => i.variant === "G250" && i.boxGroup == null);
+    const bags = loose.reduce((t, i) => t + i.qty, 0);
+    if (bags === 0) return null;
+    const sub = loose.reduce((t, i) => t + i.priceShown * i.qty, 0);
+    const tiers = config.boxTiers ?? [];
+    // خصم لو حوّلناها الآن
+    let pct = 0, free = false, gift = false;
+    for (const t of tiers) if (bags >= t.bags) {
+      if (t.rewardType === "PERCENT") pct = Math.max(pct, t.value ?? 0);
+      if (t.rewardType === "FREE_DELIVERY") free = true;
+      if (t.rewardType === "GIFT") gift = true;
+    }
+    const saving = Math.round((sub * pct) / 100);
+    // المستوى التالي: كم كيساً ناقصاً وكم يمنح
+    const next = tiers
+      .filter((t) => t.bags > bags)
+      .sort((a, b) => a.bags - b.bags)[0];
+    return { bags, saving, pct, free, gift, next, avgPrice: Math.round(sub / Math.max(1, bags)) };
+  }, [cart, config.boxTiers]);
 
   const afterBox = subtotal - box.discount;
   /* ═ المعاينة الحية من الخادم — نفس حساب صفحة الدفع تماماً ═
@@ -130,6 +152,32 @@ export default function CartPage() {
       <h1 className="reveal text-3xl font-bold md:text-4xl">السلة</h1>
 
       {/* شريط تقدّم التوصيل المجاني */}
+      {/* فرصة البوكس — تحويل بضغطة أو دعوة لإضافة كيس */}
+      {boxChance && (
+        boxChance.saving > 0 ? (
+          <div className="reveal mt-5 rounded-[16px] border border-gold/35 bg-gold/8 p-4">
+            <p className="text-[13.5px] font-bold leading-snug">
+              أكياسك الـ<span className="font-num">{boxChance.bags}</span> تصلح بوكس —
+              وفّر <span className="font-num text-accent">{formatIQD(boxChance.saving)}</span>
+              {boxChance.free ? " مع توصيل مجاني" : ""}{boxChance.gift ? " وهدية" : ""}
+            </p>
+            <button onClick={convertToBox}
+              className="btn btn-clay mt-3 flex w-full items-center justify-center !py-2.5 text-[13px] active:scale-[0.98]">
+              حوّلها لبوكس ووفّر {boxChance.pct}٪
+            </button>
+          </div>
+        ) : boxChance.next ? (
+          <Link href="/box/" className="reveal mt-5 flex items-center justify-between gap-3 rounded-[16px] border border-line bg-card p-4 active:scale-[0.99]">
+            <p className="text-[13px] font-semibold leading-snug">
+              أضِف <span className="font-num text-accent">{boxChance.next.bags - boxChance.bags}</span>
+              {boxChance.next.bags - boxChance.bags === 1 ? " كيساً" : " أكياس"} وتبدأ خصومات البوكس
+              {boxChance.next.rewardType === "PERCENT" ? ` (${boxChance.next.value}٪)` : ""}
+            </p>
+            <ArrowLeft size={16} className="shrink-0 text-accent" />
+          </Link>
+        ) : null
+      )}
+
       {config.freeDeliveryThreshold > 0 && !freeDelivery && (() => {
         const remaining = config.freeDeliveryThreshold - subtotal;
         const pct = Math.min(100, (subtotal / config.freeDeliveryThreshold) * 100);

@@ -429,6 +429,25 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
           <p className="pv-in mt-4 text-[12px] text-muted opacity-0">
             توصيل ١–٢ يوم لكل المحافظات · دفع عند الاستلام
           </p>
+
+          {/* دعوة البوكس — أقوى موضع: الزبون قرّر الشراء للتو */}
+          {!coffee.soldOut && (
+            <Link href="/box/"
+              className="pv-in mt-5 flex items-center gap-4 rounded-[18px] border border-gold/30 bg-gold/6 p-4 opacity-0 transition-all active:scale-[0.99]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[13px] bg-gold/15 text-gold">
+                <Gift size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] font-bold leading-snug">
+                  خذ ٣ أكياس ووفّر ١٠٪ — و٤ توفّر ٢٠٪
+                </p>
+                <p className="mt-0.5 text-[11.5px] text-muted">
+                  اصنع صندوقك: توصيل مجاني وهدية تختارها مع الخامس والسادس
+                </p>
+              </div>
+              <ArrowLeft size={16} className="shrink-0 text-gold" />
+            </Link>
+          )}
         </div>
       </section>
 
