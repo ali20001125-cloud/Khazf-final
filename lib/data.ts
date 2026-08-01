@@ -33,7 +33,7 @@ export interface Coffee {
   story: string;
 }
 
-export type ToolCat = "تقطير" | "إسبريسو";
+export type ToolCat = "تقطير" | "إسبريسو" | "أكواب";
 
 export interface Tool {
   slug: string;
@@ -60,6 +60,7 @@ export interface ToolVariant {
   price: number | null;
   salePrice?: number | null;
   stock: number;
+  hex?: string | null;
   image?: string | null;
 }
 

@@ -146,7 +146,7 @@ export async function getCatalog(): Promise<CatalogData> {
   for (const v of variantRows) {
     const arr = variantsByProduct.get(v.productId) ?? [];
     arr.push({ id: v.id, label: v.label, kind: v.kind as "SIZE" | "COLOR" | "PACK",
-      price: v.price, salePrice: v.salePrice, stock: v.stock, image: v.image });
+      price: v.price, salePrice: v.salePrice, stock: v.stock, hex: v.hex, image: v.image });
     variantsByProduct.set(v.productId, arr);
   }
 
@@ -157,6 +157,7 @@ export async function getCatalog(): Promise<CatalogData> {
     .orderBy(s.places.sort);
   const activePlaceIds = new Set(placesRows.map((p) => p.id));
   const espActive = placesRows.some((p) => p.slug === "espresso_tools");
+  const cupsActive = placesRows.some((p) => p.slug === "cups");
   const dripActive = placesRows.some((p) => p.slug === "drip_tools");
 
   const rows = await db.select().from(s.products).where(eq(s.products.active, true));
@@ -201,6 +202,7 @@ export async function getCatalog(): Promise<CatalogData> {
       const cats: ToolCat[] = [];
       if (espActive && slugsHere.includes("espresso_tools")) cats.push("إسبريسو");
       if (dripActive && slugsHere.includes("drip_tools")) cats.push("تقطير");
+      if (cupsActive && slugsHere.includes("cups")) cats.push("أكواب");
       if (cats.length === 0) continue; // أماكن الأدوات مُوقَفة → لا تظهر
       const t = toolFromRow(p, stock, cats, p.subcategoryId ? (subName.get(p.subcategoryId) ?? null) : null, agg.get(p.id), variantsByProduct.get(p.id) ?? []);
       if (t) tools.push(t);

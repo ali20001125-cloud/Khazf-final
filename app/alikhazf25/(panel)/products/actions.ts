@@ -94,7 +94,7 @@ async function syncVariants(productId: number, f: FormData) {
   const raw = f.get("variants");
   if (raw == null) return; // النموذج لم يرسل الحقل — لا نلمس الخيارات
   let rows: { id?: number; label: string; kind: string; price: unknown; salePrice?: unknown;
-    costPrice?: unknown; stock: unknown; image?: string | null; active?: boolean }[] = [];
+    costPrice?: unknown; stock: unknown; hex?: string | null; image?: string | null; active?: boolean }[] = [];
   try { rows = JSON.parse(String(raw)); } catch { return; }
   if (!Array.isArray(rows)) return;
 
@@ -113,6 +113,7 @@ async function syncVariants(productId: number, f: FormData) {
       salePrice: n(r.salePrice) || null,
       costPrice: n(r.costPrice) || null,
       stock: n(r.stock) ?? 0,
+      hex: String((r as { hex?: string }).hex ?? "").trim() || null,
       image: String(r.image ?? "").trim() || null,
       sort: i,
       active: r.active !== false,

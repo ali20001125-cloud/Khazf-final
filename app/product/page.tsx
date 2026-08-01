@@ -880,16 +880,28 @@ function ToolView({ tool }: { tool: Tool }) {
           </div>
 
           {gallery.length > 1 && (
-            <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1">
-              {gallery.map((src, i) => (
+            <div className="mt-3 flex gap-2.5">
+              {gallery.slice(0, 4).map((src, i) => (
                 <button key={src + i} onClick={() => setImgIdx(i)}
-                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-[12px] border-2 transition-all ${
+                  className={`h-14 w-14 shrink-0 overflow-hidden rounded-[11px] border-2 transition-all ${
                     i === imgIdx ? "border-clay" : "border-line opacity-70 hover:opacity-100"
                   }`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="h-full w-full bg-card object-contain" />
                 </button>
               ))}
+              {gallery.length > 4 && (
+                <button onClick={() => setImgIdx(4)}
+                  className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-[11px] border-2 ${
+                    imgIdx >= 4 ? "border-clay" : "border-line"
+                  }`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={gallery[4]} alt="" className="h-full w-full bg-card object-contain blur-[1.5px]" />
+                  <span className="font-num absolute inset-0 flex items-center justify-center bg-ink/55 text-[13px] font-bold text-cream">
+                    +{gallery.length - 4}
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -944,11 +956,14 @@ function ToolView({ tool }: { tool: Tool }) {
                         out ? "cursor-not-allowed border-line bg-bg-alt/50 opacity-50"
                         : active ? "border-clay bg-clay/8" : "border-line bg-card hover:border-muted"
                       }`}>
-                      {v.image && (
+                      {v.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={v.image} alt={v.label}
                           className="h-9 w-9 shrink-0 rounded-[9px] border border-line object-cover" />
-                      )}
+                      ) : v.hex ? (
+                        <span className="h-7 w-7 shrink-0 rounded-full border border-line"
+                          style={{ background: v.hex }} />
+                      ) : null}
                       <span>
                         <span className="block text-[13px] font-bold">{v.label}</span>
                         <span className="font-num mt-0.5 block text-[11.5px] text-muted">

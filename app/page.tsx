@@ -40,6 +40,14 @@ export default function Home() {
           href="/products/?cat=espresso"
         />
       )}
+      {activePlaces.includes("cups") && (
+        <ToolsSection
+          cat="أكواب"
+          title="الأكواب والتقديم"
+          sub="أكواب سيراميك وزجاج — لأن التقديم جزء من التجربة"
+          href="/products/?cat=cups"
+        />
+      )}
       {activePlaces.includes("drip_tools") && (
         <ToolsSection
           cat="تقطير"

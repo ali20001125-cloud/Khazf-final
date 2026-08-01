@@ -28,7 +28,7 @@ export default async function ToolEdit({ params }: { params: Promise<{ id: strin
   const variants = vRows.map((v) => ({
     id: v.id, label: v.label, kind: v.kind as "SIZE" | "COLOR" | "PACK",
     price: v.price, salePrice: v.salePrice, costPrice: v.costPrice,
-    stock: v.stock, image: v.image, active: v.active,
+    stock: v.stock, hex: v.hex, image: v.image, active: v.active,
   }));
 
   return (

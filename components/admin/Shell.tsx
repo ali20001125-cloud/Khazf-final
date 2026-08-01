@@ -68,13 +68,19 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   /* إشعار الحفظ (من كوكي الإجراءات) + كيبورد أرقام لكل الحقول الرقمية */
   const [flash, setFlash] = useState<string | null>(null);
   useEffect(() => {
-    const m = document.cookie.match(/khz_flash=([^;]+)/);
-    if (m) {
+    // نفحص الكوكي دورياً — الحفظ بالإجراءات لا يغيّر المسار، فلا يكفي الاعتماد عليه
+    let hideTimer: number | undefined;
+    const check = () => {
+      const m = document.cookie.match(/khz_flash=([^;]+)/);
+      if (!m) return;
       setFlash(decodeURIComponent(m[1]));
       document.cookie = "khz_flash=; path=/; max-age=0";
-      const t = setTimeout(() => setFlash(null), 2500);
-      return () => clearTimeout(t);
-    }
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => setFlash(null), 3000);
+    };
+    check();
+    const iv = window.setInterval(check, 500);
+    return () => { window.clearInterval(iv); window.clearTimeout(hideTimer); };
   }, [pathname]);
   useEffect(() => {
     document.querySelectorAll<HTMLInputElement>("input.font-num:not([type=password])").forEach((el) => {

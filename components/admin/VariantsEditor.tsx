@@ -13,6 +13,7 @@ export type VariantRow = {
   salePrice?: number | string | null;
   costPrice?: number | string | null;
   stock: number | string;
+  hex?: string | null;      // درجة اللون (منتقي) — للخيارات من نوع لون
   image?: string | null;
   active?: boolean;
 };
@@ -23,7 +24,7 @@ const withCommas = (v: unknown) => {
   return d ? Number(d).toLocaleString("en") : "";
 };
 
-const empty = (): VariantRow => ({ label: "", kind: "SIZE", price: "", salePrice: "", costPrice: "", stock: 0, image: "", active: true });
+const empty = (): VariantRow => ({ label: "", kind: "SIZE", price: "", salePrice: "", costPrice: "", stock: 0, hex: "", image: "", active: true });
 
 export default function VariantsEditor({ initial }: { initial?: VariantRow[] | null }) {
   const [rows, setRows] = useState<VariantRow[]>(initial?.length ? initial : []);
@@ -104,10 +105,24 @@ export default function VariantsEditor({ initial }: { initial?: VariantRow[] | n
             </div>
 
             {v.kind === "COLOR" && (
-              <div className="sm:col-span-3">
-                <label className="mb-1 block text-[11.5px] font-bold text-muted">صورة اللون</label>
-                <SingleImageInline label="صورة اللون" value={v.image ?? ""} onChange={(url) => upd(i, { image: url })} />
-              </div>
+              <>
+                <div>
+                  <label className="mb-1 block text-[11.5px] font-bold text-muted">
+                    درجة اللون <span className="font-normal">(اختر بدل الكتابة)</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={v.hex || "#cccccc"}
+                      onChange={(e) => upd(i, { hex: e.target.value })}
+                      className="h-11 w-14 shrink-0 cursor-pointer rounded-[10px] border border-line bg-bg p-1" />
+                    <input value={v.hex ?? ""} onChange={(e) => upd(i, { hex: e.target.value })}
+                      placeholder="#C9A15A" className={`${inputCls} font-num`} dir="ltr" />
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-[11.5px] font-bold text-muted">صورة اللون <span className="font-normal">(اختياري)</span></label>
+                  <SingleImageInline label="صورة اللون" value={v.image ?? ""} onChange={(url) => upd(i, { image: url })} />
+                </div>
+              </>
             )}
 
             <label className="flex items-center gap-2 text-[12.5px] font-bold sm:col-span-3">

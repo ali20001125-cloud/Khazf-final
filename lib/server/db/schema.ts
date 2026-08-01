@@ -498,6 +498,7 @@ export const productVariants = pgTable("product_variants", {
   salePrice: integer("sale_price"),
   costPrice: integer("cost_price"),
   stock: integer("stock").notNull().default(0),
+  hex: text("hex"),                  // درجة اللون
   image: text("image"),
   sort: smallint("sort").notNull().default(0),
   active: boolean("active").notNull().default(true),
