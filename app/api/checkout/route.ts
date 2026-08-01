@@ -73,6 +73,15 @@ export async function POST(req: Request) {
     const site = process.env.SITE_URL ?? "https://khazf.shop";
     const invoiceUrl = `${site}/invoice/?n=${result.orderNumber}&p=${encodeURIComponent(phone)}`;
     emailNewOrderAdmin({ orderNumber: result.orderNumber, name: body.name?.trim() || "زبون خزف", phone, governorate: body.governorate, total: result.total, invoiceUrl }).catch(() => {});
+    // سياق المكافآت للإيميل: الرصيد بعد الطلب وموقع الزبون من رحلة الولاء
+    const rewardCtx = await (async () => {
+      try {
+        const [c] = await db.select({ b: s.customers.pointsBalance, j: s.customers.journeyOrders })
+          .from(s.customers).where(eq(s.customers.phone, body.phone.trim()));
+        return { balance: c?.b ?? null, journeyOrders: c?.j ?? null };
+      } catch { return { balance: null, journeyOrders: null }; }
+    })();
+
     emailOrderCustomer({
       email: body.email?.trim() || null, orderNumber: result.orderNumber,
       name: body.name?.trim() || "صديق خزف", total: result.total, invoiceUrl,
@@ -80,6 +89,10 @@ export async function POST(req: Request) {
       itemsSubtotal: result.itemsSubtotal, journeyDiscount: result.journeyDiscount,
       pointsUsed: result.pointsUsedDinars, deliveryCharged: result.deliveryCharged,
       freeDelivery: result.deliveryCharged === 0,
+      pointsEarned: result.pointsEarned,
+      pointsBalanceAfter: rewardCtx.balance ?? undefined,
+      journeyOrders: rewardCtx.journeyOrders ?? undefined,
+      giftName: result.appliedJourney?.giftName ?? null,
     }).catch(() => {});
     notifyOrderTelegram({
       orderNumber: result.orderNumber, seqNo: result.seqNo, name: body.name?.trim() || "زبون خزف",

@@ -79,6 +79,8 @@ export async function emailOrderCustomer(o: {
   items?: { name: string; qty: number; line: number }[];
   itemsSubtotal?: number; journeyDiscount?: number; pointsUsed?: number;
   deliveryCharged?: number; freeDelivery?: boolean;
+  pointsEarned?: number; pointsBalanceAfter?: number;   // كاش باك هذا الطلب والرصيد المتبقي
+  journeyOrders?: number; giftName?: string | null;      // موقع الزبون من رحلة الستّ طلبات
 }) {
   if (!o.email) return;
   const logo = await getLogo();
@@ -88,6 +90,43 @@ export async function emailOrderCustomer(o: {
   ).join("");
   const line = (label: string, val: string, color = "#1C1A18") =>
     `<tr><td style="padding:3px 0;font-size:12.5px;color:#6E655A">${label}</td><td style="padding:3px 0;font-size:12.5px;text-align:left;color:${color}" dir="ltr">${val}</td></tr>`;
+  /* بطاقة المكافآت: كاش باك هذا الطلب + الرصيد + موقعه من رحلة الولاء */
+  const rewardsCard = (() => {
+    const parts: string[] = [];
+    if (o.pointsEarned && o.pointsEarned > 0) {
+      parts.push(`<p style="font-size:12.5px;line-height:1.9;margin:0 0 6px;color:#6b6459">
+        يُضاف إلى رصيدك <b style="color:#A66A4C">${m(o.pointsEarned)} د.ع</b> كاش باك فور تأكيد توصيل طلبك${
+          o.pointsBalanceAfter != null ? ` — ليصبح رصيدك <b style="color:#A66A4C">${m(o.pointsBalanceAfter)} د.ع</b>` : ""}.
+      </p>`);
+    } else if (o.pointsUsed) {
+      parts.push(`<p style="font-size:12.5px;line-height:1.9;margin:0 0 6px;color:#6b6459">
+        استخدمت <b style="color:#A66A4C">${m(o.pointsUsed)} د.ع</b> من رصيدك في هذا الطلب${
+          o.pointsBalanceAfter != null ? ` — والمتبقي <b style="color:#A66A4C">${m(o.pointsBalanceAfter)} د.ع</b>` : ""}.
+      </p>`);
+    }
+    if (o.giftName) {
+      parts.push(`<p style="font-size:12.5px;line-height:1.9;margin:0 0 6px;color:#6b6459">
+        🎁 مع هذا الطلب: <b style="color:#3d4230">${o.giftName}</b>
+      </p>`);
+    }
+    if (o.journeyOrders != null) {
+      const done = Math.min(6, Math.max(0, o.journeyOrders));
+      const dots = Array.from({ length: 6 }, (_, i) =>
+        `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 2px;background:${i < done ? "#c9a961" : "#e0dcd3"}"></span>`
+      ).join("");
+      const left = 6 - done;
+      parts.push(`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e2db">
+        <p style="font-size:12px;font-weight:bold;color:#3d4230;margin:0 0 6px">رحلتك مع خزف</p>
+        <div style="margin:0 0 6px">${dots}</div>
+        <p style="font-size:12px;color:#6b6459;margin:0">${
+          left > 0 ? `بقيت ${left === 1 ? "طلبية واحدة" : `${m(left)} طلبات`} ويصلك كيس قهوة مجاني`
+                   : "أكملت رحلتك — كيس القهوة المجاني بانتظارك"}</p>
+      </div>`);
+    }
+    if (parts.length === 0) return "";
+    return `<div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin-top:16px">${parts.join("")}</div>`;
+  })();
+
   await sendMail(o.email, `تم استلام طلبك ${o.orderNumber} — خزف`, wrap(`
     <p style="font-size:15px;font-weight:bold">شكراً ${o.name}!</p>
     <p style="font-size:13px;line-height:1.9">استلمنا طلبك <b>${o.orderNumber}</b> والتوصيل خلال ١–٢ يوم عمل.</p>
@@ -103,7 +142,8 @@ export async function emailOrderCustomer(o: {
     <table style="width:100%;border-collapse:collapse;border-top:2px solid #1C1A18;margin-top:8px">
       <tr><td style="padding:10px 0;font-size:15px;font-weight:bold">الإجمالي (كاش عند الاستلام)</td><td style="padding:10px 0;font-size:17px;font-weight:bold;text-align:left;color:#A66A4C" dir="ltr">${m(o.total)} د.ع</td></tr>
     </table>
-    <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none;margin-top:6px">عرض الفاتورة على الموقع</a>
+        <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none;margin-top:6px">عرض الفاتورة على الموقع</a>
+    ${rewardsCard}
   `, logo), "order_confirm");
 }
 

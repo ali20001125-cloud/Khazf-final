@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { fmtDate } from "@/lib/datetime";
+import OrderTimeline from "@/components/OrderTimeline";
 import { formatIQD, governorates } from "@/lib/data";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore } from "@/lib/store";
@@ -164,28 +165,44 @@ function AccountInner() {
         {tab === "orders" && (
           (me.orders ?? []).length > 0 ? (
             <div className="space-y-2.5">
-              {me.orders!.map((o) => (
+              {me.orders!.map((o) => {
+                const firstSlug = o.items?.find((it) => it.slug)?.slug;
+                const img = firstSlug
+                  ? (coffees.find((c) => c.slug === firstSlug)?.image
+                     ?? tools.find((t) => t.slug === firstSlug)?.images?.[0])
+                  : undefined;
+                return (
                 <div key={o.orderNumber}
                   className="rounded-[16px] border border-line bg-card px-5 py-4">
                   <Link href={`/invoice/?n=${o.orderNumber}&p=${me.phone}`}
-                    className="flex items-center justify-between transition-all active:scale-[0.99]">
-                    <div>
+                    className="flex items-center gap-3 transition-all active:scale-[0.99]">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-bg-alt">
+                      {img
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={img} alt="" className="h-full w-full object-cover" />
+                        : <span className="flex h-full w-full items-center justify-center text-[16px]">☕</span>}
+                    </div>
+                    <div className="min-w-0 flex-1">
                       <p className="font-num text-[14px] font-bold">{o.orderNumber}</p>
                       <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {fmtDate(o.createdAt)}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       <span className="font-num text-[13px] font-bold">{formatIQD(o.total)}</span>
                       <ChevronLeft size={16} className="text-muted" />
                     </div>
                   </Link>
+
+                  <OrderTimeline createdAt={o.createdAt} status={o.status} />
+
                   {(o.items?.length ?? 0) > 0 && (
                     <button onClick={() => reorder(o.items!)}
-                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-[11px] border border-clay/30 bg-clay/5 py-2.5 text-[12.5px] font-bold text-clay transition-colors hover:bg-clay/10 active:scale-[0.98]">
-                      <RotateCcw size={14} /> إعادة الطلب
+                      className="btn btn-clay mt-3.5 flex w-full items-center justify-center gap-2 !py-3 text-[13.5px] active:scale-[0.98]">
+                      <RotateCcw size={15} /> إعادة الطلب
                     </button>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : <Empty icon={Package} text="ما عندك طلبات بعد" cta />
         )}
