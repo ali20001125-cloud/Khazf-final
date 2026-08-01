@@ -63,7 +63,7 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
     const p = bySlug.get(it.slug);
     if (!p) continue;
     const ch = it.variantId ? byVId.get(it.variantId) : undefined;
-    const unit = ch ? (ch.salePrice ?? ch.price)
+    const unit = ch ? (ch.salePrice ?? ch.price ?? p.salePrice ?? p.pricePiece ?? 0)
       : (it.variant === "PIECE" ? (p.salePrice ?? priceOf(p, it.variant)) : priceOf(p, it.variant)) ?? 0;
     const lineTotal = unit * it.qty;
     grossSubtotal += lineTotal;

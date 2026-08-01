@@ -770,10 +770,10 @@ function ToolView({ tool }: { tool: Tool }) {
   });
   const chosenVariant = pv.length > 0 ? pv[pvIdx] : null;
   const unitPrice = chosenVariant
-    ? (chosenVariant.salePrice ?? chosenVariant.price)
+    ? (chosenVariant.salePrice ?? chosenVariant.price ?? tool.price)
     : (tool.salePrice ?? tool.price);
   const strikePrice = chosenVariant
-    ? (chosenVariant.salePrice != null ? chosenVariant.price : null)
+    ? (chosenVariant.salePrice != null ? (chosenVariant.price ?? tool.price) : null)
     : (tool.salePrice != null ? tool.price : null);
   const variantOut = chosenVariant ? chosenVariant.stock < 1 : false;
 
@@ -943,7 +943,7 @@ function ToolView({ tool }: { tool: Tool }) {
                       }`}>
                       <span className="block text-[13px] font-bold">{v.label}</span>
                       <span className="font-num mt-0.5 block text-[11.5px] text-muted">
-                        {out ? "نفد" : formatIQD(v.salePrice ?? v.price)}
+                        {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
                       </span>
                     </button>
                   );

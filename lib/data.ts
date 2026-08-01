@@ -57,7 +57,7 @@ export interface ToolVariant {
   id: number;
   label: string;
   kind: "SIZE" | "COLOR" | "PACK";
-  price: number;
+  price: number | null;
   salePrice?: number | null;
   stock: number;
   image?: string | null;

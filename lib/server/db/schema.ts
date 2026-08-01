@@ -494,7 +494,7 @@ export const productVariants = pgTable("product_variants", {
   productId: integer("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   label: text("label").notNull(),
   kind: text("kind").notNull().default("SIZE"),   // SIZE | COLOR | PACK
-  price: integer("price").notNull(),
+  price: integer("price"),           // فارغ = يُستخدم سعر القطعة العام
   salePrice: integer("sale_price"),
   costPrice: integer("cost_price"),
   stock: integer("stock").notNull().default(0),

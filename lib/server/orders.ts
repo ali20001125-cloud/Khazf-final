@@ -86,7 +86,7 @@ export async function createOrder(input: CheckoutInput) {
         throw new Error(`الكمية غير متوفرة: ${p.name} · ${chosen.label}`);
 
       const price = chosen
-        ? (chosen.salePrice ?? chosen.price)
+        ? (chosen.salePrice ?? chosen.price ?? p.salePrice ?? p.pricePiece)
         : it.variant === "PIECE"
           ? (p.salePrice ?? p.pricePiece)
           : it.variant === "G250"

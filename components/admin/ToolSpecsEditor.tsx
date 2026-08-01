@@ -58,8 +58,8 @@ export default function ToolSpecsEditor({ initial }: { initial?: ToolSpecs | nul
         empty={{ key: "", value: "" }}
         render={(it, set) => (
           <div className="flex flex-1 gap-2">
-            <input value={it.key} onChange={(e) => set({ ...it, key: e.target.value })} className={`${inp} w-1/3`} placeholder="المادة" />
-            <input value={it.value} onChange={(e) => set({ ...it, value: e.target.value })} className={`${inp} flex-1`} placeholder="زجاج بوروسيليكات" />
+            <input value={it.key ?? ""} onChange={(e) => set({ ...it, key: e.target.value })} className={`${inp} w-1/3`} placeholder="المادة" />
+            <input value={it.value ?? ""} onChange={(e) => set({ ...it, value: e.target.value })} className={`${inp} flex-1`} placeholder="زجاج بوروسيليكات" />
           </div>
         )}
       />
@@ -127,6 +127,11 @@ function ListEditor<T>({ title, hint, items, setItems, empty, render }: {
       <p className={secTitle}>{title}</p>
       <p className={secHint}>{hint}</p>
       <div className="space-y-2">
+        {items.length === 0 && (
+          <p className="rounded-[10px] bg-bg-alt px-3 py-2.5 text-[11.5px] text-muted">
+            اضغط «+ إضافة» أدناه لتظهر الحقول
+          </p>
+        )}
         {items.map((it, i) => (
           <div key={i} className="flex items-start gap-2 rounded-[12px] border border-line bg-card p-2.5">
             {render(it, (v) => setItems(items.map((x, j) => (j === i ? v : x))))}
@@ -148,6 +153,11 @@ function StringListEditor({ title, hint, items, setItems, placeholder }: {
       <p className={secTitle}>{title}</p>
       <p className={secHint}>{hint}</p>
       <div className="space-y-2">
+        {items.length === 0 && (
+          <p className="rounded-[10px] bg-bg-alt px-3 py-2.5 text-[11.5px] text-muted">
+            اضغط «+ إضافة» أدناه لتظهر الحقول
+          </p>
+        )}
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
             <input value={it} onChange={(e) => setItems(items.map((x, j) => (j === i ? e.target.value : x)))} className={inp} placeholder={placeholder} />

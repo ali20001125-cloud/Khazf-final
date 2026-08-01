@@ -9,7 +9,7 @@ export type VariantRow = {
   id?: number;
   label: string;
   kind: "SIZE" | "COLOR" | "PACK";
-  price: number | string;
+  price?: number | string | null;
   salePrice?: number | string | null;
   costPrice?: number | string | null;
   stock: number | string;
@@ -88,9 +88,9 @@ export default function VariantsEditor({ initial }: { initial?: VariantRow[] | n
             </div>
 
             <div>
-              <label className="mb-1 block text-[11.5px] font-bold text-muted">السعر</label>
+              <label className="mb-1 block text-[11.5px] font-bold text-muted">السعر <span className="font-normal">(فارغ = السعر العام)</span></label>
               <input value={withCommas(v.price)} onChange={(e) => upd(i, { price: digits(e.target.value) })}
-                inputMode="numeric" placeholder="6500" className={`${inputCls} font-num`} dir="ltr" />
+                inputMode="numeric" placeholder="السعر العام" className={`${inputCls} font-num`} dir="ltr" />
             </div>
             <div>
               <label className="mb-1 block text-[11.5px] font-bold text-muted">سعر العرض <span className="font-normal">(اختياري)</span></label>

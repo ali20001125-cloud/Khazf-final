@@ -103,12 +103,12 @@ async function syncVariants(productId: number, f: FormData) {
     return Number.isFinite(x) && String(v ?? "").trim() !== "" ? x : null;
   };
   const clean = rows
-    .filter((r) => String(r.label ?? "").trim() !== "" && n(r.price) != null)
+    .filter((r) => String(r.label ?? "").trim() !== "")
     .map((r, i) => ({
       productId,
       label: String(r.label).trim().slice(0, 80),
       kind: ["SIZE", "COLOR", "PACK"].includes(String(r.kind)) ? String(r.kind) : "SIZE",
-      price: n(r.price) as number,
+      price: n(r.price),
       salePrice: n(r.salePrice),
       costPrice: n(r.costPrice),
       stock: n(r.stock) ?? 0,

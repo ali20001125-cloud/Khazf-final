@@ -115,7 +115,7 @@ function toolFromRow(
   const soldOut = effStock < 1;
   if (soldOut && p.oosBehavior === "HIDE") return null;
   const basePrice = variants.length > 0
-    ? Math.min(...(activeVars.length > 0 ? activeVars : variants).map((v) => v.salePrice ?? v.price))
+    ? Math.min(...(activeVars.length > 0 ? activeVars : variants).map((v) => v.salePrice ?? v.price ?? p.salePrice ?? p.pricePiece ?? 0))
     : (p.salePrice ?? p.pricePiece ?? 0);
   return {
     slug: p.slug,
