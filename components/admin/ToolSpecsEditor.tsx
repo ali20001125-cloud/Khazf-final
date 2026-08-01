@@ -2,7 +2,7 @@
 /**
  * محرّر تفاصيل الأداة (toolSpecs) — قوائم ديناميكية:
  * البطل · الميزات · المواصفات · الأجزاء المشروحة · النقاط التفاعلية ·
- * المقاسات · الألوان (كل لون بصورته) · التوافق · محتويات العبوة.
+ * التوافق · محتويات العبوة. (المقاسات والألوان انتقلت لمحرّر «خيارات المنتج» — لأن لها سعراً ومخزوناً)
  * يخزّن الناتج JSON في input مخفي باسم tool_specs ليُرسل مع النموذج.
  */
 import { useState } from "react";
@@ -75,35 +75,6 @@ export default function ToolSpecsEditor({ initial }: { initial?: ToolSpecs | nul
             <input value={it.title} onChange={(e) => set({ ...it, title: e.target.value })} className={inp} placeholder="العنوان — مثل: تدفّق موجّه" />
             <input value={it.desc} onChange={(e) => set({ ...it, desc: e.target.value })} className={inp} placeholder="الشرح" />
             <SingleImageInline label="صورة الجزء (اختياري)" value={it.image ?? ""} onChange={(url) => set({ ...it, image: url })} />
-          </div>
-        )}
-      />
-
-      {/* المقاسات */}
-      <ListEditor
-        title="المقاسات" hint="للفلاتر والأقماع (٠١ · ٠٢...)"
-        items={sizes} setItems={setSizes}
-        empty={{ label: "", sub: "" }}
-        render={(it, set) => (
-          <div className="flex flex-1 gap-2">
-            <input value={it.label} onChange={(e) => set({ ...it, label: e.target.value })} className={`${inp} w-1/3`} placeholder="٠١" />
-            <input value={it.sub ?? ""} onChange={(e) => set({ ...it, sub: e.target.value })} className={`${inp} flex-1`} placeholder="١–٢ أكواب" />
-          </div>
-        )}
-      />
-
-      {/* الألوان — كل لون بصورته */}
-      <ListEditor
-        title="الألوان" hint="كل لون باسمه ودرجته وصورته — عند اختيار اللون تظهر صورته"
-        items={colors} setItems={setColors}
-        empty={{ name: "", hex: "#cccccc", image: "" }}
-        render={(it, set) => (
-          <div className="flex-1 space-y-2">
-            <div className="flex gap-2">
-              <input value={it.name} onChange={(e) => set({ ...it, name: e.target.value })} className={`${inp} flex-1`} placeholder="اسم اللون — أزرق" />
-              <input type="color" value={it.hex} onChange={(e) => set({ ...it, hex: e.target.value })} className="h-[42px] w-12 cursor-pointer rounded-[10px] border border-line" />
-            </div>
-            <SingleImageInline label="صورة المنتج بهذا اللون" value={it.image ?? ""} onChange={(url) => set({ ...it, image: url })} />
           </div>
         )}
       />
