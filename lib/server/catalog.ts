@@ -6,7 +6,7 @@
  * • rating/reviewsCount من التقييمات المنشورة فقط (متجر جديد = 0 — لا أرقام مخترعة)
  * • الأدوات تظهر فقط إذا كان أحد أماكنها (إسبريسو/تقطير) فعّالاً
  */
-import { and, eq, inArray, sql, asc } from "drizzle-orm";
+import { and, eq, inArray, sql, sql as sqlTag, asc } from "drizzle-orm";
 import { db, schema as s } from "./db";
 import { getStockMap } from "./stock";
 import type { Coffee, Tool, ToolCat } from "@/lib/data";
@@ -51,13 +51,15 @@ function coffeeFromRow(
   p: ProductRow,
   stock: number,
   agg: { avg: number; count: number } | undefined,
-  isNew: boolean
+  isNew: boolean,
+  roastedOn: string | null = null
 ): Coffee | null {
   const grams = stock;
   const soldOut = grams < 250;
   if (soldOut && p.oosBehavior === "HIDE") return null;
   const bagsLeft = Math.floor(grams / 250);
   return {
+    roastedOn,
     slug: p.slug,
     name: p.name,
     latin: p.latinName ?? p.name,
@@ -189,7 +191,7 @@ export async function getCatalog(): Promise<CatalogData> {
   for (const p of rows) {
     const stock = stockMap.get(p.id) ?? 0;
     if (p.type === "COFFEE") {
-      const c = coffeeFromRow(p, stock, agg.get(p.id), p.createdAt.getTime() > monthAgo);
+      const c = coffeeFromRow(p, stock, agg.get(p.id), p.createdAt.getTime() > monthAgo, p.roastedOn ? String(p.roastedOn) : null);
       if (c && placesOf(p.id).length > 0) coffees.push(c);
     } else {
       const slugsHere = placesOf(p.id);

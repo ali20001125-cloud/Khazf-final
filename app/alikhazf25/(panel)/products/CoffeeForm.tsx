@@ -46,6 +46,9 @@ export default function CoffeeForm({
         <Field label="الارتفاع"><input name="altitude" defaultValue={p.altitude ?? ""} className={inputCls} placeholder="١٤٠٠م" /></Field>
         <Field label="المعالجة"><input name="process" defaultValue={p.process ?? ""} className={inputCls} placeholder="طبيعية" /></Field>
         <Field label="التحميص"><input name="roast" defaultValue={p.roast ?? ""} className={inputCls} placeholder="وسط" /></Field>
+        <Field label="تاريخ التحميص" hint="يظهر بصفحة المنتج ٣٠ يوماً ثم يختفي تلقائياً">
+          <input type="date" name="roastedOn" defaultValue={p.roastedOn ? String(p.roastedOn) : ""} className={`${inputCls} font-num`} dir="ltr" />
+        </Field>
         <Field label="الإيحاءات" hint="بفاصلة ،"><input name="notes" defaultValue={(p.notes ?? []).join("، ")} className={inputCls} placeholder="توت، أزهار" /></Field>
       </Card>
 

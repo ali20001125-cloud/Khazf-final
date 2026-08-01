@@ -31,6 +31,7 @@ function parseProduct(f: FormData) {
     variety: String(f.get("variety") ?? "").trim() || null,
     process: String(f.get("process") ?? "").trim() || null,
     roast: String(f.get("roast") ?? "").trim() || null,
+    roastedOn: String(f.get("roastedOn") ?? "").trim() || null,
     altitude: String(f.get("altitude") ?? "").trim() || null,
     sca: num(f.get("sca")),
     notes: String(f.get("notes") ?? "").split("،").map((x) => x.trim()).filter(Boolean),

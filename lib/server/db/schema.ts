@@ -10,7 +10,7 @@
 
 import {
   pgTable, pgEnum, serial, bigserial, integer, smallint, text, boolean,
-  timestamp, jsonb, primaryKey, uniqueIndex, index,
+  timestamp, date, jsonb, primaryKey, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -81,6 +81,7 @@ export const products = pgTable(
     variety: text("variety"),
     process: text("process"),
     roast: text("roast"),
+  roastedOn: date("roasted_on"),   // تاريخ التحميص (يُعرض ٣٠ يوماً ثم يختفي)
     altitude: text("altitude"),
     sca: smallint("sca"),
     notes: text("notes").array().notNull().default(sql`'{}'::text[]`), // الإيحاءات
@@ -158,6 +159,7 @@ export const inventoryBatches = pgTable(
     costPerPiece: integer("cost_per_piece"), // للأدوات
     note: text("note"),
     receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    roastedAt: date("roasted_at"),   // تاريخ تحميص الدفعة — يُعرض بصدق بصفحة المنتج
   },
   (t) => [index("batches_fifo_idx").on(t.productId, t.receivedAt)]
 );

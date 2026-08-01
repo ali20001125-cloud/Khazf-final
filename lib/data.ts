@@ -1,6 +1,7 @@
 // ─── بيانات وهمية — v3 متجر متكامل ───
 
 export interface Coffee {
+  roastedOn?: string | null;   // تاريخ التحميص (يُعرض ٣٠ يوماً)
   image?: string | null;
   images?: string[];
   slug: string;

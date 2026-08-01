@@ -22,6 +22,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useMotion, reduced } from "@/lib/motion";
 import { useStore } from "@/lib/store";
 import { fbTrack } from "@/lib/fbpixel";
+import { fmtDate } from "@/lib/datetime";
 import ProductJsonLd from "@/components/ProductJsonLd";
 import BagArt from "@/components/BagArt";
 import { CoffeeCard, ToolCard, Stars, ToolVisual } from "@/components/Cards";
@@ -316,6 +317,37 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             )}
           </div>
 
+          {/* ملخّص فوري — يجيب «لماذا أشتري هذه القهوة؟» بلا نزول */}
+          <div className="pv-in mt-4 rounded-[16px] border border-line bg-bg-alt/60 p-4 opacity-0">
+            {coffee.notes?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {coffee.notes.map((n) => (
+                  <span key={n} className="rounded-full bg-card px-3 py-1 text-[12px] font-bold"
+                    style={{ color: coffee.accent }}>{n}</span>
+                ))}
+              </div>
+            )}
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[12px]">
+              {coffee.roast && <span className="text-muted">التحميص <b className="text-ink">{coffee.roast}</b></span>}
+              {coffee.process && <span className="text-muted">المعالجة <b className="text-ink">{coffee.process}</b></span>}
+              {coffee.altitude && <span className="text-muted">الارتفاع <b className="font-num text-ink">{coffee.altitude}</b></span>}
+            </div>
+            {coffee.brew?.length > 0 && (
+              <p className="mt-2.5 border-t border-line pt-2.5 text-[12px] text-muted">
+                مناسبة لـ <b className="text-ink">{coffee.brew.map((b) => b.name).join(" · ")}</b>
+              </p>
+            )}
+            {coffee.roastedOn && (() => {
+              const days = Math.floor((Date.now() - new Date(coffee.roastedOn).getTime()) / 864e5);
+              if (days < 0 || days > 30) return null;   // يختفي تلقائياً بعد ٣٠ يوماً
+              return (
+                <p className="mt-2.5 flex items-center gap-1.5 border-t border-line pt-2.5 text-[12px] font-bold text-ok">
+                  <Flame size={13} /> تحميص حديث · {fmtDate(coffee.roastedOn)}
+                </p>
+              );
+            })()}
+          </div>
+
           <div className="pv-in mt-4 flex flex-wrap items-center gap-3 opacity-0">
             <p className="font-num text-3xl font-bold">{formatIQD(unit)}</p>
             <span className="flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold text-gold">
@@ -527,6 +559,46 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               <ToolCard key={item.slug} tool={item as Tool} />
             )
           )}
+        </div>
+      </section>
+
+      {/* ════ كيف تحضّرها ════ */}
+      {coffee.brew?.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-20 md:px-8">
+          <h2 className="reveal text-2xl font-bold md:text-3xl">كيف تحضّرها</h2>
+          <p className="reveal mt-2 text-[13px] text-muted">نِسب مجرّبة تناسب هذا المحصول</p>
+          <div className="reveal-group mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
+            {coffee.brew.map((b) => (
+              <div key={b.name} className="rounded-[18px] border border-line bg-card p-5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-clay/10 text-clay">
+                  <Droplet size={19} />
+                </div>
+                <p className="mt-3 text-[15px] font-bold">{b.name}</p>
+                <p className="font-num mt-1.5 text-[12.5px] leading-relaxed text-muted">{b.nums}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ════ لماذا تثق بقهوتنا ════ */}
+      <section className="mx-auto max-w-6xl px-4 pt-20 md:px-8">
+        <h2 className="reveal text-2xl font-bold md:text-3xl">لماذا تثق بقهوتنا</h2>
+        <div className="reveal-group mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            { Icon: Flame, t: "تحميص حديث", d: "دفعات صغيرة متكرّرة — لا مخزون يطول على الرف" },
+            { Icon: Droplets, t: "صمّام أحادي", d: "يُخرج غازات التحميص ويمنع دخول الهواء، فتبقى النكهة" },
+            { Icon: Award, t: "محاصيل مختارة", d: "من مزارع محدّدة المصدر، لا خلطات مجهولة" },
+            { Icon: Layers, t: "طحن عند الطلب", d: "تختار طحنتك حسب أداتك، أو حبوباً كاملة" },
+          ].map(({ Icon, t, d }) => (
+            <div key={t} className="rounded-[18px] border border-line bg-card p-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-olive/10 text-olive">
+                <Icon size={19} />
+              </div>
+              <p className="mt-3 text-[14px] font-bold">{t}</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-muted">{d}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -1163,7 +1235,8 @@ function ReviewsSection({ slug, rating, count }: { slug: string; rating: number;
 
       {list.length > 0 && (
         <div className="reveal-group mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((r) => (
+          {/* التعليقات المكتوبة أولاً — أقوى أثراً من النجوم الصامتة */}
+          {[...list].sort((a, b) => (b.comment ? 1 : 0) - (a.comment ? 1 : 0)).map((r) => (
             <div key={r.id} className="rounded-[18px] border border-line bg-card p-5">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-2 text-sm font-bold">
