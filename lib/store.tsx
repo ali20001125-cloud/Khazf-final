@@ -106,8 +106,23 @@ export function StoreProvider({
   }, []);
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [boxGiftChoice, setBoxGiftChoice] = useState<string | null>(null);
+  // المفضلة والمشاهدات تُحفظ محلياً — كانت تضيع عند أي تنقّل أو تحديث
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const f = localStorage.getItem("khz_favs_v1");
+      if (f) setFavorites(JSON.parse(f));
+      const r = localStorage.getItem("khz_recent_v1");
+      if (r) setRecent(JSON.parse(r));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem("khz_favs_v1", JSON.stringify(favorites)); } catch {}
+  }, [favorites]);
+  useEffect(() => {
+    try { localStorage.setItem("khz_recent_v1", JSON.stringify(recent)); } catch {}
+  }, [recent]);
 
   const toggleFavorite = useCallback((id: string) => {
     setFavorites((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));

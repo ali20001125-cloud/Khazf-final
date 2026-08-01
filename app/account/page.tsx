@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw } from "lucide-react";
+import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw, Check, ArrowLeft } from "lucide-react";
 import { fmtDate } from "@/lib/datetime";
 import OrderTimeline from "@/components/OrderTimeline";
 import { formatIQD, governorates } from "@/lib/data";
@@ -117,7 +117,7 @@ function AccountInner() {
           {(me.pointsValueDinars ?? 0).toLocaleString("en")}
           <span className="ms-2 text-lg font-semibold opacity-80">د.ع</span>
         </p>
-        <p className="font-num mt-2 text-[11.5px] opacity-65">تُخصم تلقائياً من طلبك القادم</p>
+        <p className="font-num mt-2 text-[11.5px] opacity-65">صالح للاستخدام في طلبك القادم — يُخصم تلقائياً</p>
       </div>
 
       {/* رحلة الولاء — شريط بسيط وواضح */}
@@ -142,20 +142,39 @@ function AccountInner() {
           })}
         </div>
         {nextLevel && (
-          <p className="mt-4 text-center text-[12.5px] text-muted">
-            طلبك القادم يمنحك <span className="font-bold text-accent">{rewardLabel(nextLevel)}</span>
+          <p className="mt-4 text-center text-[13px] font-bold">
+            طلبك القادم يمنحك <span className="text-accent">{rewardLabel(nextLevel)}</span>
           </p>
         )}
       </div>
+
+      {/* دعوة للشراء — تربط الحساب بهدف قريب */}
+      <Link href="/products/"
+        className="reveal mt-4 flex items-center justify-between gap-3 rounded-[22px] border border-clay/25 bg-clay/6 p-5 transition-all active:scale-[0.99]">
+        <div className="min-w-0">
+          <p className="text-[14px] font-bold leading-snug">
+            {inCycle >= 5
+              ? "تبقّت لك طلبية واحدة ويصلك كيس قهوة مجاني"
+              : nextLevel
+                ? `طلبك القادم يمنحك ${rewardLabel(nextLevel)}`
+                : "محاصيل خزف بانتظارك"}
+          </p>
+          <p className="mt-1 text-[12px] text-muted">اختر محصولك التالي الآن</p>
+        </div>
+        <span className="btn btn-clay flex shrink-0 items-center gap-1.5 !px-5 !py-2.5 text-[13px]">
+          تسوّق <ArrowLeft size={15} />
+        </span>
+      </Link>
 
       {/* التبويبات — واضحة */}
       <div className="reveal mt-6 flex gap-2">
         {([["orders", "طلباتي", Package], ["cashback", "الكاش باك", Wallet], ["fav", "المفضلة", Heart]] as const).map(([k, label, Icon]) => (
           <button key={k} onClick={() => setTab(k)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-[14px] py-3 text-[13px] font-bold transition-all ${
+            className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[14px] py-2.5 text-[11.5px] font-bold transition-all ${
               tab === k ? "bg-ink text-cream" : "bg-card text-muted"
             }`}>
-            <Icon size={15} /> {label}
+            <Icon size={17} />
+            <span>{label}</span>
           </button>
         ))}
       </div>
@@ -212,9 +231,18 @@ function AccountInner() {
             <Wallet size={24} className="mx-auto text-accent" />
             <p className="font-num mt-4 text-3xl font-bold">{(me.pointsValueDinars ?? 0).toLocaleString("en")} د.ع</p>
             <p className="mt-1.5 text-[12px] text-muted">رصيدك من الكاش باك</p>
-            <p className="mt-5 text-[11.5px] leading-relaxed text-muted">
-              كل ١٬٠٠٠ دينار تشتريها = ٣٠ دينار كاش باك، تتفعّل فور توصيل طلبك وتُخصم من طلبك القادم
-            </p>
+            <div className="mt-5 space-y-2 text-start">
+              {[
+                "اكسب ٣٠ دينار كاش باك عن كل ١٬٠٠٠ دينار",
+                "يُستخدم خصماً في طلبك القادم",
+                "بلا كوبون — يُخصم تلقائياً",
+              ].map((t) => (
+                <div key={t} className="flex items-start gap-2">
+                  <Check size={14} className="mt-0.5 shrink-0 text-ok" />
+                  <p className="text-[12.5px] leading-relaxed text-muted">{t}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -227,6 +255,13 @@ function AccountInner() {
             </div>
           ) : <Empty icon={Heart} text="ما عندك مفضلة بعد" cta />
         )}
+
+        {/* روابط المساعدة */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-line pt-5">
+          {[["/faq/", "الأسئلة الشائعة"], ["/returns/", "سياسة الاستبدال"], ["/shipping/", "الشحن والتوصيل"], ["/contact/", "تواصل معنا"]].map(([href, label]) => (
+            <Link key={href} href={href} className="text-[12px] font-semibold text-muted transition-colors hover:text-ink">{label}</Link>
+          ))}
+        </div>
       </div>
 
       {/* ربط Google — فقط لمن ليس لديه أي حساب مصادقة */}

@@ -36,11 +36,11 @@ export default async function AnalyticsPage() {
 
   // ── السلات المهجورة (لم تُسترد، آخر تحديث > ساعة) ──
   const abandoned = (await db.execute(sql`
-    SELECT session_id, phone, name, items, items_total, updated_at
+    SELECT session_id, phone, name, email, template_sent, items, items_total, updated_at
     FROM abandoned_carts
     WHERE recovered = false AND items_total > 0 AND updated_at < now() - interval '1 hour'
     ORDER BY updated_at DESC LIMIT 30`)).rows as unknown as
-    { session_id: string; phone: string | null; name: string | null; items: { name: string; qty: number }[]; items_total: number; updated_at: string }[];
+    { session_id: string; phone: string | null; name: string | null; email: string | null; template_sent: string | null; items: { name: string; qty: number }[]; items_total: number; updated_at: string }[];
 
   const abandonStats = (await db.execute(sql`
     SELECT
@@ -214,28 +214,39 @@ export default async function AnalyticsPage() {
           <Card className="p-8 text-center text-[13px] text-muted">لا سلات مهجورة — ممتاز</Card>
         ) : (
           <div className="space-y-2.5">
-            {abandoned.map((a) => (
+            {abandoned.map((a) => {
+              const sentLabel = a.template_sent === "wa" ? "أُشعرت للواتساب"
+                : a.template_sent ? `أُرسل إيميل (قالب ${a.template_sent})`
+                : null;
+              return (
               <Card key={a.session_id} className="flex items-center justify-between gap-4 p-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-[13.5px] font-bold">
                     {a.name || "زائر"} {a.phone && <span className="font-num text-muted">· {a.phone}</span>}
                   </p>
+                  {a.email && <p className="font-num mt-0.5 truncate text-[11.5px] text-muted" dir="ltr">{a.email}</p>}
                   <p className="mt-0.5 truncate text-[12px] text-muted">
                     {(a.items ?? []).map((i) => `${i.name}×${i.qty}`).join(" · ")}
                   </p>
                   <p className="font-num mt-0.5 text-[11px] text-muted">{dateAr(a.updated_at)}</p>
+                  {sentLabel
+                    ? <p className="mt-1 inline-block rounded-full bg-ok/10 px-2.5 py-0.5 text-[10.5px] font-bold text-ok">{sentLabel}</p>
+                    : <p className="mt-1 inline-block rounded-full bg-bg-alt px-2.5 py-0.5 text-[10.5px] font-bold text-muted">
+                        {a.email ? "بانتظار الإيميل التلقائي" : a.phone ? "بانتظار إشعار الواتساب" : "بلا وسيلة تواصل"}
+                      </p>}
                 </div>
                 <div className="shrink-0 text-end">
                   <p className="font-num text-[15px] font-bold text-accent">{money(a.items_total)}</p>
                   {a.phone && (
                     <a href={`https://wa.me/964${a.phone.replace(/^0/, "")}`} target="_blank" rel="noopener"
                       className="mt-1 inline-block rounded-full border border-line px-3 py-1 text-[11px] font-bold text-olive">
-                      تذكير واتساب
+                      مراسلة يدوية
                     </a>
                   )}
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
