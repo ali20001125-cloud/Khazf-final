@@ -2,6 +2,7 @@
 
 import PromoBanners from "@/components/scenes/PromoBanners";
 import WelcomeSheet from "@/components/WelcomeSheet";
+import CoffeeFinder from "@/components/CoffeeFinder";
 import { useMotion } from "@/lib/motion";
 import { useCatalog } from "@/lib/catalog-context";
 import {
@@ -26,6 +27,7 @@ export default function Home() {
       <Hero />
       <PromoBanners />
       <CropsRail />
+      <CoffeeFinder />
       <BestSellers />
       <BoxTeaser />
       <NewArrivals />

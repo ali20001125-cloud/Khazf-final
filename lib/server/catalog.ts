@@ -60,6 +60,9 @@ function coffeeFromRow(
   const bagsLeft = Math.floor(grams / 250);
   return {
     roastedOn,
+    flavorAcidity: p.flavorAcidity,
+    flavorSweetness: p.flavorSweetness,
+    flavorBody: p.flavorBody,
     slug: p.slug,
     name: p.name,
     latin: p.latinName ?? p.name,

@@ -2,6 +2,9 @@
 
 export interface Coffee {
   roastedOn?: string | null;   // تاريخ التحميص (يُعرض ٣٠ يوماً)
+  flavorAcidity?: number | null;   // ملامح النكهة ١–٥ (تُستخدم بأداة الترشيح)
+  flavorSweetness?: number | null;
+  flavorBody?: number | null;
   image?: string | null;
   images?: string[];
   slug: string;
