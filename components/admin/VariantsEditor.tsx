@@ -17,6 +17,12 @@ export type VariantRow = {
   active?: boolean;
 };
 
+const digits = (v: unknown) => String(v ?? "").replace(/[^0-9]/g, "");
+const withCommas = (v: unknown) => {
+  const d = digits(v);
+  return d ? Number(d).toLocaleString("en") : "";
+};
+
 const empty = (): VariantRow => ({ label: "", kind: "SIZE", price: "", salePrice: "", costPrice: "", stock: 0, image: "", active: true });
 
 export default function VariantsEditor({ initial }: { initial?: VariantRow[] | null }) {
@@ -62,24 +68,24 @@ export default function VariantsEditor({ initial }: { initial?: VariantRow[] | n
             </div>
             <div>
               <label className="mb-1 block text-[11.5px] font-bold text-muted">المخزون (قطعة)</label>
-              <input value={v.stock} onChange={(e) => upd(i, { stock: e.target.value })}
-                className={`${inputCls} font-num`} dir="ltr" />
+              <input value={digits(v.stock)} onChange={(e) => upd(i, { stock: digits(e.target.value) })}
+                inputMode="numeric" placeholder="10" className={`${inputCls} font-num`} dir="ltr" />
             </div>
 
             <div>
               <label className="mb-1 block text-[11.5px] font-bold text-muted">السعر</label>
-              <input value={v.price} onChange={(e) => upd(i, { price: e.target.value })}
-                className={`${inputCls} font-num`} dir="ltr" />
+              <input value={withCommas(v.price)} onChange={(e) => upd(i, { price: digits(e.target.value) })}
+                inputMode="numeric" placeholder="6500" className={`${inputCls} font-num`} dir="ltr" />
             </div>
             <div>
               <label className="mb-1 block text-[11.5px] font-bold text-muted">سعر العرض <span className="font-normal">(اختياري)</span></label>
-              <input value={v.salePrice ?? ""} onChange={(e) => upd(i, { salePrice: e.target.value })}
-                placeholder="أقل من السعر" className={`${inputCls} font-num`} dir="ltr" />
+              <input value={withCommas(v.salePrice)} onChange={(e) => upd(i, { salePrice: digits(e.target.value) })}
+                inputMode="numeric" placeholder="أقل من السعر" className={`${inputCls} font-num`} dir="ltr" />
             </div>
             <div>
               <label className="mb-1 block text-[11.5px] font-bold text-muted">التكلفة <span className="font-normal">(للربح)</span></label>
-              <input value={v.costPrice ?? ""} onChange={(e) => upd(i, { costPrice: e.target.value })}
-                className={`${inputCls} font-num`} dir="ltr" />
+              <input value={withCommas(v.costPrice)} onChange={(e) => upd(i, { costPrice: digits(e.target.value) })}
+                inputMode="numeric" placeholder="التكلفة" className={`${inputCls} font-num`} dir="ltr" />
             </div>
 
             {v.kind === "COLOR" && (

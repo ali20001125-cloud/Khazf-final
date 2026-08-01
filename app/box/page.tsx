@@ -198,7 +198,7 @@ export default function BoxPage() {
 
         {/* المحاصيل */}
         <div className="reveal-group mt-7 space-y-3">
-          {coffees.map((c) => {
+          {coffees.filter((c) => !c.soldOut).map((c) => {
             const n = bags[c.slug] ?? 0;
             return (
               <div
