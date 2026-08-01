@@ -4,7 +4,7 @@ import { setCustomerCookie } from "@/lib/server/customer-session";
 import { notifyOrderTelegram } from "@/lib/server/telegram";
 import { emailNewOrderAdmin, emailOrderCustomer } from "@/lib/server/email";
 import { getSupabaseUser } from "@/lib/server/customer-identity";
-import { and, sql } from "drizzle-orm";
+import { and, or, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { eq } from "drizzle-orm";
 
@@ -29,6 +29,23 @@ export async function POST(req: Request) {
       }
     }
     const result = await createOrder(body);
+
+    /* ═ استرداد السلات ═
+       نُعلّم كل سلات هذا الزبون (بالرقم أو الإيميل) كمستردّة — لا سلة الجلسة الحالية فقط.
+       يمنع وصول تذكير بعد إتمام الطلب من جلسة قديمة. */
+    {
+      const rPhone = body.phone?.trim();
+      const rEmail = body.email?.trim()?.toLowerCase();
+      const conds = [];
+      if (rPhone) conds.push(eq(s.abandonedCarts.phone, rPhone));
+      if (rEmail) conds.push(sql`lower(${s.abandonedCarts.email}) = ${rEmail}`);
+      if (conds.length > 0) {
+        await db.update(s.abandonedCarts)
+          .set({ recovered: true })
+          .where(and(eq(s.abandonedCarts.recovered, false), or(...conds)))
+          .catch(() => {});
+      }
+    }
 
     /* ═ أمان الهوية ═
        الكوكي (يفتح «حسابي») يُمنح فقط إذا:

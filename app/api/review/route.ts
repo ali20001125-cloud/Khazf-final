@@ -56,10 +56,13 @@ export async function POST(req: Request) {
   if (!body?.token) return NextResponse.json({ error: "رمز مفقود" }, { status: 400 });
 
   const [order] = await db
-    .select({ id: s.orders.id, phone: s.orders.customerPhone })
+    .select({ id: s.orders.id, phone: s.orders.customerPhone, status: s.orders.status })
     .from(s.orders)
     .where(eq(s.orders.reviewToken, body.token));
   if (!order) return NextResponse.json({ error: "رابط غير صالح" }, { status: 404 });
+  // التقييم بعد التوصيل فقط
+  if (order.status !== "DELIVERED")
+    return NextResponse.json({ error: "يمكنك التقييم بعد استلام طلبك" }, { status: 403 });
 
   // منع التقييم المكرّر لنفس الطلب
   const existing = await db.select({ id: s.experienceReviews.id })

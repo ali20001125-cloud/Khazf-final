@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /**
  * تذكير السلات المتروكة — Cron Job (كل ساعة مثلاً):
  *   GET https://khazf.shop/api/cron/cart-reminders?key=CRON_SECRET
- * يرسل لمن: ترك سلته قبل ساعتين+، له إيميل، لم يشترِ، لم يُشعَر بعد.
+ * يرسل لمن: ترك سلته قبل ساعة+، له إيميل، لم يشترِ، لم يُشعَر بعد.
  */
 export async function GET(req: Request) {
   const key = new URL(req.url).searchParams.get("key");
@@ -35,14 +35,14 @@ export async function GET(req: Request) {
     reviews[r.product] = { rating: r.rating, comment: r.comment ?? undefined, author: r.author ?? undefined };
   }
 
-  // السلات المؤهّلة: عمرها ساعتان+ (وأقل من ٧ أيام)، لها إيميل، لم تُسترجع، لم تُشعَر
-  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+  // السلات المؤهّلة: عمرها ساعة+ (وأقل من ٧ أيام)، لها إيميل، لم تُسترجع، لم تُشعَر
+  const oneHourAgo = new Date(Date.now() - 1 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const carts = await db.select().from(s.abandonedCarts).where(and(
     isNotNull(s.abandonedCarts.email),
     eq(s.abandonedCarts.recovered, false),
     eq(s.abandonedCarts.notified, false),
-    lt(s.abandonedCarts.updatedAt, twoHoursAgo),
+    lt(s.abandonedCarts.updatedAt, oneHourAgo),
     gt(s.abandonedCarts.updatedAt, sevenDaysAgo),
   )).limit(40); // حدّ أمان (بريد مجاني ١٠٠/يوم)
 

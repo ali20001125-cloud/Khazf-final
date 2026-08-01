@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const money = (n: number) => `${n.toLocaleString("en")} د.ع`;
 export const dateAr = (d: Date | string) =>
-  new Date(d).toLocaleString("ar-IQ", { dateStyle: "medium", timeStyle: "short" });
+  new Date(d).toLocaleString("ar-IQ", { timeZone: "Asia/Baghdad", dateStyle: "medium", timeStyle: "short" });
 
 export function PageTitle({ title, sub, action }: { title: string; sub?: string; action?: ReactNode }) {
   return (

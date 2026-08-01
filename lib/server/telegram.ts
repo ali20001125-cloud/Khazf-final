@@ -1,6 +1,13 @@
 /** إشعار تيليجرام — أفضل جهد: فشله لا يُفشل الطلب أبداً */
 import { getInternalSettings } from "./settings";
 
+/** رقم عراقي بالصيغة الدولية (بلا صفر، بمفتاح 964) — جاهز للنسخ لواتساب */
+export function intlPhone(phone: string): string {
+  const d = (phone || "").replace(/[^0-9]/g, "");
+  if (d.startsWith("964")) return d;
+  return "964" + d.replace(/^0+/, "");
+}
+
 type OrderMsg = {
   orderNumber: string; seqNo?: number | null; name: string; phone: string;
   governorate: string; address: string; total: number;
@@ -44,7 +51,7 @@ export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
     const text =
       `🆕 <b>طلب جديد #${o.seqNo ?? "?"}</b>\n` +
       `━━━━━━━━━━━━\n` +
-      `👤 ${o.name}\n📞 ${o.phone}\n📍 ${o.governorate} — ${o.address}\n` +
+      `👤 ${o.name}\n📞 ${o.phone}\n💬 <code>${intlPhone(o.phone)}</code> (للنسخ لواتساب)\n📍 ${o.governorate} — ${o.address}\n` +
       `━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━\n` +
       breakdown +
       `💰 <b>الإجمالي: ${money(o.total)} د.ع</b> (كاش)\n` +
@@ -55,7 +62,10 @@ export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: s.telegramChatId, text, parse_mode: "HTML", disable_web_page_preview: true,
-        reply_markup: { inline_keyboard: [[{ text: "🧾 عرض الفاتورة", url: o.invoiceUrl }]] },
+        reply_markup: { inline_keyboard: [[
+          { text: "🧾 الفاتورة", url: o.invoiceUrl },
+          { text: "💬 واتساب الزبون", url: `https://wa.me/${intlPhone(o.phone)}` },
+        ]] },
       }),
       signal: AbortSignal.timeout(6000),
     });
@@ -109,6 +119,56 @@ export async function notifyAbandonedCartTelegram(c: AbandonedCartMsg): Promise<
         reply_markup: { inline_keyboard: [[{ text: "💬 فتح واتساب الزبون", url: waUrl }]] },
       }),
       signal: AbortSignal.timeout(6000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/* ═══════════ إشعار تسجيل زبون جديد ═══════════ */
+
+type NewCustomerMsg = {
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  governorate?: string | null;
+  address?: string | null;
+  source: "email" | "google" | "phone";
+  totalCustomers?: number;
+};
+
+/** يُشعر التاجر عند تسجيل زبون جديد (بريد أو Google) */
+export async function notifyNewCustomerTelegram(c: NewCustomerMsg): Promise<boolean> {
+  try {
+    const s = await getInternalSettings();
+    if (!s.telegramBotToken || !s.telegramChatId) return false;
+
+    const srcLabel = c.source === "google" ? "Google" : c.source === "email" ? "البريد" : "الهاتف";
+    const lines = [
+      `🎉 <b>زبون جديد سجّل</b>`,
+      `━━━━━━━━━━━━`,
+      `👤 ${c.name || "—"}`,
+      c.phone ? `📞 ${c.phone}` : null,
+      c.phone ? `💬 <code>${intlPhone(c.phone)}</code>` : null,
+      c.email ? `✉️ ${c.email}` : null,
+      c.governorate ? `📍 ${c.governorate}${c.address ? " — " + c.address : ""}` : null,
+      `🔑 التسجيل عبر: ${srcLabel}`,
+      c.totalCustomers != null ? `━━━━━━━━━━━━\n👥 إجمالي العملاء: <b>${c.totalCustomers.toLocaleString("en")}</b>` : null,
+    ].filter(Boolean).join("\n");
+
+    const base = `https://api.telegram.org/bot${s.telegramBotToken}`;
+    const body: Record<string, unknown> = {
+      chat_id: s.telegramChatId, text: lines, parse_mode: "HTML", disable_web_page_preview: true,
+    };
+    if (c.phone) {
+      body.reply_markup = { inline_keyboard: [[
+        { text: "💬 مراسلة الزبون واتساب", url: `https://wa.me/${intlPhone(c.phone)}` },
+      ]] };
+    }
+    const res = await fetch(`${base}/sendMessage`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body), signal: AbortSignal.timeout(6000),
     });
     return res.ok;
   } catch {

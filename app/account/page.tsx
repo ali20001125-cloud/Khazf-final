@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw } from "lucide-react";
+import { fmtDate } from "@/lib/datetime";
 import { formatIQD, governorates } from "@/lib/data";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore } from "@/lib/store";
@@ -170,7 +171,7 @@ function AccountInner() {
                     className="flex items-center justify-between transition-all active:scale-[0.99]">
                     <div>
                       <p className="font-num text-[14px] font-bold">{o.orderNumber}</p>
-                      <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {new Date(o.createdAt).toLocaleDateString("ar-IQ", { dateStyle: "medium" })}</p>
+                      <p className="mt-0.5 text-[11.5px] text-muted">{statusText(o.status)} · {fmtDate(o.createdAt)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-num text-[13px] font-bold">{formatIQD(o.total)}</span>

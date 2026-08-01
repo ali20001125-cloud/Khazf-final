@@ -1,6 +1,7 @@
 /** فاتورة قابلة للطباعة — يفتحها الزبون برابط رقم الطلب + هاتفه */
 import { and, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
+import { fmtDateTime } from "@/lib/datetime";
 import { formatIQD } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,8 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
   const [cfg] = await db.select().from(s.settings).where(eq(s.settings.id, 1));
   const logoUrl = cfg?.logoUrl ?? null;
   const site = process.env.SITE_URL ?? "https://khazf.shop";
-  const reviewUrl = o.reviewToken ? `${site}/review/?token=${o.reviewToken}` : null;
+  // باركود التقييم يظهر بعد التوصيل فقط (لا قبله)
+  const reviewUrl = o.reviewToken && o.status === "DELIVERED" ? `${site}/review/?token=${o.reviewToken}` : null;
   const qrUrl = reviewUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&data=${encodeURIComponent(reviewUrl)}` : null;
   const rows = [
     { l: "المنتجات", v: formatIQD(o.itemsSubtotal) },
@@ -44,7 +46,7 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
           <div className="text-end">
             <p className="font-num text-lg font-bold">{o.orderNumber}</p>
             <p className="font-num mt-0.5 text-[11px] text-muted">
-              {new Date(o.createdAt).toLocaleString("ar-IQ", { dateStyle: "medium", timeStyle: "short" })}
+              {fmtDateTime(o.createdAt)}
             </p>
           </div>
         </div>

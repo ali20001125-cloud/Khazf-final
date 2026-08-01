@@ -10,6 +10,8 @@ import { db, schema as s } from "@/lib/server/db";
 import { getSupabaseUser } from "@/lib/server/customer-identity";
 import { setCustomerCookie } from "@/lib/server/customer-session";
 import { emailWelcome } from "@/lib/server/email";
+import { notifyNewCustomerTelegram } from "@/lib/server/telegram";
+import { sql as sqlRaw } from "drizzle-orm";
 
 export const runtime = "nodejs";
 
@@ -50,6 +52,16 @@ export async function POST(req: Request) {
     // ترحيب لأول تسجيل (لا يوقف العملية إن فشل)
     const welcomeEmail = (email || user?.email || "").trim();
     if (welcomeEmail) emailWelcome({ email: welcomeEmail, name: gName }).catch(() => {});
+    // إشعار التاجر بالتيليجرام + الإجمالي
+    (async () => {
+      const [{ c: total }] = (await db.execute(sqlRaw`SELECT COUNT(*)::int AS c FROM customers`)).rows as unknown as { c: number }[];
+      await notifyNewCustomerTelegram({
+        name: gName, phone, email: welcomeEmail || null,
+        governorate, address: address || null,
+        source: welcomeEmail ? "email" : "phone",
+        totalCustomers: total,
+      });
+    })().catch(() => {});
   }
 
   await setCustomerCookie(phone);
