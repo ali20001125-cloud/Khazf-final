@@ -801,10 +801,13 @@ function ToolView({ tool }: { tool: Tool }) {
   const activeColor = colors[colorIdx];
   // معرض الصور: صورة اللون المختار أولاً، ثم كل صور المنتج
   const gallery = (() => {
-    const list = [...(tool.images ?? [])];
+    // صور المنتج + صور كل الخيارات (الألوان) — بلا تكرار
+    const variantImgs = (tool.variants ?? []).map((v) => v.image).filter(Boolean) as string[];
+    const all = [...(tool.images ?? []), ...variantImgs];
+    const uniq = [...new Set(all.filter(Boolean))];
     const colorImg = activeColor?.image || chosenVariant?.image;
-    if (colorImg) return [colorImg, ...list.filter((x) => x !== colorImg)];
-    return list;
+    if (colorImg) return [colorImg, ...uniq.filter((x) => x !== colorImg)];
+    return uniq;
   })();
   const [imgIdx, setImgIdx] = useState(0);
   useEffect(() => { setImgIdx(0); }, [activeColor?.image, chosenVariant?.id]);
@@ -937,13 +940,20 @@ function ToolView({ tool }: { tool: Tool }) {
                   const active = i === pvIdx;
                   return (
                     <button key={v.id} onClick={() => !out && setPvIdx(i)} disabled={out}
-                      className={`rounded-[13px] border px-4 py-2.5 text-start transition-all duration-200 active:scale-[0.97] ${
+                      className={`flex items-center gap-2.5 rounded-[13px] border px-3 py-2.5 text-start transition-all duration-200 active:scale-[0.97] ${
                         out ? "cursor-not-allowed border-line bg-bg-alt/50 opacity-50"
                         : active ? "border-clay bg-clay/8" : "border-line bg-card hover:border-muted"
                       }`}>
-                      <span className="block text-[13px] font-bold">{v.label}</span>
-                      <span className="font-num mt-0.5 block text-[11.5px] text-muted">
-                        {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
+                      {v.image && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={v.image} alt={v.label}
+                          className="h-9 w-9 shrink-0 rounded-[9px] border border-line object-cover" />
+                      )}
+                      <span>
+                        <span className="block text-[13px] font-bold">{v.label}</span>
+                        <span className="font-num mt-0.5 block text-[11.5px] text-muted">
+                          {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
+                        </span>
                       </span>
                     </button>
                   );

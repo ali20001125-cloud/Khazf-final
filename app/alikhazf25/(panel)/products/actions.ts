@@ -108,9 +108,10 @@ async function syncVariants(productId: number, f: FormData) {
       productId,
       label: String(r.label).trim().slice(0, 80),
       kind: ["SIZE", "COLOR", "PACK"].includes(String(r.kind)) ? String(r.kind) : "SIZE",
-      price: n(r.price),
-      salePrice: n(r.salePrice),
-      costPrice: n(r.costPrice),
+      // صفر يعني «بلا سعر خاص» → نخزّنه فارغاً ليتراجع للسعر العام
+      price: n(r.price) || null,
+      salePrice: n(r.salePrice) || null,
+      costPrice: n(r.costPrice) || null,
       stock: n(r.stock) ?? 0,
       image: String(r.image ?? "").trim() || null,
       sort: i,
