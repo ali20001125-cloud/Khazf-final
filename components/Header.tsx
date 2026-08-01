@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ShoppingBag, Menu, X, Search, Heart, User, ArrowLeft } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, Heart, User, ArrowLeft, ChevronDown } from "lucide-react";
 import gsap from "gsap";
 import { useStore, useSiteConfig } from "@/lib/store";
 import { ThemeButton, ThemeSegment } from "@/components/ThemeToggle";
@@ -33,13 +33,24 @@ export default function Header() {
   const { cart, bump, favorites } = useStore();
   const { topBarMessages, logoUrl } = useSiteConfig();
   const { activePlaces } = useCatalog();
+  const { coffees: allCoffees, tools: allTools } = useCatalog();
+  /* أقسام المتجر بأصنافها الفرعية — تُشتقّ من المنتجات الفعلية */
+  const subsOf = (cat: string) =>
+    [...new Set(allTools.filter((t) => t.cats.includes(cat as never) && t.type).map((t) => t.type))];
+  const shopSections: { label: string; href: string; subs: string[] }[] = [
+    ...(activePlaces.includes("cups")
+      ? [{ label: "الأكواب والتقديم", href: "/products/?cat=cups", subs: subsOf("أكواب") }] : []),
+    ...(activePlaces.includes("drip_tools")
+      ? [{ label: "أدوات التقطير", href: "/products/?cat=drip", subs: subsOf("تقطير") }] : []),
+    ...(activePlaces.includes("espresso_tools")
+      ? [{ label: "أدوات الإسبريسو", href: "/products/?cat=espresso", subs: subsOf("إسبريسو") }] : []),
+  ];
+
   const menuGroups: { label: string; href: string }[][] = [
   [
     { label: "المتجر", href: "/products/?cat=all" },
     { label: "القهوة", href: "/products/?cat=coffee" },
     { label: "بناء البوكس", href: "/box/" },
-    ...(activePlaces.includes("espresso_tools") ? [{ label: "أدوات الإسبريسو", href: "/products/?cat=espresso" }] : []),
-    ...(activePlaces.includes("drip_tools") ? [{ label: "أدوات التقطير", href: "/products/?cat=drip" }] : []),
   ],
   [
     { label: "الوصفات", href: "/recipes/" },
@@ -56,6 +67,7 @@ export default function Header() {
   const count = cart.reduce((s, i) => s + i.qty, 0);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSection, setOpenSection] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState("");
 
@@ -235,6 +247,50 @@ export default function Header() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
+            {/* أقسام المتجر — كل قسم يفتح على أصنافه */}
+            {shopSections.length > 0 && (
+              <div className="mb-2">
+                <div className="mx-4 my-2 border-t border-line" />
+                <ul className="space-y-0.5 text-[14.5px]">
+                  {shopSections.map((sec) => {
+                    const isOpen = openSection === sec.label;
+                    return (
+                      <li key={sec.label}>
+                        <button
+                          onClick={() => setOpenSection(isOpen ? null : sec.label)}
+                          className="flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-start font-semibold transition-colors hover:bg-bg-alt">
+                          {sec.label}
+                          {sec.subs.length > 0 && (
+                            <ChevronDown size={16}
+                              className={`text-muted transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                          )}
+                        </button>
+                        {isOpen && sec.subs.length > 0 && (
+                          <ul className="mb-1 ms-4 space-y-0.5 border-s border-line ps-3">
+                            <li>
+                              <Link href={sec.href} onClick={() => setMenuOpen(false)}
+                                className="block rounded-[10px] px-3 py-2 text-[13.5px] font-bold text-accent">
+                                عرض الكل
+                              </Link>
+                            </li>
+                            {sec.subs.map((sub) => (
+                              <li key={sub}>
+                                <Link href={`${sec.href}&sub=${encodeURIComponent(sub)}`}
+                                  onClick={() => setMenuOpen(false)}
+                                  className="block rounded-[10px] px-3 py-2 text-[13.5px] text-muted transition-colors hover:bg-bg-alt hover:text-ink">
+                                  {sub}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             {menuGroups.map((group, gi) => (
               <div key={gi}>
                 {gi > 0 && <div className="mx-4 my-2 border-t border-line" />}

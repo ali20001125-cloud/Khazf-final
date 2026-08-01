@@ -966,9 +966,11 @@ function ToolView({ tool }: { tool: Tool }) {
                       ) : null}
                       <span>
                         <span className="block text-[13px] font-bold">{v.label}</span>
-                        <span className="font-num mt-0.5 block text-[11.5px] text-muted">
-                          {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
-                        </span>
+                        {(out || v.salePrice != null || v.price != null) && (
+                          <span className="font-num mt-0.5 block text-[11.5px] text-muted">
+                            {out ? "نفد" : formatIQD(v.salePrice ?? v.price ?? tool.price)}
+                          </span>
+                        )}
                       </span>
                     </button>
                   );

@@ -10,7 +10,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { CoffeeCard, ToolCard } from "@/components/Cards";
 import { useMotion, reduced } from "@/lib/motion";
 
-type Tab = "all" | "coffee" | "espresso" | "drip";
+type Tab = "all" | "coffee" | "espresso" | "drip" | "cups";
 type Sort = "new" | "best" | "price";
 
 const tabs: { key: Tab; label: string; place?: string }[] = [
@@ -18,8 +18,9 @@ const tabs: { key: Tab; label: string; place?: string }[] = [
   { key: "coffee", label: "القهوة" },
   { key: "espresso", label: "أدوات الإسبريسو", place: "espresso_tools" },
   { key: "drip", label: "أدوات التقطير", place: "drip_tools" },
+  { key: "cups", label: "الأكواب والتقديم", place: "cups" },
 ];
-const tabCat: Record<"espresso" | "drip", ToolCat> = { espresso: "إسبريسو", drip: "تقطير" };
+const tabCat: Record<"espresso" | "drip" | "cups", ToolCat> = { espresso: "إسبريسو", drip: "تقطير", cups: "أكواب" };
 const sorts: { key: Sort; label: string }[] = [
   { key: "new", label: "الأحدث" },
   { key: "best", label: "الأكثر مبيعاً" },
@@ -35,10 +36,10 @@ function ShopInner() {
   const scope = useMotion();
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const tab = (["all", "coffee", "espresso", "drip"].includes(params.get("cat") ?? "")
+  const tab = (["all", "coffee", "espresso", "drip", "cups"].includes(params.get("cat") ?? "")
     ? params.get("cat")
     : "all") as Tab;
-  const type = params.get("type") ?? "الكل";
+  const type = params.get("sub") ?? params.get("type") ?? "الكل";
   const sort = (["new", "best", "price"].includes(params.get("sort") ?? "")
     ? params.get("sort")
     : "new") as Sort;
@@ -56,7 +57,7 @@ function ShopInner() {
   /* الأنواع الفرعية حسب التبويب الحالي */
   const subTypes = useMemo(() => {
     if (tab === "coffee") return ["الكل", ...new Set(coffees.map((c) => c.country))];
-    if (tab === "espresso" || tab === "drip")
+    if (tab === "espresso" || tab === "drip" || tab === "cups")
       return ["الكل", ...new Set(tools.filter((t) => t.cats.includes(tabCat[tab])).map((t) => t.type))];
     return [];
   }, [tab]);
