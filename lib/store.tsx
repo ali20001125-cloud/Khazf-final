@@ -93,7 +93,15 @@ export function StoreProvider({
   }, [cart]);
   const [toast, setToast] = useState<string | null>(null);
   const [bump, setBump] = useState(0);
-  const [useCashback, setUseCashback] = useState(false);
+  // حالة استخدام الكاش تُحفظ — حتى لا تضيع بين السلة والدفع أو عند تحديث الصفحة
+  const [useCashback, setUseCashbackState] = useState(false);
+  useEffect(() => {
+    try { if (sessionStorage.getItem("khz_use_cashback") === "1") setUseCashbackState(true); } catch {}
+  }, []);
+  const setUseCashback = useCallback((v: boolean) => {
+    setUseCashbackState(v);
+    try { sessionStorage.setItem("khz_use_cashback", v ? "1" : "0"); } catch {}
+  }, []);
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [boxGiftChoice, setBoxGiftChoice] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);

@@ -22,7 +22,7 @@ type Success = {
 export default function CheckoutPage() {
   const scope = useMotion();
   const config = useSiteConfig();
-  const { cart, clearCart, coupon, useCashback, boxGiftChoice, showToast } = useStore();
+  const { cart, clearCart, coupon, useCashback, setUseCashback, boxGiftChoice, showToast } = useStore();
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
 
@@ -322,11 +322,23 @@ export default function CheckoutPage() {
               </span>
             </div>
           </div>
-          {/* رصيد الكاش باك المتبقي */}
-          {useCashback && (preview?.pointsUsedDinars ?? 0) > 0 && (
-            <p className="rounded-[12px] bg-accent/8 px-4 py-3 text-[11.5px] leading-relaxed text-accent">
-              استُخدم {formatIQD(preview!.pointsUsedDinars)} من رصيدك · يبقى {formatIQD(preview!.pointsRemaining)} في حسابك
-            </p>
+          {/* الكاش باك — تفعيل/إلغاء من صفحة الدفع أيضاً */}
+          {(preview?.pointsAvailable ?? 0) > 0 && (
+            <div>
+              <label className="flex cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-bg p-3.5">
+                <input type="checkbox" checked={useCashback}
+                  onChange={(e) => setUseCashback(e.target.checked)}
+                  className="h-4 w-4 accent-[#c9a961]" />
+                <span className="text-[13px] font-bold">
+                  استخدم رصيدك — <span className="font-num">{formatIQD(preview!.pointsAvailable)}</span> كاش باك
+                </span>
+              </label>
+              {useCashback && (preview?.pointsUsedDinars ?? 0) > 0 && (
+                <p className="mt-2 px-1 text-[11.5px] leading-relaxed text-accent">
+                  استُخدم {formatIQD(preview!.pointsUsedDinars)} من رصيدك · يبقى {formatIQD(preview!.pointsRemaining)} في حسابك
+                </p>
+              )}
+            </div>
           )}
           <p className="rounded-[12px] bg-bg-alt px-4 py-3 text-[11.5px] leading-relaxed text-muted">
             الدفع عند الاستلام · جميع الخصومات مطبّقة أعلاه.

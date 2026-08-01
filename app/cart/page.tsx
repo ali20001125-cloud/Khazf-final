@@ -52,20 +52,48 @@ export default function CartPage() {
   const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
 
   const afterBox = subtotal - box.discount;
-  const couponDiscount =
+  /* ═ المعاينة الحية من الخادم — نفس حساب صفحة الدفع تماماً ═
+     تضمن أن ما يراه الزبون في السلة (خصم الرحلة، التوصيل المجاني، الهدية، الكاش)
+     هو نفسه في الدفع، بلا مفاجآت. */
+  const [preview, setPreview] = useState<{
+    itemsSubtotal: number; boxDiscount: number; couponDiscount: number;
+    journeyDiscount: number; journeyPct: number; giftName: string | null;
+    pointsAvailable: number; pointsUsedDinars: number; pointsRemaining: number;
+    deliveryCharged: number; freeDelivery: boolean; total: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (cart.length === 0) { setPreview(null); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch("/api/checkout/preview/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          items: cart.map((i) => ({ slug: i.slug, variant: i.variant, qty: i.qty, boxGroup: i.boxGroup })),
+          phone: me.phone ?? "",
+          couponCode: coupon?.code ?? null,
+          usePoints: useCashback,
+          boxGiftChoice,
+        }),
+      }).then((r) => r.json()).then((d) => { if (!d?.error) setPreview(d); }).catch(() => {});
+    }, 120);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [cart, me.phone, coupon, useCashback, boxGiftChoice]);
+
+  // قيم العرض: من الخادم إن توفّرت، وإلا تقدير محلي حتى تصل
+  const couponDiscount = preview?.couponDiscount ?? (
     coupon?.type === "PERCENT" ? Math.round((afterBox * coupon.value) / 100)
-    : coupon?.type === "FIXED" ? Math.min(coupon.value, afterBox)
-    : 0;
-  // الكاش يُستخدم بمضاعفات ٢٥٠ دينار (نفس منطق الخادم) — الباقي يبقى بالحساب
-  const cashAvailable = me.pointsValueDinars ?? 0;
-  const cashPreTotal = afterBox - couponDiscount + (box.freeDelivery || coupon?.type === "FREE_DELIVERY" ? 0 : config.deliveryPrice);
-  const pointsDinars = useCashback
-    ? Math.floor(Math.min(cashAvailable, cashPreTotal) / 250) * 250
-    : 0;
-  const cashRemaining = cashAvailable - pointsDinars;
-  const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
-  const delivery = freeDelivery ? 0 : config.deliveryPrice;
-  const previewTotal = Math.max(0, afterBox - couponDiscount - pointsDinars) + delivery;
+    : coupon?.type === "FIXED" ? Math.min(coupon.value, afterBox) : 0);
+  const journeyDiscount = preview?.journeyDiscount ?? 0;
+  const journeyPct = preview?.journeyPct ?? 0;
+  const giftName = preview?.giftName ?? null;
+  const cashAvailable = preview?.pointsAvailable ?? (me.pointsValueDinars ?? 0);
+  const pointsDinars = preview?.pointsUsedDinars ?? 0;
+  const cashRemaining = preview?.pointsRemaining ?? cashAvailable;
+  const freeDelivery = preview?.freeDelivery ?? (box.freeDelivery || coupon?.type === "FREE_DELIVERY");
+  const delivery = preview?.deliveryCharged ?? (freeDelivery ? 0 : config.deliveryPrice);
+  const previewTotal = preview?.total ?? (Math.max(0, afterBox - couponDiscount) + delivery);
 
   const tryCoupon = async () => {
     if (!code.trim()) return;
@@ -266,6 +294,15 @@ export default function CartPage() {
             {couponDiscount > 0 && (
               <div className="flex justify-between text-ok"><span>الكود</span><span className="font-num font-semibold">−{formatIQD(couponDiscount)}</span></div>
             )}
+            {journeyDiscount > 0 && (
+              <div className="flex justify-between text-ok">
+                <span>مكافأة رحلتك{journeyPct > 0 ? ` (${journeyPct}٪)` : ""}</span>
+                <span className="font-num font-semibold">−{formatIQD(journeyDiscount)}</span>
+              </div>
+            )}
+            {giftName && (
+              <div className="flex justify-between text-gold"><span>هدية رحلتك</span><span className="font-semibold">{giftName}</span></div>
+            )}
             {pointsDinars > 0 && (
               <div className="flex justify-between text-gold"><span>الرصيد</span><span className="font-num font-semibold">−{formatIQD(pointsDinars)}</span></div>
             )}
@@ -274,9 +311,8 @@ export default function CartPage() {
               {freeDelivery ? <span className="font-semibold text-ok">مجاني</span> : <span className="font-num font-semibold">{formatIQD(delivery)}</span>}
             </div>
             <div className="flex justify-between border-t border-line pt-3 text-base font-bold">
-              <span>الإجمالي التقريبي</span><span className="font-num">{formatIQD(previewTotal)}</span>
+              <span>الإجمالي</span><span className="font-num">{formatIQD(previewTotal)}</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-muted">الإجمالي النهائي يُثبَّت عند إتمام الطلب (قد يشمل مكافأة رحلتك تلقائياً)</p>
           </div>
 
           <Link href="/checkout/" className="btn btn-clay flex w-full items-center justify-center gap-2 !py-4 text-[15px] active:scale-[0.98]">
