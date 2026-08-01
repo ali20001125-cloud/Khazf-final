@@ -82,6 +82,7 @@ export const products = pgTable(
     process: text("process"),
     roast: text("roast"),
   roastedOn: date("roasted_on"),   // تاريخ التحميص (يُعرض ٣٠ يوماً ثم يختفي)
+  announce: boolean("announce").notNull().default(false),  // أعلنه لقائمة البريد
     altitude: text("altitude"),
     sca: smallint("sca"),
     notes: text("notes").array().notNull().default(sql`'{}'::text[]`), // الإيحاءات
@@ -507,6 +508,13 @@ export const productVariants = pgTable("product_variants", {
   image: text("image"),
   sort: smallint("sort").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const leadBroadcasts = pgTable("lead_broadcasts", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull(),
+  sentCount: integer("sent_count").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

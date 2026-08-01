@@ -43,7 +43,10 @@ export default function ToolForm({
         <div className="sm:col-span-2">
           <Field label="صور الأداة" hint="ارفع عدة صور — الأولى الرئيسية"><MultiImageUpload name="images" initial={p.images ?? []} /></Field>
         </div>
-        <label className="flex items-center gap-2 pb-1 text-[13px] font-bold"><input type="checkbox" name="active" defaultChecked={p.active ?? true} className="h-4 w-4 accent-[#505445]" /> ظاهر بالمتجر</label>
+        <label className="flex items-center gap-2 text-[13px] font-bold" title="يُرسل إعلاناً لقائمة البريد مرة واحدة">
+            <input type="checkbox" name="announce" className="h-4 w-4 accent-[#c9a961]" /> أعلنه لقائمة البريد
+          </label>
+          <label className="flex items-center gap-2 pb-1 text-[13px] font-bold"><input type="checkbox" name="active" defaultChecked={p.active ?? true} className="h-4 w-4 accent-[#505445]" /> ظاهر بالمتجر</label>
       </Card>
 
       {/* الخيارات */}

@@ -2,6 +2,7 @@
 
 import PromoBanners from "@/components/scenes/PromoBanners";
 import WelcomeSheet from "@/components/WelcomeSheet";
+import ExitCapture from "@/components/ExitCapture";
 import CoffeeFinder from "@/components/CoffeeFinder";
 import { useMotion } from "@/lib/motion";
 import { useCatalog } from "@/lib/catalog-context";
@@ -24,6 +25,7 @@ export default function Home() {
   return (
     <div ref={scope}>
       <WelcomeSheet />
+      <ExitCapture />
       <Hero />
       <PromoBanners />
       <CropsRail />

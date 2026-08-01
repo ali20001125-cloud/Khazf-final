@@ -231,6 +231,27 @@ export async function emailRestock(o: { email: string; productName: string; url:
   `, logo), "restock");
 }
 
+/** إعلان منتج جديد لقائمة البريد */
+export async function emailNewProduct(o: {
+  email: string; productName: string; url: string;
+  image?: string | null; note?: string | null; price?: number | null;
+}) {
+  if (!o.email) return;
+  const logo = await getLogo();
+  const m = (n: number) => n.toLocaleString("en");
+  await sendMail(o.email, `وصل حديثاً: ${o.productName} — خزف`, wrap(`
+    <p style="font-size:12px;letter-spacing:2px;color:#A66A4C;margin:0 0 8px">وصل حديثاً</p>
+    <p style="font-size:19px;font-weight:bold;margin:0 0 12px">${o.productName}</p>
+    ${o.image ? `<img src="${o.image}" alt="${o.productName}" width="100%" style="width:100%;max-width:420px;border-radius:14px;display:block;margin:0 0 14px" />` : ""}
+    ${o.note ? `<p style="font-size:13.5px;line-height:1.95;margin:0 0 14px">${o.note}</p>` : ""}
+    ${o.price != null ? `<p style="font-size:16px;font-weight:bold;margin:0 0 14px">${m(o.price)} د.ع</p>` : ""}
+    <a href="${o.url}" style="display:inline-block;background:#A66A4C;color:#fff;padding:12px 30px;border-radius:10px;font-size:14.5px;font-weight:bold;text-decoration:none">اطلبه الآن</a>
+    <p style="font-size:11.5px;color:#8A7F70;margin:16px 0 0">
+      وصلك هذا لأنك من قائمة خزف — نراسلك فقط حين يستحق.
+    </p>
+  `, logo), "announce");
+}
+
 /* ═══════════════ تذكير السلة المتروكة ═══════════════ */
 
 type CartItem = { name: string; qty: number; price: number };

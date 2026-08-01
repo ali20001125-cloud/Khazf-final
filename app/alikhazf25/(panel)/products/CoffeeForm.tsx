@@ -29,6 +29,9 @@ export default function CoffeeForm({
         </div>
         <div className="flex items-end gap-5 pb-1">
           <label className="flex items-center gap-2 text-[13px] font-bold"><input type="checkbox" name="active" defaultChecked={p.active ?? true} className="h-4 w-4 accent-[#505445]" /> ظاهر بالمتجر</label>
+          <label className="flex items-center gap-2 text-[13px] font-bold" title="يُرسل إعلاناً لقائمة البريد مرة واحدة">
+            <input type="checkbox" name="announce" className="h-4 w-4 accent-[#c9a961]" /> أعلنه لقائمة البريد
+          </label>
           <label className="flex items-center gap-2 text-[13px] font-bold"><input type="checkbox" name="allowInBox" defaultChecked={p.allowInBox ?? true} className="h-4 w-4 accent-[#c9a961]" /> يدخل البوكس</label>
         </div>
       </Card>
