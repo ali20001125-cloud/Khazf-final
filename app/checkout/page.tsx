@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { fetchMe } from "@/lib/me";
 import Link from "next/link";
 import { Check, HandCoins, Gift, Sparkles, ArrowLeft , ChevronDown } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
@@ -41,7 +42,7 @@ export default function CheckoutPage() {
 
   /* الزبون المعروف: بياناته تتعبأ لحالها */
   useEffect(() => {
-    fetch("/api/customer/me/").then((r) => r.json()).then((me) => {
+    fetchMe().then((me) => {
       if (me?.guest) return;
       setForm((f) => ({
         ...f,

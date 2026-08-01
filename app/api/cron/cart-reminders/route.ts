@@ -46,6 +46,14 @@ export async function GET(req: Request) {
     gt(s.abandonedCarts.updatedAt, sevenDaysAgo),
   )).limit(40); // حدّ أمان (بريد مجاني ١٠٠/يوم)
 
+  // من أُشعِر خلال ٧ أيام (بأي جلسة) — لا نكرّر عليه
+  const recent = (await db.execute(sql`
+    SELECT lower(email) AS email, phone FROM abandoned_carts
+    WHERE notified = true AND notified_at >= now() - interval '7 days'`)).rows as unknown as
+    { email: string | null; phone: string | null }[];
+  const doneEmails = new Set(recent.map((r) => r.email).filter(Boolean) as string[]);
+  const donePhones = new Set(recent.map((r) => r.phone).filter(Boolean) as string[]);
+
   let sent = 0;
   // عدّاد التناوب: نستخدم عدد المُشعَرين سابقاً لتدوير القالب
   const [{ c: already }] = (await db.execute(sql`SELECT COUNT(*)::int AS c FROM abandoned_carts WHERE notified = true`)).rows as unknown as { c: number }[];
@@ -54,6 +62,14 @@ export async function GET(req: Request) {
     const cart = carts[i];
     const items = (cart.items as { name: string; qty: number; price: number }[]) ?? [];
     if (items.length === 0 || !cart.email) continue;
+    const em = cart.email.toLowerCase();
+    if (doneEmails.has(em)) {   // أُشعر مؤخراً — نعلّمها ولا نرسل
+      await db.update(s.abandonedCarts)
+        .set({ notified: true, templateSent: "skip", notifiedAt: new Date() })
+        .where(eq(s.abandonedCarts.id, cart.id));
+      continue;
+    }
+    doneEmails.add(em);
 
     const tplId = await emailCartReminder({
       email: cart.email,
@@ -89,6 +105,13 @@ export async function GET(req: Request) {
   for (const cart of waCarts) {
     const items = (cart.items as { name: string; qty: number; price: number }[]) ?? [];
     if (items.length === 0 || !cart.phone) continue;
+    if (donePhones.has(cart.phone)) {
+      await db.update(s.abandonedCarts)
+        .set({ notified: true, templateSent: "skip", notifiedAt: new Date() })
+        .where(eq(s.abandonedCarts.id, cart.id));
+      continue;
+    }
+    donePhones.add(cart.phone);
 
     // نص واتساب تسويقي جاهز (بروح خزف — مهذّب بلا إلحاح)
     const itemNames = items.map((it) => it.name).join("، ");

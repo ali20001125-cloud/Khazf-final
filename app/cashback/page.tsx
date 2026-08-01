@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { fetchMe } from "@/lib/me";
 import { Wallet, ShoppingBag, Percent } from "lucide-react";
 import { formatIQD } from "@/lib/data";
 import { useEffect, useState } from "react";
@@ -9,7 +10,7 @@ import { useMotion } from "@/lib/motion";
 export default function CashbackPage() {
   const scope = useMotion();
   const [me, setMe] = useState<{ pointsBalance?: number; pointsValueDinars?: number; guest?: boolean }>({});
-  useEffect(() => { fetch("/api/customer/me").then((r) => r.json()).then(setMe).catch(() => {}); }, []);
+  useEffect(() => { fetchMe().then(setMe).catch(() => {}); }, []);
   return (
     <div ref={scope} className="mx-auto max-w-2xl px-4 pb-24 pt-32 md:px-6">
       <h1 className="reveal text-3xl font-bold md:text-4xl">الكاش باك</h1>

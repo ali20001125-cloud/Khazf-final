@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { fetchMe } from "@/lib/me";
 import Link from "next/link";
 import { Minus, Plus, Trash2, Ticket, Wallet, Gift, ArrowLeft } from "lucide-react";
 import { formatIQD } from "@/lib/data";
@@ -25,7 +26,7 @@ export default function CartPage() {
   const [me, setMe] = useState<Me>({ guest: true });
 
   useEffect(() => {
-    fetch("/api/customer/me").then((r) => r.json()).then(setMe).catch(() => {});
+    fetchMe().then((d) => setMe(d as Me)).catch(() => {});
   }, []);
 
   // التقاط السلة تلقائياً (للتذكير لاحقاً) — مع بيانات المسجّل إن وُجدت
@@ -77,7 +78,7 @@ export default function CartPage() {
           boxGiftChoice,
         }),
       }).then((r) => r.json()).then((d) => { if (!d?.error) setPreview(d); }).catch(() => {});
-    }, 120);
+    }, 40);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [cart, me.phone, coupon, useCashback, boxGiftChoice]);
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw, Check, ArrowLeft } from "lucide-react";
 import { fmtDate } from "@/lib/datetime";
+import { checkEmail } from "@/lib/email-check";
 import OrderTimeline from "@/components/OrderTimeline";
 import { formatIQD, governorates } from "@/lib/data";
 import { normalizeIqPhone } from "@/lib/phone";
@@ -403,68 +404,6 @@ function GoogleBtn({ label = "المتابعة عبر Google" }: { label?: strin
 
 /* ═══ الزائر: دخول + تسجيل موحّد (Google + إيميل كامل) ═══ */
 /* تحقّق ذكي من الإيميل: يكشف أخطاء البنية والنطاقات الشائعة، ويقترح التصحيح */
-const COMMON_DOMAINS = [
-  "gmail.com", "hotmail.com", "outlook.com", "yahoo.com",
-  "icloud.com", "live.com", "protonmail.com", "yahoo.co.uk",
-  "khazf.shop", "me.com", "aol.com", "mail.com",
-];
-// أخطاء إملائية شائعة → التصحيح (سريعة، تُفحص أولاً)
-const DOMAIN_FIXES: Record<string, string> = {
-  "gmial.com": "gmail.com", "gamil.com": "gmail.com", "gmai.com": "gmail.com",
-  "gmil.com": "gmail.com", "gmaill.com": "gmail.com", "gmail.co": "gmail.com",
-  "gmail.con": "gmail.com", "gmail.cm": "gmail.com", "gmailcom": "gmail.com",
-  "hotmial.com": "hotmail.com", "hotmil.com": "hotmail.com", "hotmai.com": "hotmail.com",
-  "hotmail.co": "hotmail.com", "outlok.com": "outlook.com", "outook.com": "outlook.com",
-  "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "iclod.com": "icloud.com",
-};
-
-/** مسافة التشابه (Levenshtein): كم تعديل يفصل كلمتين */
-function editDistance(a: string, b: string): number {
-  const m = a.length, n = b.length;
-  const d: number[] = Array.from({ length: n + 1 }, (_, i) => i);
-  for (let i = 1; i <= m; i++) {
-    let prev = d[0]; d[0] = i;
-    for (let j = 1; j <= n; j++) {
-      const tmp = d[j];
-      d[j] = a[i - 1] === b[j - 1] ? prev : Math.min(prev, d[j], d[j - 1]) + 1;
-      prev = tmp;
-    }
-  }
-  return d[n];
-}
-
-/** يقترح أقرب نطاق شائع لو النطاق المكتوب قريب جداً منه (خطأ إملائي) */
-function suggestDomain(domain: string): string | null {
-  if (COMMON_DOMAINS.includes(domain)) return null; // صحيح مسبقاً
-  let best: string | null = null, bestDist = 99;
-  for (const cd of COMMON_DOMAINS) {
-    const dist = editDistance(domain, cd);
-    if (dist < bestDist) { bestDist = dist; best = cd; }
-  }
-  // نقترح فقط لو التشابه عالٍ: فرق حرف-حرفين (حسب طول النطاق)
-  const threshold = domain.length >= 8 ? 2 : 1;
-  return best && bestDist > 0 && bestDist <= threshold ? best : null;
-}
-
-/** يرجّع: خطأ (نص) أو اقتراح تصحيح أو null (سليم) */
-function checkEmail(raw: string): { error?: string; suggest?: string } {
-  const email = raw.trim().toLowerCase();
-  if (!email) return { error: "اكتب إيميلك" };
-  if (!email.includes("@")) return { error: "الإيميل ناقص علامة @" };
-  const parts = email.split("@");
-  if (parts.length > 2) return { error: "الإيميل فيه أكثر من @ — تأكّد" };
-  const [local, domain] = parts;
-  if (!local) return { error: "اكتب اسم الإيميل قبل @" };
-  if (!domain) return { error: "اكتب النطاق بعد @ (مثل gmail.com)" };
-  if (!domain.includes(".")) return { error: "النطاق ناقص نقطة (مثل gmail.com)" };
-  if (domain.startsWith(".") || domain.endsWith(".")) return { error: "تأكّد من موضع النقطة بالنطاق" };
-  // 1) خطأ إملائي معروف (سريع)
-  if (DOMAIN_FIXES[domain]) return { suggest: `${local}@${DOMAIN_FIXES[domain]}` };
-  // 2) تصحيح تلقائي بالتشابه (يمسك أي خطأ قريب من نطاق شائع)
-  const near = suggestDomain(domain);
-  if (near) return { suggest: `${local}@${near}` };
-  return {};
-}
 
 function SignedOutView() {
   const scope = useMotion();

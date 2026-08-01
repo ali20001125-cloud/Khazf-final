@@ -1,6 +1,7 @@
 "use client";
 /** دعوة تسجيل — مختصرة، وسط الشاشة، تظهر بعد تصفّح حقيقي (تمرير) لا فور الدخول */
 import { useEffect, useState } from "react";
+import { fetchMe } from "@/lib/me";
 import Link from "next/link";
 import { X, Wallet, Gift } from "lucide-react";
 
@@ -11,8 +12,7 @@ export default function WelcomeSheet() {
   // ١) زائر غير مسجّل ولم يُغلقها سابقاً
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/customer/me")
-      .then((r) => r.json())
+    fetchMe()
       .then((me) => {
         if (cancelled) return;
         const dismissed = document.cookie.includes("khz_welcome=1");
