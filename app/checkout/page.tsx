@@ -31,7 +31,7 @@ function nameFromEmail(email: string): string {
 export default function CheckoutPage() {
   const scope = useMotion();
   const config = useSiteConfig();
-  const { cart, clearCart, coupon, useCashback, setUseCashback, boxGiftChoice, showToast } = useStore();
+  const { cart, clearCart, coupon, useCashback, setUseCashback, boxGiftChoice, showToast, setQty } = useStore();
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
 
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
                   className={`w-full appearance-none rounded-[14px] border-2 bg-card px-4 py-3.5 text-[14px] font-bold outline-none transition-colors ${
                     form.governorate ? "border-line" : "border-accent/50 text-muted"
                   }`}>
-                  <option value="" disabled>اضغط واختر محافظتك من القائمة ▾</option>
+                  <option value="" disabled>المحافظة</option>
                   {/* الأكثر طلباً أولاً — يختصر البحث في قائمة ١٨ محافظة */}
                   <optgroup label="الأكثر طلباً">
                     {["بغداد", "البصرة", "أربيل", "النجف", "كربلاء"]
@@ -305,11 +305,21 @@ export default function CheckoutPage() {
         {/* الملخص */}
         <aside className="h-fit space-y-3 rounded-[22px] border border-line bg-card p-6 lg:sticky lg:top-28">
           <h2 className="text-lg font-bold">طلبك</h2>
-          <ul className="space-y-2 text-[13px]">
+          <ul className="divide-y divide-line">
             {cart.map((i) => (
-              <li key={i.key} className="flex justify-between gap-3">
-                <span className="min-w-0 truncate text-muted">{i.name} ×{i.qty}</span>
-                <span className="font-num shrink-0 font-semibold">{formatIQD(i.priceShown * i.qty)}</span>
+              <li key={i.key} className="flex items-center gap-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold">{i.name}</p>
+                  {i.meta && <p className="mt-0.5 truncate text-[11px] text-muted">{i.meta}</p>}
+                </div>
+                <div className="flex shrink-0 items-center gap-2.5 rounded-[10px] border border-line px-2 py-1">
+                  <button onClick={() => setQty(i.key, i.qty - 1)} aria-label="أنقص"
+                    className="flex h-6 w-6 items-center justify-center text-muted hover:text-ink">−</button>
+                  <span className="font-num w-4 text-center text-[12.5px] font-bold">{i.qty}</span>
+                  <button onClick={() => setQty(i.key, i.qty + 1)} aria-label="زد"
+                    className="flex h-6 w-6 items-center justify-center hover:text-clay">+</button>
+                </div>
+                <span className="font-num shrink-0 text-[13px] font-bold">{formatIQD(i.priceShown * i.qty)}</span>
               </li>
             ))}
           </ul>

@@ -7,6 +7,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useStore } from "@/lib/store";
 import { formatIQD, type Coffee } from "@/lib/data";
 import { CoffeeCard, ToolCard } from "@/components/Cards";
+import LeadCapture from "@/components/LeadCapture";
 
 /* ═══ ١) البطل: أكثر محصول طلباً — قابل للشراء فوراً ═══ */
 export function HeroPick() {
@@ -24,34 +25,39 @@ export function HeroPick() {
   };
 
   return (
-    <section className="mx-auto max-w-lg px-4 pt-6 md:max-w-5xl md:px-8">
-      <p className="text-[12.5px] font-bold text-ink">الأكثر طلباً هذا الأسبوع</p>
-      <div className="mt-2.5 flex items-center gap-4 rounded-[18px] border border-clay/25 bg-clay/5 p-4">
-        <Link href={`/product/?c=${pick.slug}`} className="h-24 w-24 shrink-0 overflow-hidden rounded-[13px] bg-white md:h-32 md:w-32">
+    <section className="mx-auto max-w-lg px-4 pt-7 md:max-w-5xl md:px-8">
+      <Link href={`/product/?c=${pick.slug}`}
+        className="group block overflow-hidden rounded-[20px] border border-line bg-card transition-all active:scale-[0.995]">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-alt md:aspect-[21/9]">
           {pick.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={pick.image} alt={pick.name} className="h-full w-full object-cover" />
-          ) : <span className="flex h-full w-full items-center justify-center bg-bg-alt text-[11px] text-muted">{pick.name}</span>}
-        </Link>
-        <div className="min-w-0 flex-1">
-          <Link href={`/product/?c=${pick.slug}`}>
-            <p className="text-[17px] font-bold md:text-[20px]">{pick.name}</p>
-          </Link>
+          ) : null}
+          <span className="absolute end-3 top-3 rounded-full bg-bg/92 px-3 py-1.5 text-[10.5px] font-bold text-ink backdrop-blur-sm">
+            الأكثر طلباً
+          </span>
+        </div>
+        <div className="p-4">
+          <p className="font-[Amiri,serif] text-[21px] font-bold leading-tight">{pick.name}</p>
           {pick.notes?.length > 0 && (
-            <p className="mt-1 truncate text-[12px]" style={{ color: pick.accent }}>{pick.notes.join(" · ")}</p>
+            <p className="mt-1 text-[12px] font-semibold" style={{ color: pick.accent }}>
+              {pick.notes.join(" · ")}
+            </p>
           )}
           <p className="mt-1 text-[11.5px] text-muted">
             {[pick.country, pick.roast && `تحميص ${pick.roast}`].filter(Boolean).join(" · ")}
           </p>
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <p className="font-num text-[17px] font-bold">{formatIQD(pick.prices.g250)}</p>
-            <button onClick={add} disabled={pick.soldOut} aria-label="أضف للسلة"
-              className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-ink px-6 text-[13.5px] font-bold text-bg shadow-md transition-transform active:scale-95 disabled:opacity-50">
-              أضف للسلة
+          <div className="mt-3.5 flex items-center justify-between gap-3">
+            <p className="font-num text-[18px] font-bold">{formatIQD(pick.prices.g250)}</p>
+            <button
+              onClick={(e) => { e.preventDefault(); add(); }}
+              disabled={pick.soldOut}
+              className="btn btn-clay shrink-0 !px-6 !py-2.5 text-[13.5px] active:scale-95 disabled:opacity-50">
+              {pick.soldOut ? "نفد" : "أضف للسلة"}
             </button>
           </div>
         </div>
-      </div>
+      </Link>
     </section>
   );
 }
@@ -161,7 +167,26 @@ export function GearRail({ cat, title, href }: { cat: string; title: string; hre
   );
 }
 
-/* ═══ ٦) الطمأنة ═══ */
+/* ═══ ٦) قبل الفوتر: التقاط من لم يشترِ ═══ */
+export function BeforeFooter() {
+  return (
+    <section className="mx-auto max-w-lg px-4 pt-12 md:max-w-5xl md:px-8">
+      <div className="rounded-[20px] border border-line bg-bg-alt p-6 text-center md:p-8">
+        <p className="font-[Amiri,serif] text-[21px] font-bold leading-snug md:text-[24px]">
+          لم تقرّر بعد؟
+        </p>
+        <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-muted">
+          خذ دليل التحضير مجاناً — النِّسب والخطوات التي نعتمدها في خزف، على بريدك.
+        </p>
+        <div className="mx-auto mt-4 max-w-sm">
+          <LeadCapture source="guide" compact />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══ ٧) الطمأنة ═══ */
 export function TrustRow() {
   const items = [
     ["تحميص حديث", "دفعات صغيرة"],
