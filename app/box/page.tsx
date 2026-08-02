@@ -377,6 +377,44 @@ export default function BoxPage() {
         </div>
       </div>
 
+      {/* الملخّص الشفاف — قبل الإضافة بلا مفاجآت */}
+      {count > 0 && (
+        <div className="mx-auto mt-8 max-w-3xl px-4 md:px-6">
+          <div className="rounded-[18px] bg-bg-alt p-5">
+            <div className="flex justify-between py-1.5 text-[13px]">
+              <span className="text-muted">{count} {count === 1 ? "كيس" : "أكياس"}</span>
+              <span className="font-num">{formatIQD(subtotal)}</span>
+            </div>
+            {savings > 0 && (
+              <div className="flex justify-between py-1.5 text-[13px] text-ok">
+                <span>خصم البوكس {Math.round(discount * 100)}٪</span>
+                <span className="font-num">−{formatIQD(savings)}</span>
+              </div>
+            )}
+            <div className="flex justify-between py-1.5 text-[13px]">
+              <span className="text-muted">التوصيل</span>
+              <span className={count >= 5 ? "font-semibold text-ok" : "font-num text-muted"}>
+                {count >= 5 ? "مجاني" : "يُحسب بالسلة"}
+              </span>
+            </div>
+            {gift && count >= 6 && (
+              <div className="flex justify-between py-1.5 text-[13px] text-gold">
+                <span>هديتك</span>
+                <span className="font-semibold">{gift}</span>
+              </div>
+            )}
+            <div className="my-2.5 h-px bg-line" />
+            <div className="flex justify-between text-[16px] font-bold">
+              <span>الإجمالي</span>
+              <span className="font-num">{formatIQD(total)}</span>
+            </div>
+            <p className="mt-2 text-[11.5px] text-muted">
+              وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.round(total / 1000) * 30)}</span> كاش باك من هذا الطلب
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* الشريط السفلي */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">

@@ -122,76 +122,53 @@ function ShopInner() {
   ];
 
   return (
-    <div ref={scope} className="mx-auto max-w-6xl px-4 pb-20 pt-28 md:px-8 md:pt-32">
+    <div ref={scope} className="mx-auto max-w-6xl px-4 pb-24 pt-24 md:px-8 md:pt-28">
 
-      <h1 className="reveal mt-3 text-[26px] font-bold md:text-3xl">المتجر</h1>
-
-      {/* بحث فوري */}
-      <div className="relative mt-4">
+      {/* بحث */}
+      <div className="relative">
         <Search size={16} className="pointer-events-none absolute inset-y-0 end-4 my-auto text-muted" />
         <input
           value={q} onChange={(e) => setQ(e.target.value)}
           placeholder="ابحث عن محصول أو أداة…"
-          className="w-full rounded-[14px] border border-line bg-card py-3 pe-11 ps-4 text-[13.5px] outline-none transition-colors focus:border-accent"
+          className="w-full rounded-[14px] border border-line bg-bg-alt py-3 pe-11 ps-4 text-[13.5px] outline-none transition-colors focus:border-accent focus:bg-bg"
         />
       </div>
 
-      {/* التبويبات الرئيسية */}
-      <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">
+      {/* الأقسام */}
+      <div className="no-scrollbar mt-3.5 flex gap-2 overflow-x-auto pb-1">
         {tabs.filter((t) => !t.place || activePlaces.includes(t.place)).map((t) => (
-          <button
-            key={t.key}
-            onClick={() => go({ cat: t.key, type: "الكل" })}
-            className={`shrink-0 rounded-[14px] px-5 py-3 text-[14px] font-bold transition-colors md:px-6 ${
-              tab === t.key ? "bg-olive text-olive-text" : "bg-card text-muted hover:text-ink"
-            }`}
-          >
+          <button key={t.key} onClick={() => go({ cat: t.key, type: "الكل" })}
+            className={`shrink-0 rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors ${
+              tab === t.key ? "bg-ink text-bg" : "border border-line bg-bg text-muted hover:text-ink"
+            }`}>
             {t.label}
           </button>
         ))}
-        <Link
-          href="/box/"
-          className="shrink-0 rounded-[14px] bg-card px-5 py-3 text-[14px] font-bold text-muted transition-colors hover:text-ink md:px-6"
-        >
-          بناء البوكس
+        <Link href="/box/"
+          className="shrink-0 rounded-full border border-gold/40 bg-gold/8 px-4 py-2 text-[12.5px] font-semibold text-gold-text transition-colors hover:bg-gold/14">
+          اصنع صندوقك
         </Link>
       </div>
 
-      {/* الفلاتر الفرعية للقسم الحالي */}
-      {subTypes.length > 0 && (
-        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
-          {subTypes.map((tp) => (
-            <button
-              key={tp}
-              onClick={() => go({ type: tp })}
-              className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors ${
-                type === tp
-                  ? "border-accent bg-accent text-olive-text"
-                  : "border-line bg-card text-muted hover:text-ink"
-              }`}
-            >
+      {/* الأصناف الفرعية + الفرز في سطر واحد */}
+      <div className="mt-3 flex items-center justify-between gap-3 border-b border-line pb-3">
+        <div className="no-scrollbar flex min-w-0 flex-1 gap-3.5 overflow-x-auto text-[12px]">
+          {subTypes.length > 0 ? subTypes.map((tp) => (
+            <button key={tp} onClick={() => go({ type: tp })}
+              className={`shrink-0 whitespace-nowrap transition-colors ${
+                type === tp ? "font-bold text-clay" : "text-muted hover:text-ink"
+              }`}>
               {tp}
             </button>
-          ))}
+          )) : (
+            <span className="font-num text-[12px] text-muted">{list.length} منتجاً</span>
+          )}
         </div>
-      )}
-
-      {/* شريط النتائج + الفرز */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-        <p className="font-num text-[13px] font-semibold text-muted">
-          {list.length} منتجاً
-        </p>
-        <div className="flex items-center gap-3 text-[13px]">
-          <span className="text-muted">ترتيب:</span>
-          <select
-            value={sort}
-            onChange={(e) => go({ sort: e.target.value as Sort })}
-            aria-label="ترتيب حسب"
-            className="rounded-full border border-line bg-card px-4 py-2 text-[12.5px] font-bold outline-none"
-          >
-            {sorts.map((x) => <option key={x.key} value={x.key}>ترتيب: {x.label}</option>)}
-          </select>
-        </div>
+        <select value={sort} onChange={(e) => go({ sort: e.target.value as Sort })}
+          aria-label="ترتيب حسب"
+          className="shrink-0 border-0 bg-transparent text-[12px] font-semibold text-muted outline-none">
+          {sorts.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
+        </select>
       </div>
 
       {/* الشبكة */}

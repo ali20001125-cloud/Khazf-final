@@ -149,7 +149,16 @@ export default function CartPage() {
 
   return (
     <div ref={scope} className="mx-auto max-w-5xl px-4 pb-28 pt-28 md:px-8 md:pt-32">
-      <h1 className="reveal text-3xl font-bold md:text-4xl">السلة</h1>
+      <h1 className="reveal text-[26px] font-bold md:text-3xl">سلّتك</h1>
+
+      {/* تقدّم واضح */}
+      <div className="reveal mt-4 flex items-center gap-2.5">
+        <span className="text-[12px] font-bold text-clay">١ السلة</span>
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-[12px] text-muted">٢ التوصيل</span>
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-[12px] text-muted">٣ التأكيد</span>
+      </div>
 
       {/* شريط تقدّم التوصيل المجاني */}
       {/* فرصة البوكس — تحويل بضغطة أو دعوة لإضافة كيس */}
@@ -366,9 +375,14 @@ export default function CartPage() {
               <span className="text-muted">رسوم التوصيل</span>
               {freeDelivery ? <span className="font-semibold text-ok">مجاني</span> : <span className="font-num font-semibold">{formatIQD(delivery)}</span>}
             </div>
-            <div className="flex justify-between border-t border-line pt-3 text-base font-bold">
+            <div className="flex justify-between border-t border-line pt-3 text-[16px] font-bold">
               <span>الإجمالي</span><span className="font-num">{formatIQD(previewTotal)}</span>
             </div>
+            {previewTotal > 0 && (
+              <p className="text-[11.5px] text-muted">
+                وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.round(previewTotal / 1000) * 30)}</span> كاش باك من هذا الطلب
+              </p>
+            )}
           </div>
 
           <Link href="/checkout/" className="btn btn-clay flex w-full items-center justify-center gap-2 !py-4 text-[15px] active:scale-[0.98]">
