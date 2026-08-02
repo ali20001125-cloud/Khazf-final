@@ -92,11 +92,22 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const weightLabel = weights.find((w) => w.k === safeWeight)!.label;
   const cashback = Math.round((unit * qty) / 1000) * 30;
 
+  /* الحدّ الأقصى للكمية = المخزون المتاح بهذا الوزن */
+  const gramsPer = safeWeight === "g1000" ? 1000 : safeWeight === "g500" ? 500 : 250;
+  const maxQty = coffee.bagsLeft != null
+    ? Math.max(1, Math.floor((coffee.bagsLeft * 250) / gramsPer))
+    : 99;
+  const atMax = qty >= maxQty;
+
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
   const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
 
   // الصفر أو الفارغ يعني «الوزن غير متاح» — لا يُعرض
   const availableWeights = weights.filter((w) => (coffee.prices[w.k] ?? 0) > 0);
+
+  useEffect(() => {
+    setQty((q) => Math.min(q, maxQty));
+  }, [maxQty]);
 
   useEffect(() => {
     pushRecent(`c:${coffee.slug}`);
@@ -277,8 +288,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
                 <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="أنقص"
                   className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-bg-alt"><Minus size={15} /></button>
                 <span className="font-num w-4 text-center text-[14px] font-bold">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} aria-label="زد"
-                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-bg-alt"><Plus size={15} /></button>
+                <button onClick={() => setQty(Math.min(maxQty, qty + 1))} aria-label="زد" disabled={atMax}
+                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-bg-alt disabled:opacity-30"><Plus size={15} /></button>
               </div>
               <button onClick={add} disabled={coffee.soldOut}
                 className={`btn flex-1 !py-3.5 text-[14.5px] transition-colors active:scale-[0.98] disabled:opacity-50 ${
@@ -288,6 +299,12 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               </button>
             </div>
 
+            {atMax && maxQty < 99 && (
+              <p className="mt-2.5 text-center text-[12px] font-bold text-accent">
+                هذا كل المتوفّر حالياً — <span className="font-num">{maxQty}</span>
+                {gramsPer === 1000 ? " كيلو" : gramsPer === 500 ? " × ٥٠٠غ" : " × ٢٥٠غ"}
+              </p>
+            )}
             <p className="mt-3 text-center text-[11.5px] leading-relaxed text-muted">
               توصيل ١–٢ يوم · دفع عند الاستلام · توصيل مجاني لأول طلب
               {cashback > 0 && <> · تكسب <span className="font-num font-bold text-clay">{formatIQD(cashback)}</span> كاش باك</>}

@@ -227,7 +227,17 @@ export default function CartPage() {
               <div className="flex items-center gap-2.5 rounded-full border border-line px-2 py-1.5">
                 <button onClick={() => setQty(i.key, i.qty - 1)} aria-label="أنقص" className="text-muted hover:text-ink"><Minus size={14} /></button>
                 <span className="font-num w-5 text-center text-sm font-bold">{i.qty}</span>
-                <button onClick={() => setQty(i.key, i.qty + 1)} aria-label="زد" className="text-muted hover:text-ink"><Plus size={14} /></button>
+                <button
+                  onClick={() => {
+                    const c = coffees.find((x) => x.slug === i.slug);
+                    
+                    const gramsPer = i.variant === "G1000" ? 1000 : i.variant === "G500" ? 500 : 250;
+                    const max = c?.bagsLeft != null ? Math.floor((c.bagsLeft * 250) / gramsPer)
+                      : 99;
+                    if (i.qty >= max) { showToast(`هذا كل المتوفّر من ${i.name}`); return; }
+                    setQty(i.key, i.qty + 1);
+                  }}
+                  aria-label="زد" className="text-muted hover:text-ink"><Plus size={14} /></button>
               </div>
               <button onClick={() => removeFromCart(i.key)} aria-label="احذف" className="text-muted transition-colors hover:text-accent"><Trash2 size={17} /></button>
             </div>

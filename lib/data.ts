@@ -29,6 +29,7 @@ export interface Coffee {
   isNew?: boolean;
   stockLow?: number;
   soldOut?: boolean;
+  bagsLeft?: number;   // الأكياس المتاحة
   farm: string;
   story: string;
 }

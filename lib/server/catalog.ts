@@ -92,6 +92,7 @@ function coffeeFromRow(
     brew: (Array.isArray(p.brew) && p.brew.length > 0 ? p.brew : BREW_DEFAULT) as Coffee["brew"],
     isNew: isNew || p.badge === "جديد",
     soldOut: soldOut || undefined,
+    bagsLeft,   // الأكياس المتاحة (٢٥٠غ) — لتحديد الكمية القصوى
     stockLow:
       !soldOut && p.stockThreshold > 0 && grams <= p.stockThreshold
         ? bagsLeft
