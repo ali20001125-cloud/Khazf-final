@@ -84,14 +84,19 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const [showBar, setShowBar] = useState(false);
   const buyRef = useRef<HTMLDivElement>(null);
 
-  const unit = coffee.prices[weight] ?? coffee.prices.g250;
-  const weightLabel = weights.find((w) => w.k === weight)!.label;
+  // لو الوزن المختار غير متاح، نرجع لأول وزن متاح
+  const safeWeight = (coffee.prices[weight] ?? 0) > 0
+    ? weight
+    : (weights.find((w) => (coffee.prices[w.k] ?? 0) > 0)?.k ?? "g250");
+  const unit = coffee.prices[safeWeight] || coffee.prices.g250;
+  const weightLabel = weights.find((w) => w.k === safeWeight)!.label;
   const cashback = Math.round((unit * qty) / 1000) * 30;
 
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
   const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
 
-  const availableWeights = weights.filter((w) => coffee.prices[w.k] != null);
+  // الصفر أو الفارغ يعني «الوزن غير متاح» — لا يُعرض
+  const availableWeights = weights.filter((w) => (coffee.prices[w.k] ?? 0) > 0);
 
   useEffect(() => {
     pushRecent(`c:${coffee.slug}`);
@@ -241,7 +246,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               {availableWeights.map((w) => (
                 <button key={w.k} onClick={() => setWeight(w.k)}
                   className={`flex-1 rounded-[13px] border py-2.5 text-center transition-all active:scale-[0.97] ${
-                    weight === w.k ? "border-clay bg-clay/8" : "border-line bg-card"
+                    safeWeight === w.k ? "border-clay bg-clay/8" : "border-line bg-card"
                   }`}>
                   <span className="block text-[13px] font-bold">{w.label}</span>
                   <span className="font-num mt-0.5 block text-[11px] text-muted">

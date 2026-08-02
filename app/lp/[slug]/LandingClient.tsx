@@ -24,7 +24,7 @@ export default function LandingClient({ coffee }: { coffee: Coffee }) {
     ["g250", "٢٥٠غ", coffee.prices.g250],
     ["g500", "٥٠٠غ", coffee.prices.g500],
     ["g1000", "كيلو", coffee.prices.g1000],
-  ] as const).filter(([, , p]) => p != null);
+  ] as const).filter(([, , p]) => (p ?? 0) > 0);
 
   const grinds = ["حبوب كاملة", "V60 / فلتر", "إسبريسو", "فرنش برس"];
 
