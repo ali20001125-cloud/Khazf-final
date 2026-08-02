@@ -20,6 +20,14 @@ type Success = {
   nextRewardMessage: string | null;
 };
 
+/** اسم مبدئي من البريد — يعدّله الزبون لاحقاً من حسابه */
+function nameFromEmail(email: string): string {
+  const local = String(email ?? "").split("@")[0] ?? "";
+  const clean = local.replace(/[._\-0-9]+/g, " ").trim();
+  if (!clean || clean.length < 2) return "";
+  return clean.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ").slice(0, 40);
+}
+
 export default function CheckoutPage() {
   const scope = useMotion();
   const config = useSiteConfig();
@@ -129,7 +137,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name.trim() || "زبون خزف",
+          name: form.name.trim() || nameFromEmail(form.email) || "صديق خزف",
           phone: normalizeIqPhone(form.phone) ?? form.phone.trim(),
           email: form.email.trim() || null,
           governorate: form.governorate,
@@ -257,11 +265,16 @@ export default function CheckoutPage() {
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                 className={`${inputCls} sm:col-span-2`} />
 
-              {/* ٥) الاسم والإيميل — ظاهران مباشرة (الإيميل مهم للفاتورة والتقييم) */}
-              <input placeholder="الاسم الكامل" value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-              <input type="email" dir="ltr" placeholder="الإيميل" value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })} className={`${inputCls} text-end`} />
+              {/* ٥) البريد — حقل واحد بارز، والاسم يُشتقّ منه أو يُضاف من الحساب */}
+              <div className="sm:col-span-2">
+                <input type="email" inputMode="email" dir="ltr" placeholder="بريدك الإلكتروني"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className={`${inputCls} text-end`} />
+                <p className="mt-1.5 text-[11.5px] text-muted">
+                  لإرسال تأكيد الطلب وتتبّعه — ورصيد الكاش باك يُحفظ عليه
+                </p>
+              </div>
             </div>
           </section>
 

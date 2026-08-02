@@ -29,24 +29,29 @@ function BoxIntro() {
     { n: "٣", h: "مكافآت تكبر معك", p: "توصيل مجّاني عند خمسة أكياس، وهديّة تختارها عند ستّة." },
   ];
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-28 md:px-6 md:pt-32">
-      <div className="text-center">
-        <p className="reveal font-num text-[10px] tracking-[0.4em] text-muted">BUILD YOUR BOX</p>
-        <h1 className="reveal mt-2 text-[28px] font-bold md:text-4xl">اصنع صندوقك</h1>
-        <p className="reveal mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-muted">
-          صندوقك الخاص من قهوة خزف — تختار محاصيله بنفسك، والمكافأة تكبر مع كل كيس تضيفه.
-        </p>
-      </div>
-      {/* ثلاث خطوات بسيطة واضحة */}
-      <div className="reveal mt-9 grid gap-3 sm:grid-cols-3">
-        {steps.map((st) => (
-          <div key={st.n} className="rounded-[20px] border border-line bg-card p-5 text-center">
-            <span className="font-num mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-olive text-[15px] font-bold text-olive-text">{st.n}</span>
-            <h3 className="mt-3 text-[16px] font-bold">{st.h}</h3>
-            <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{st.p}</p>
-          </div>
-        ))}
-      </div>
+    <div className="mx-auto max-w-3xl px-4 pt-24 md:px-6 md:pt-28">
+      <h1 className="text-[25px] font-bold md:text-3xl">اصنع صندوقك</h1>
+      <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
+        اختر محاصيلك — كل كيس تضيفه يكبّر مكافأتك، حتى كيس مجاني بالسادس.
+      </p>
+      {/* الخطوات مطوية — لمن يريد التفاصيل */}
+      <details className="mt-4 border-y border-line">
+        <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-[13px] font-bold">
+          كيف يعمل الصندوق؟
+          <span className="text-[16px] font-normal text-muted">+</span>
+        </summary>
+        <div className="space-y-3 pb-4">
+          {steps.map((st) => (
+            <div key={st.n} className="flex gap-3">
+              <span className="font-num flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-olive text-[13px] font-bold text-olive-text">{st.n}</span>
+              <div>
+                <p className="text-[13.5px] font-bold">{st.h}</p>
+                <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted">{st.p}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }
