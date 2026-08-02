@@ -37,7 +37,7 @@ export default async function AnalyticsPage() {
   // ── السلات المهجورة (لم تُسترد، آخر تحديث > ساعة) ──
   const abandoned = (await db.execute(sql`
     SELECT session_id, phone, name, email, template_sent, items, items_total, updated_at
-    FROM abandoned_carts
+    FROM abandoned_carts WHERE (email IS NULL OR lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')) AND (phone IS NULL OR phone NOT IN (SELECT value FROM test_identities WHERE kind='phone'))
     WHERE recovered = false AND items_total > 0 AND updated_at < now() - interval '1 hour'
     ORDER BY updated_at DESC LIMIT 30`)).rows as unknown as
     { session_id: string; phone: string | null; name: string | null; email: string | null; template_sent: string | null; items: { name: string; qty: number }[]; items_total: number; updated_at: string }[];
@@ -47,7 +47,7 @@ export default async function AnalyticsPage() {
       COUNT(*) FILTER (WHERE recovered = false AND updated_at < now() - interval '1 hour')::int AS open,
       COUNT(*) FILTER (WHERE recovered = false AND updated_at < now() - interval '1 hour')::int AS total_open,
       COALESCE(SUM(items_total) FILTER (WHERE recovered = false AND updated_at < now() - interval '1 hour'),0)::int AS lost_value
-    FROM abandoned_carts`)).rows[0] as unknown as { open: number; lost_value: number };
+    FROM abandoned_carts WHERE (email IS NULL OR lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')) AND (phone IS NULL OR phone NOT IN (SELECT value FROM test_identities WHERE kind='phone'))`)).rows[0] as unknown as { open: number; lost_value: number };
 
   // ── إحصائيات تذكير السلة ──
   const reminderStats = (await db.execute(sql`
@@ -57,10 +57,13 @@ export default async function AnalyticsPage() {
       COUNT(*) FILTER (WHERE notified = true AND template_sent = '1')::int AS t1,
       COUNT(*) FILTER (WHERE notified = true AND template_sent = '2')::int AS t2,
       COUNT(*) FILTER (WHERE notified = true AND template_sent = '3')::int AS t3
-    FROM abandoned_carts`)).rows[0] as unknown as
+    FROM abandoned_carts WHERE (email IS NULL OR lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')) AND (phone IS NULL OR phone NOT IN (SELECT value FROM test_identities WHERE kind='phone'))`)).rows[0] as unknown as
     { sent: number; recovered_after: number; t1: number; t2: number; t3: number };
   const recoveryRate = reminderStats.sent > 0
     ? ((reminderStats.recovered_after / reminderStats.sent) * 100).toFixed(0) : "0";
+
+  /* هويات الاختبار — تُستثنى من كل الأرقام */
+  const NOT_TEST_EMAIL = sql`lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')`;
 
   // ── قائمة البريد (من ترك بريده بلا شراء) ──
   let leads = { total: 0, guide: 0, restock: 0, week: 0, converted: 0 };
@@ -72,10 +75,10 @@ export default async function AnalyticsPage() {
         COUNT(*) FILTER (WHERE source='restock')::int AS restock,
         COUNT(*) FILTER (WHERE created_at >= now() - interval '7 days')::int AS week,
         COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM customers c WHERE lower(c.email) = lower(email_leads.email)))::int AS converted
-      FROM email_leads`)).rows[0] as unknown as typeof leads;
+      FROM email_leads WHERE ${NOT_TEST_EMAIL}`)).rows[0] as unknown as typeof leads;
     leadRows = (await db.execute(sql`
       SELECT email, source, product_slug, notified, created_at::text
-      FROM email_leads ORDER BY created_at DESC LIMIT 200`)).rows as unknown as typeof leadRows;
+      FROM email_leads WHERE ${NOT_TEST_EMAIL} ORDER BY created_at DESC LIMIT 200`)).rows as unknown as typeof leadRows;
   } catch { /* الجدول قد لا يكون منشأً */ }
 
   // ── سجل الإيميلات (مراقبة حد ١٠٠/يوم) ──
@@ -91,7 +94,7 @@ export default async function AnalyticsPage() {
         COUNT(*) FILTER (WHERE kind='review' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS review,
         COUNT(*) FILTER (WHERE kind LIKE 'cart_%' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad')::int AS cart,
         COUNT(*) FILTER (WHERE ok = false AND created_at >= now() - interval '7 days')::int AS failed
-      FROM email_log`)).rows[0] as unknown as typeof mail;
+      FROM email_log WHERE recipient IS NULL OR lower(recipient) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')`)).rows[0] as unknown as typeof mail;
   } catch { /* الجدول قد لا يكون منشأً بعد */ }
 
   return (
@@ -155,6 +158,15 @@ export default async function AnalyticsPage() {
             </div>
           )}
         </Card>
+      </div>
+
+      {/* أدوات الاختبار */}
+      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-[14px] border border-line bg-bg-alt px-4 py-3">
+        <p className="text-[12.5px] text-muted">
+          هذه الأرقام تستثني زياراتك وحساباتك وأرقامك.
+        </p>
+        <a href="/no-track/" target="_blank" rel="noopener"
+          className="text-[12.5px] font-bold text-accent">استثنِ هذا الجهاز ←</a>
       </div>
 
       {/* قائمة البريد */}

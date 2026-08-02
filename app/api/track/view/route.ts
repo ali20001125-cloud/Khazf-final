@@ -13,6 +13,10 @@ export async function POST(req: Request) {
     const admin = await getAdmin().catch(() => null);
     if (admin) return NextResponse.json({ ok: true, skipped: "admin" });
 
+    // أجهزة الاختبار المستثناة (كوكي khz_no_track من صفحة /no-track)
+    const cookie = req.headers.get("cookie") ?? "";
+    if (cookie.includes("khz_no_track=1")) return NextResponse.json({ ok: true, skipped: "device" });
+
     const b = await req.json();
     if (!b.sessionId || !b.path) return NextResponse.json({ ok: false });
     await db.insert(s.pageViews).values({
