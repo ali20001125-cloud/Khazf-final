@@ -67,7 +67,8 @@ export interface ToolVariant {
 
 
 export function formatIQD(n: number): string {
-  return n.toLocaleString("ar-IQ") + " د.ع";
+  // أرقام لاتينية أوضح للقراءة السريعة، والعملة بالعربية
+  return n.toLocaleString("en-US") + " د.ع";
 }
 
 // ─── مراجعات ───

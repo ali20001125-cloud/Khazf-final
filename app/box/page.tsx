@@ -109,13 +109,12 @@ export default function BoxPage() {
     if (targets.length === 0) return null;
     const target = targets[0];
     const need = target - count;
-    // متوسط سعر الكيس بالسلة (تقدير المضاف)
-    const avg = subtotal / Math.max(1, count);
-    const nextSubtotal = subtotal + avg * need;
-    const nextTotal = roundUp250(nextSubtotal * (1 - discountFor(target)));
-    const extraSaving = Math.max(0, (nextSubtotal - nextTotal) - savings);
+    /* المكسب الحقيقي = الخصم الإضافي على ما في صندوقك الآن.
+       لا نحسب خصم الكيس الجديد لأن الزبون يدفع ثمنه — ذلك ليس ربحاً. */
+    const extraPct = discountFor(target) - discountFor(count);
+    const extraSaving = Math.round(subtotal * extraPct);
     const perk = target === 5 ? "توصيل مجاني" : target === 6 ? "هديتك المجانية" : null;
-    return { need, target, extraSaving: Math.round(extraSaving), perk };
+    return { need, target, extraSaving, perk };
   }, [count, subtotal, savings, coffees.length]);
 
   /* بوكس جاهز — لمن لا يريد الاختيار */
@@ -197,11 +196,11 @@ export default function BoxPage() {
             />
           </div>
           {/* المستويات كصفّ واحد */}
-          <div className="mt-3 flex gap-px overflow-hidden rounded-[12px] bg-line">
+          <div className="mt-4 flex gap-px overflow-hidden rounded-[12px] bg-line">
             {tiers.map((t, i) => {
               const on = count >= i + 3;
               return (
-                <div key={t.n} className={`flex-1 px-2 py-2.5 text-center transition-colors ${
+                <div key={t.n} className={`flex-1 px-2 py-3 text-center transition-colors ${
                   on ? (t.gold ? "bg-gold text-olive" : "bg-olive text-olive-text") : "bg-card text-muted"
                 }`}>
                   <p className="font-num text-[14px] font-bold">{t.n}</p>
@@ -232,7 +231,7 @@ export default function BoxPage() {
         {/* بوكس جاهز — لمن لا يريد الاختيار */}
         {count === 0 && (
           <button onClick={fillReady}
-            className="reveal mt-5 flex w-full items-center justify-between gap-3 rounded-[16px] border border-gold/35 bg-gold/8 p-4 text-start transition-all active:scale-[0.99]">
+            className="reveal mt-7 flex w-full items-center justify-between gap-3 rounded-[16px] border border-gold/35 bg-gold/8 p-5 text-start transition-all active:scale-[0.99]">
             <div>
               <p className="text-[13.5px] font-bold">لا تعرف أيّها تختار؟</p>
               <p className="mt-0.5 text-[11.5px] text-muted">نجهّز لك صندوقاً متنوّعاً من ٤ أكياس بخصم ٢٠٪</p>
@@ -242,7 +241,7 @@ export default function BoxPage() {
         )}
 
         {/* المحاصيل */}
-        <div className="reveal-group mt-7 space-y-3">
+        <div className="reveal-group mt-8 space-y-4">
           {coffees.filter((c) => !c.soldOut).map((c) => {
             const n = bags[c.slug] ?? 0;
             return (
@@ -351,7 +350,7 @@ export default function BoxPage() {
 
       {/* الملخّص الشفاف — قبل الإضافة بلا مفاجآت */}
       {count > 0 && (
-        <div className="mx-auto mt-8 max-w-3xl px-4 md:px-6">
+        <div className="mx-auto mt-10 max-w-3xl px-4 md:px-6">
           <div className="rounded-[18px] bg-bg-alt p-5">
             <div className="flex justify-between py-1.5 text-[13px]">
               <span className="text-muted">{count} {count === 1 ? "كيس" : "أكياس"}</span>
