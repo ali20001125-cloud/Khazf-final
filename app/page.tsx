@@ -7,7 +7,7 @@ import PromoBanners from "@/components/scenes/PromoBanners";
 import { useMotion } from "@/lib/motion";
 import { useCatalog } from "@/lib/catalog-context";
 import {
-  HeroPick, PathCards, CropsGrid, BoxBlock, GearRail, TrustRow, StickyCartBar,
+  HeroPick, PathCards, CropsGrid, BoxBlock, GearRail, TrustRow,
 } from "@/components/scenes/home5";
 
 export default function Home() {
@@ -38,7 +38,6 @@ export default function Home() {
 
       <PromoBanners />
       <TrustRow />
-      <StickyCartBar />
     </div>
   );
 }

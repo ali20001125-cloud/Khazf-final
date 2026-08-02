@@ -196,43 +196,35 @@ export default function BoxPage() {
               style={{ width: `${Math.min(count / 6, 1) * 100}%` }}
             />
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-2">
+          {/* المستويات كصفّ واحد */}
+          <div className="mt-3 flex gap-px overflow-hidden rounded-[12px] bg-line">
             {tiers.map((t, i) => {
               const on = count >= i + 3;
               return (
-                <div key={t.n} className="text-center">
-                  <div
-                    className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 text-[12px] font-bold transition-colors ${
-                      on
-                        ? t.gold
-                          ? "border-gold bg-gold text-olive"
-                          : "border-accent bg-accent text-olive-text"
-                        : "border-line bg-card text-muted"
-                    }`}
-                    style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-                  >
-                    {t.n}
-                  </div>
-                  <p
-                    className={`mt-1 text-[10px] font-semibold ${
-                      on ? (t.gold ? "text-gold" : "text-accent") : "text-muted"
-                    }`}
-                  >
-                    {t.label}
-                  </p>
+                <div key={t.n} className={`flex-1 px-2 py-2.5 text-center transition-colors ${
+                  on ? (t.gold ? "bg-gold text-olive" : "bg-olive text-olive-text") : "bg-card text-muted"
+                }`}>
+                  <p className="font-num text-[14px] font-bold">{t.n}</p>
+                  <p className="mt-0.5 text-[9.5px] font-semibold leading-tight">{t.label}</p>
                 </div>
               );
             })}
           </div>
 
+          {/* سطر واحد: التوفير أو المكسب التالي */}
           {savings > 0 ? (
-            <p className="mt-3 inline-block rounded-full bg-ok/12 px-5 py-1.5 text-[12.5px] font-bold text-ok">
+            <p className="mt-3 text-[13px] font-bold text-ok">
               وفّرت <span className="font-num">{formatIQD(savings)}</span> حتى الآن
+              {nextGain && nextGain.extraSaving > 0 && (
+                <span className="font-normal text-muted">
+                  {" — "}أضِف <span className="font-num">{nextGain.need}</span>
+                  {nextGain.need === 1 ? " كيساً" : " أكياس"} وتربح{" "}
+                  <span className="font-num font-bold text-clay">{formatIQD(nextGain.extraSaving)}</span> إضافية
+                </span>
+              )}
             </p>
           ) : (
-            <p className="mt-3 inline-block rounded-full bg-bg-alt px-5 py-1.5 text-[12px] font-semibold">
-              {hintFor(count)}
-            </p>
+            <p className="mt-3 text-[12.5px] font-semibold text-muted">{hintFor(count)}</p>
           )}
           </div>
         </div>
@@ -240,33 +232,13 @@ export default function BoxPage() {
         {/* بوكس جاهز — لمن لا يريد الاختيار */}
         {count === 0 && (
           <button onClick={fillReady}
-            className="reveal mt-6 flex w-full items-center justify-between gap-3 rounded-[18px] border border-gold/35 bg-gold/8 p-4 text-start transition-all active:scale-[0.99]">
+            className="reveal mt-5 flex w-full items-center justify-between gap-3 rounded-[16px] border border-gold/35 bg-gold/8 p-4 text-start transition-all active:scale-[0.99]">
             <div>
-              <p className="text-[14px] font-bold">ما تعرف أيها تختار؟</p>
-              <p className="mt-0.5 text-[12px] text-muted">جهّز لي بوكساً متنوّعاً من ٤ أكياس — خصم ٢٠٪</p>
+              <p className="text-[13.5px] font-bold">لا تعرف أيّها تختار؟</p>
+              <p className="mt-0.5 text-[11.5px] text-muted">نجهّز لك صندوقاً متنوّعاً من ٤ أكياس بخصم ٢٠٪</p>
             </div>
-            <span className="btn btn-clay shrink-0 !px-5 !py-2.5 text-[13px]">جهّزه لي</span>
+            <span className="btn btn-clay shrink-0 !px-5 !py-2.5 text-[12.5px]">جهّزه لي</span>
           </button>
-        )}
-
-        {/* المكسب من الكيس التالي — يظهر أثناء البناء */}
-        {nextGain && (nextGain.extraSaving > 0 || nextGain.perk) && (
-          <div className="mt-6 rounded-[18px] border border-accent/30 bg-accent/6 p-4">
-            <p className="text-[13.5px] font-bold leading-snug">
-              أضِف <span className="font-num">{nextGain.need}</span>
-              {nextGain.need === 1 ? " كيساً" : " أكياس"} وتربح
-              {nextGain.extraSaving > 0 && (
-                <> <span className="font-num text-accent">{formatIQD(nextGain.extraSaving)}</span> إضافية</>
-              )}
-              {nextGain.perk && (
-                <>{nextGain.extraSaving > 0 ? " و" : " "}<span className="text-gold">{nextGain.perk}</span></>
-              )}
-            </p>
-            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-bg-alt">
-              <div className="h-full rounded-full bg-clay transition-all duration-500"
-                style={{ width: `${Math.min(100, (count / nextGain.target) * 100)}%` }} />
-            </div>
-          </div>
         )}
 
         {/* المحاصيل */}

@@ -26,7 +26,7 @@ export function HeroPick() {
   return (
     <section className="mx-auto max-w-lg px-4 pt-6 md:max-w-5xl md:px-8">
       <p className="text-[12.5px] font-bold text-ink">الأكثر طلباً هذا الأسبوع</p>
-      <div className="mt-2.5 flex items-center gap-4 rounded-[18px] border border-line bg-card p-4">
+      <div className="mt-2.5 flex items-center gap-4 rounded-[18px] border border-clay/25 bg-clay/5 p-4">
         <Link href={`/product/?c=${pick.slug}`} className="h-24 w-24 shrink-0 overflow-hidden rounded-[13px] bg-white md:h-32 md:w-32">
           {pick.image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -46,7 +46,7 @@ export function HeroPick() {
           <div className="mt-3 flex items-center justify-between gap-3">
             <p className="font-num text-[17px] font-bold">{formatIQD(pick.prices.g250)}</p>
             <button onClick={add} disabled={pick.soldOut} aria-label="أضف للسلة"
-              className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-clay px-6 text-[13.5px] font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-50">
+              className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-ink px-6 text-[13.5px] font-bold text-bg shadow-md transition-transform active:scale-95 disabled:opacity-50">
               أضف للسلة
             </button>
           </div>
@@ -179,36 +179,6 @@ export function TrustRow() {
         ))}
       </div>
     </section>
-  );
-}
-
-/* ═══ ٧) شريط السلة الثابت ═══ */
-export function StickyCartBar() {
-  const { cart } = useStore();
-  const [dismissed, setDismissed] = useState(false);
-  const count = cart.reduce((t, i) => t + i.qty, 0);
-  if (dismissed) return null;
-  const total = cart.reduce((t, i) => t + i.priceShown * i.qty, 0);
-  if (count === 0) return null;
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/97 backdrop-blur-md">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-        <div className="min-w-0">
-          <p className="font-num text-[11.5px] text-muted">{count} {count === 1 ? "منتج" : "منتجات"} بالسلة</p>
-          <p className="font-num text-[15px] font-bold">{formatIQD(total)}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Link href="/cart/"
-            className="btn btn-clay !px-6 !py-3 text-[13.5px] active:scale-[0.97]">
-            إتمام الطلب
-          </Link>
-          <button onClick={() => setDismissed(true)} aria-label="إخفاء"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-bg-alt">
-            <X size={15} />
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

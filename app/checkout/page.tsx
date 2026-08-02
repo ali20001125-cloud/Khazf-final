@@ -250,7 +250,17 @@ export default function CheckoutPage() {
                     form.governorate ? "border-line" : "border-accent/50 text-muted"
                   }`}>
                   <option value="" disabled>اضغط واختر محافظتك من القائمة ▾</option>
-                  {governorates.map((g) => <option key={g} value={g}>{g}</option>)}
+                  {/* الأكثر طلباً أولاً — يختصر البحث في قائمة ١٨ محافظة */}
+                  <optgroup label="الأكثر طلباً">
+                    {["بغداد", "البصرة", "أربيل", "النجف", "كربلاء"]
+                      .filter((g) => governorates.includes(g))
+                      .map((g) => <option key={`top-${g}`} value={g}>{g}</option>)}
+                  </optgroup>
+                  <optgroup label="بقية المحافظات">
+                    {governorates
+                      .filter((g) => !["بغداد", "البصرة", "أربيل", "النجف", "كربلاء"].includes(g))
+                      .map((g) => <option key={g} value={g}>{g}</option>)}
+                  </optgroup>
                 </select>
                 <ChevronDown size={18} strokeWidth={2.6} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-accent" />
               </div>

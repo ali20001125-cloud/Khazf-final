@@ -4,7 +4,6 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
-import { StickyCartBar } from "@/components/scenes/home5";
 import gsap from "gsap";
 import { ChevronLeft } from "lucide-react";
 import { type ToolCat, type Coffee, type Tool } from "@/lib/data";
@@ -185,7 +184,6 @@ function ShopInner() {
       {list.length === 0 && (
         <p className="py-16 text-center text-sm text-muted">لا نتائج بهذا الفلتر</p>
       )}
-      <StickyCartBar />
     </div>
   );
 }
