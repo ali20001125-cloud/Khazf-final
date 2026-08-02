@@ -389,6 +389,10 @@ function tpl1(d: ReminderData) {
     <div style="border:1px solid #e5e2db;border-radius:14px;overflow:hidden;margin-bottom:26px">
       ${d.items.map((it) => itemRow(it, d.reviews?.[it.name])).join("")}
     </div>
+    <div style="background:#f0f5ee;border:1px solid #cfe0c8;border-radius:11px;padding:12px 14px;text-align:center;margin-bottom:14px">
+      <p style="font-size:13.5px;font-weight:bold;color:#3f6b34;margin:0">🚚 توصيل مجاني على طلبك الأول</p>
+      <p style="font-size:11.5px;color:#5b7a52;margin:4px 0 0">للطلبات فوق 15,000 د.ع · الدفع عند الاستلام</p>
+    </div>
     <a href="${d.cartUrl}" style="display:block;background:#a66a4c;color:#fff;text-align:center;padding:17px;border-radius:13px;font-size:17px;font-weight:700;text-decoration:none;margin-bottom:14px">أكمل طلبك</a>
     <p style="text-align:center;font-size:13px;color:#8a8377;margin:0 0 26px">مع أول طلب، تبدأ رحلتك مع خزف — ونقاط تُجمع، ومكافآت بانتظارك.</p>
     <div style="border-top:1px solid #e5e2db;padding-top:22px;text-align:center">
@@ -411,6 +415,10 @@ function tpl2(d: ReminderData) {
     <p style="font-size:14px;color:#6b6459;line-height:1.8;margin:0 0 22px">اخترت بعناية — واخترت جيداً. منتجاتك محفوظة، ولحظة التوقّف على بعد نقرة.</p>
     <div style="background:#f7f6f3;border-radius:14px;padding:6px;margin-bottom:22px">
       ${d.items.map((it) => itemRow(it, d.reviews?.[it.name], "boxed")).join("")}
+    </div>
+    <div style="background:#f0f5ee;border:1px solid #cfe0c8;border-radius:11px;padding:12px 14px;text-align:center;margin-bottom:14px">
+      <p style="font-size:13.5px;font-weight:bold;color:#3f6b34;margin:0">🚚 توصيل مجاني على طلبك الأول</p>
+      <p style="font-size:11.5px;color:#5b7a52;margin:4px 0 0">للطلبات فوق 15,000 د.ع · الدفع عند الاستلام</p>
     </div>
     <a href="${d.cartUrl}" style="display:block;background:#a66a4c;color:#fff;text-align:center;padding:17px;border-radius:12px;font-size:17px;font-weight:700;text-decoration:none;margin-bottom:10px">أكمل طلبك</a>
     <p style="text-align:center;font-size:12.5px;color:#8a8377;margin:0 0 24px">ومع طلبك، تبدأ رحلة — نقاط، ومكافآت، وهدية تنتظرك في نهايتها.</p>
@@ -439,6 +447,10 @@ function tpl3(d: ReminderData) {
         <p style="font-size:12px;color:#8a8377;margin:4px 0 0">الكمية ${it.qty}</p></div>
         <p style="font-size:15px;font-weight:700;color:#332b24;margin:0;white-space:nowrap">${iqd(it.price)}</p>
       </div>`).join("")}
+    </div>
+    <div style="background:#f0f5ee;border:1px solid #cfe0c8;border-radius:11px;padding:12px 14px;text-align:center;margin-bottom:14px">
+      <p style="font-size:13.5px;font-weight:bold;color:#3f6b34;margin:0">🚚 توصيل مجاني على طلبك الأول</p>
+      <p style="font-size:11.5px;color:#5b7a52;margin:4px 0 0">للطلبات فوق 15,000 د.ع · الدفع عند الاستلام</p>
     </div>
     <a href="${d.cartUrl}" style="display:block;background:#c9a961;color:#3d4230;text-align:center;padding:17px;border-radius:13px;font-size:17px;font-weight:700;text-decoration:none;margin-bottom:12px">أكمل طلبك</a>
     <p style="text-align:center;font-size:12.5px;color:#8a8377;margin:0 0 28px;line-height:1.7">رشفتك الأولى تبدأ رحلة — ومع كل طلب، مكافأة تقترب.</p>
