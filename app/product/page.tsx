@@ -138,7 +138,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const similar = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
 
   return (
-    <div ref={scope} className="pb-28 pt-20">
+    <div ref={scope} className="pb-28 pt-28 md:pt-32">
       <ProductJsonLd
         name={coffee.name}
         description={coffee.trigger || coffee.story || undefined}
@@ -198,7 +198,10 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
           {/* ═══ القرار — كل ما يحتاجه بلا نزول ═══ */}
           <div className="mt-5 md:mt-0">
-            <h1 className="text-[26px] font-bold leading-tight md:text-[30px]">{coffee.name}</h1>
+            <p className="font-num text-[10px] tracking-[0.28em] text-muted">
+              {(coffee.latin || coffee.country || "").toUpperCase()}
+            </p>
+            <h1 className="mt-1.5 font-[Amiri,serif] text-[30px] font-bold leading-tight md:text-[35px]">{coffee.name}</h1>
             <p className="mt-1 text-[12.5px] text-muted">
               {[coffee.country, coffee.region, coffee.roast && `تحميص ${coffee.roast}`].filter(Boolean).join(" · ")}
             </p>
@@ -227,7 +230,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             )}
 
             {coffee.trigger && (
-              <p className="mt-4 text-[14px] leading-relaxed">{coffee.trigger}</p>
+              <p className="mt-4 border-s-2 border-clay/40 ps-3.5 text-[14.5px] leading-relaxed">
+                {coffee.trigger}
+              </p>
             )}
 
             {/* الوزن */}
@@ -379,7 +384,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
               <Acc title="أسئلة شائعة">
                 <div className="divide-y divide-line border-y border-line">
-                  {faqGeneral.slice(0, 6).map((f) => (
+                  {faqGeneral.slice(0, 4).map((f) => (
                     <details key={f.q} className="group">
                       <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-[13px] font-semibold">
                         {f.q}
@@ -389,6 +394,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
                     </details>
                   ))}
                 </div>
+                <Link href="/faq/" className="mt-3 flex items-center gap-1.5 text-[12.5px] font-bold text-accent">
+                  كل الأسئلة <ArrowLeft size={13} />
+                </Link>
               </Acc>
             </div>
           </div>

@@ -123,19 +123,6 @@ function ShopInner() {
 
   return (
     <div ref={scope} className="mx-auto max-w-6xl px-4 pb-20 pt-28 md:px-8 md:pt-32">
-      {/* Breadcrumb */}
-      <nav className="reveal flex flex-wrap items-center gap-1 text-[12px] text-muted">
-        {crumbs.map((c, i) => (
-          <span key={i} className="flex items-center gap-1">
-            {i > 0 && <ChevronLeft size={13} className="opacity-50" />}
-            {c.href && i < crumbs.length - 1 ? (
-              <Link href={c.href} className="transition-colors hover:text-accent">{c.label}</Link>
-            ) : (
-              <span className="font-semibold text-ink">{c.label}</span>
-            )}
-          </span>
-        ))}
-      </nav>
 
       <h1 className="reveal mt-3 text-[26px] font-bold md:text-3xl">المتجر</h1>
 

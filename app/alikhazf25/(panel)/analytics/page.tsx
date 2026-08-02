@@ -37,8 +37,8 @@ export default async function AnalyticsPage() {
   // ── السلات المهجورة (لم تُسترد، آخر تحديث > ساعة) ──
   const abandoned = (await db.execute(sql`
     SELECT session_id, phone, name, email, template_sent, items, items_total, updated_at
-    FROM abandoned_carts WHERE (email IS NULL OR lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')) AND (phone IS NULL OR phone NOT IN (SELECT value FROM test_identities WHERE kind='phone'))
-    WHERE recovered = false AND items_total > 0 AND updated_at < now() - interval '1 hour'
+    FROM abandoned_carts
+    WHERE (email IS NULL OR lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')) AND (phone IS NULL OR phone NOT IN (SELECT value FROM test_identities WHERE kind='phone')) AND recovered = false AND items_total > 0 AND updated_at < now() - interval '1 hour'
     ORDER BY updated_at DESC LIMIT 30`)).rows as unknown as
     { session_id: string; phone: string | null; name: string | null; email: string | null; template_sent: string | null; items: { name: string; qty: number }[]; items_total: number; updated_at: string }[];
 

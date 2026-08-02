@@ -1,7 +1,8 @@
 "use client";
 /** أقسام الرئيسية — مبنية للتحويل: أقل قرارات، أقصر طريق للشراء */
 import Link from "next/link";
-import { ArrowLeft, Search, Sparkles, Package, Gift } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Search, Sparkles, Package, Gift, X } from "lucide-react";
 import { useCatalog } from "@/lib/catalog-context";
 import { useStore } from "@/lib/store";
 import { formatIQD, type Coffee } from "@/lib/data";
@@ -24,7 +25,7 @@ export function HeroPick() {
 
   return (
     <section className="mx-auto max-w-lg px-4 pt-6 md:max-w-5xl md:px-8">
-      <p className="text-[11.5px] text-muted">الأكثر طلباً هذا الأسبوع</p>
+      <p className="text-[12.5px] font-bold text-ink">الأكثر طلباً هذا الأسبوع</p>
       <div className="mt-2.5 flex items-center gap-4 rounded-[18px] border border-line bg-card p-4">
         <Link href={`/product/?c=${pick.slug}`} className="h-24 w-24 shrink-0 overflow-hidden rounded-[13px] bg-white md:h-32 md:w-32">
           {pick.image ? (
@@ -45,8 +46,8 @@ export function HeroPick() {
           <div className="mt-3 flex items-center justify-between gap-3">
             <p className="font-num text-[17px] font-bold">{formatIQD(pick.prices.g250)}</p>
             <button onClick={add} disabled={pick.soldOut} aria-label="أضف للسلة"
-              className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-clay px-5 text-[13px] font-bold text-white transition-transform active:scale-95 disabled:opacity-50">
-              أضف
+              className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-clay px-6 text-[13.5px] font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-50">
+              أضف للسلة
             </button>
           </div>
         </div>
@@ -63,7 +64,7 @@ export function PathCards({ children }: { children?: React.ReactNode }) {
   ];
   return (
     <section className="mx-auto max-w-lg px-4 pt-11 md:max-w-5xl md:px-8">
-      <h2 className="mb-3 text-[17px] font-bold">كيف نساعدك؟</h2>
+      <h2 className="mb-3 text-[18px] font-bold text-ink">كيف نساعدك؟</h2>
       {children}
       <div className="mt-2.5 flex flex-col gap-2.5 md:grid md:grid-cols-2">
         {paths.map(({ href, Icon, t, d, hot }) => (
@@ -95,7 +96,7 @@ export function CropsGrid() {
   return (
     <section className="mx-auto max-w-lg px-4 pt-11 md:max-w-5xl md:px-8">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[17px] font-bold">المحاصيل</h2>
+        <h2 className="text-[18px] font-bold text-ink">المحاصيل</h2>
         <Link href="/products/?cat=coffee" className="flex items-center gap-1 text-[12.5px] font-bold text-accent">
           الكل <ArrowLeft size={13} />
         </Link>
@@ -144,7 +145,7 @@ export function GearRail({ cat, title, href }: { cat: string; title: string; hre
   return (
     <section className="mx-auto max-w-lg px-4 pt-11 md:max-w-5xl md:px-8">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[17px] font-bold">{title}</h2>
+        <h2 className="text-[18px] font-bold text-ink">{title}</h2>
         <Link href={href} className="flex items-center gap-1 text-[12.5px] font-bold text-accent">
           الكل <ArrowLeft size={13} />
         </Link>
@@ -184,7 +185,9 @@ export function TrustRow() {
 /* ═══ ٧) شريط السلة الثابت ═══ */
 export function StickyCartBar() {
   const { cart } = useStore();
+  const [dismissed, setDismissed] = useState(false);
   const count = cart.reduce((t, i) => t + i.qty, 0);
+  if (dismissed) return null;
   const total = cart.reduce((t, i) => t + i.priceShown * i.qty, 0);
   if (count === 0) return null;
   return (
@@ -194,10 +197,16 @@ export function StickyCartBar() {
           <p className="font-num text-[11.5px] text-muted">{count} {count === 1 ? "منتج" : "منتجات"} بالسلة</p>
           <p className="font-num text-[15px] font-bold">{formatIQD(total)}</p>
         </div>
-        <Link href="/cart/"
-          className="btn btn-clay shrink-0 !px-7 !py-3 text-[13.5px] active:scale-[0.97]">
-          إتمام الطلب
-        </Link>
+        <div className="flex shrink-0 items-center gap-1">
+          <Link href="/cart/"
+            className="btn btn-clay !px-6 !py-3 text-[13.5px] active:scale-[0.97]">
+            إتمام الطلب
+          </Link>
+          <button onClick={() => setDismissed(true)} aria-label="إخفاء"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-bg-alt">
+            <X size={15} />
+          </button>
+        </div>
       </div>
     </div>
   );

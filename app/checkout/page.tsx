@@ -267,12 +267,13 @@ export default function CheckoutPage() {
 
               {/* ٥) البريد — حقل واحد بارز، والاسم يُشتقّ منه أو يُضاف من الحساب */}
               <div className="sm:col-span-2">
-                <input type="email" inputMode="email" dir="ltr" placeholder="بريدك الإلكتروني"
+                <input type="email" inputMode="email" dir="ltr"
+                  placeholder="بريدك الإلكتروني (اختياري)"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className={`${inputCls} text-end`} />
-                <p className="mt-1.5 text-[11.5px] text-muted">
-                  لإرسال تأكيد الطلب وتتبّعه — ورصيد الكاش باك يُحفظ عليه
+                <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted">
+                  لتأكيد الطلب وتتبّعه، وللحصول على العروض والخصومات الخاصة
                 </p>
               </div>
             </div>
