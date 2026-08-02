@@ -89,7 +89,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const cashback = Math.round((unit * qty) / 1000) * 30;
 
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
-  const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو", "فرنش برس"];
+  const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
 
   const availableWeights = weights.filter((w) => coffee.prices[w.k] != null);
 
@@ -123,11 +123,6 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     addToCart(item(), qty);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1600);
-  };
-  const buyNow = () => {
-    if (coffee.soldOut) return;
-    addToCart(item(), qty, true);
-    router.push("/checkout/");
   };
 
   /* تاريخ التحميص — يظهر ٣٠ يوماً */
@@ -283,13 +278,6 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               </button>
             </div>
 
-            {!coffee.soldOut && (
-              <button onClick={buyNow}
-                className="mt-2 w-full rounded-[13px] border border-line py-3 text-[13.5px] font-bold text-ink transition-colors hover:border-muted active:scale-[0.98]">
-                اشترِ الآن
-              </button>
-            )}
-
             <p className="mt-3 text-center text-[11.5px] leading-relaxed text-muted">
               توصيل ١–٢ يوم · دفع عند الاستلام · توصيل مجاني لأول طلب
               {cashback > 0 && <> · تكسب <span className="font-num font-bold text-clay">{formatIQD(cashback)}</span> كاش باك</>}
@@ -373,20 +361,32 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
                 </Acc>
               )}
 
-              <Acc title="الشحن والاستبدال">
-                <p className="text-[13px] leading-relaxed text-muted">
-                  توصيل خلال يوم إلى يومين لكل المحافظات، والدفع عند الاستلام.
-                  افحص طلبك أمام المندوب قبل الدفع — وأي خلل في التغليف أو النقل نعوّضك عنه.
-                </p>
+              <Acc title="لماذا تثق بقهوتنا">
+                <div className="space-y-3">
+                  {[
+                    ["تحميص حديث", "نحمّص بدفعات صغيرة متكرّرة، فلا يطول بقاء القهوة على الرف."],
+                    ["صمّام أحادي", "يُخرج غازات التحميص ويمنع دخول الهواء، فتبقى النكهة كما خرجت من المحمصة."],
+                    ["محدّدة المصدر", "محاصيل من مزارع نعرفها — لا خلطات مجهولة."],
+                    ["طحن عند الطلب", "تختار طحنتك حسب أداتك، أو تأخذها حبوباً كاملة."],
+                  ].map(([t, d]) => (
+                    <div key={t}>
+                      <p className="text-[13px] font-bold">{t}</p>
+                      <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted">{d}</p>
+                    </div>
+                  ))}
+                </div>
               </Acc>
 
               <Acc title="أسئلة شائعة">
-                <div className="divide-y divide-line">
-                  {faqGeneral.slice(0, 5).map((f) => (
-                    <div key={f.q} className="py-3">
-                      <p className="text-[13px] font-bold">{f.q}</p>
-                      <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{f.a}</p>
-                    </div>
+                <div className="divide-y divide-line border-y border-line">
+                  {faqGeneral.slice(0, 6).map((f) => (
+                    <details key={f.q} className="group">
+                      <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-[13px] font-semibold">
+                        {f.q}
+                        <span className="text-[15px] font-normal text-muted">+</span>
+                      </summary>
+                      <p className="pb-3 text-[12.5px] leading-relaxed text-muted">{f.a}</p>
+                    </details>
                   ))}
                 </div>
               </Acc>

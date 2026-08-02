@@ -1,65 +1,52 @@
 "use client";
 
-import PromoBanners from "@/components/scenes/PromoBanners";
 import WelcomeSheet from "@/components/WelcomeSheet";
 import ExitCapture from "@/components/ExitCapture";
 import CoffeeFinder from "@/components/CoffeeFinder";
+import PromoBanners from "@/components/scenes/PromoBanners";
 import { useMotion } from "@/lib/motion";
 import { useCatalog } from "@/lib/catalog-context";
 import {
-  Hero,
-  StatementBanner,
-  CropsRail,
-  BoxTeaser,
-  ToolsSection,
-  NewArrivals,
-  BestSellers,
-  JournalTeaser,
-  StartHere,
-} from "@/components/scenes/home4";
+  HeroPick, PathCards, CropsGrid, BoxBlock, GearRail, TrustRow, StickyCartBar,
+} from "@/components/scenes/home5";
 
 export default function Home() {
   const scope = useMotion();
   const { activePlaces } = useCatalog();
 
   return (
-    <div ref={scope}>
+    <div ref={scope} className="pb-24 pt-20">
       <WelcomeSheet />
       <ExitCapture />
-      <Hero />
-      <PromoBanners />
-      <CropsRail />
-      <CoffeeFinder />
-      <BestSellers />
-      <BoxTeaser />
-      <NewArrivals />
-      <StatementBanner />
-      {activePlaces.includes("espresso_tools") && (
-        <ToolsSection
-          cat="إسبريسو"
-          title="أدوات الإسبريسو"
-          sub="من التامبر إلى البيتشر — عدّة الشوت المثالي"
-          href="/products/?cat=espresso"
-        />
-      )}
+
+      {/* شريط الوعد */}
+      <div className="bg-olive py-2.5 text-center text-[11.5px] font-semibold text-olive-text">
+        توصيل مجاني على طلبك الأول · الدفع عند الاستلام
+      </div>
+
+      <HeroPick />
+      <PathCards />
+      <CropsGrid />
+
+      <div id="finder">
+        <CoffeeFinder />
+      </div>
+
+      <BoxBlock />
+
       {activePlaces.includes("cups") && (
-        <ToolsSection
-          cat="أكواب"
-          title="الأكواب والتقديم"
-          sub="أكواب سيراميك وزجاج — لأن التقديم جزء من التجربة"
-          href="/products/?cat=cups"
-        />
+        <GearRail cat="أكواب" title="الأكواب والتقديم" href="/products/?cat=cups" />
       )}
       {activePlaces.includes("drip_tools") && (
-        <ToolsSection
-          cat="تقطير"
-          title="أدوات التقطير"
-          sub="كل ما تحتاجه لكوب V60 نظيف"
-          href="/products/?cat=drip"
-        />
+        <GearRail cat="تقطير" title="أدوات التقطير" href="/products/?cat=drip" />
       )}
-      <JournalTeaser />
-      <StartHere />
+      {activePlaces.includes("espresso_tools") && (
+        <GearRail cat="إسبريسو" title="أدوات الإسبريسو" href="/products/?cat=espresso" />
+      )}
+
+      <PromoBanners />
+      <TrustRow />
+      <StickyCartBar />
     </div>
   );
 }
