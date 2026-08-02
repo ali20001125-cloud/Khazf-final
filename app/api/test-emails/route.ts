@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/server/db";
 import {
   emailOrderCustomer, emailNewOrderAdmin, emailReviewRequest, emailWelcome,
-  emailBrewGuide, emailRestock, emailBrewTips, emailNewProduct,
+  emailBrewGuide, emailRestock, emailBrewTips, emailNewProduct, emailCartReminder,
 } from "@/lib/server/email";
 
 export const runtime = "nodejs";
@@ -48,6 +48,16 @@ export async function GET(req: Request) {
     journeyOrders: 4, giftName: "كوب سيراميك",
   };
 
+  const cartData = {
+    email: to, name: "علي",
+    items: [
+      { name: p?.name ?? "كالدي", qty: 2, price: p?.price_g250 ?? 26000 },
+      { name: "قمع V60", qty: 1, price: 18000 },
+    ],
+    total: 70000,
+    cartUrl: `${site}/cart/`,
+  };
+
   const jobs: Record<string, () => Promise<void>> = {
     welcome: () => emailWelcome({ email: to, name: "علي" }),
     order_confirm: () => emailOrderCustomer({ email: to, ...sample }),
@@ -75,6 +85,9 @@ export async function GET(req: Request) {
         ],
       }],
     }),
+    cart_1: async () => { await emailCartReminder(cartData, 0); },
+    cart_2: async () => { await emailCartReminder(cartData, 1); },
+    cart_3: async () => { await emailCartReminder(cartData, 2); },
     announce: () => emailNewProduct({
       email: to, productName: p?.name ?? "كالدي",
       url: `${site}/product/?c=${p?.slug ?? "kaldi"}`,

@@ -6,6 +6,9 @@ import nodemailer from "nodemailer";
 import { db, schema as s } from "@/lib/server/db";
 import { eq } from "drizzle-orm";
 
+/** تنسيق الأرقام — لاتينية بفواصل */
+const m = (n: number) => Number(n ?? 0).toLocaleString("en");
+
 /** يجيب رابط اللوغو من الإعدادات (للإيميلات) */
 async function getLogo(): Promise<string | null> {
   try {
@@ -60,17 +63,65 @@ const wrap = (inner: string, logoUrl?: string | null) => `
   </div>
 </div>`;
 
-export async function emailNewOrderAdmin(o: { orderNumber: string; name: string; phone: string; governorate: string; total: number; invoiceUrl: string }) {
+export async function emailNewOrderAdmin(o: {
+  orderNumber: string; name: string; phone: string; governorate: string;
+  total: number; invoiceUrl: string;
+  address?: string | null; note?: string | null; email?: string | null;
+  items?: { name: string; qty: number; line: number }[];
+  itemsSubtotal?: number; journeyDiscount?: number; pointsUsed?: number;
+  deliveryCharged?: number; giftName?: string | null; profit?: number | null;
+  isNewCustomer?: boolean; ordersCount?: number;
+}) {
   const admin = process.env.ADMIN_EMAIL;
   if (!admin) return;
   const logo = await getLogo();
-  await sendMail(admin, `طلب جديد ${o.orderNumber} — ${o.total.toLocaleString("en")} د.ع`, wrap(`
-    <p style="font-size:15px;font-weight:bold">طلب جديد وصل 🎉</p>
-    <p style="font-size:13px;line-height:1.9">
-      <b>${o.orderNumber}</b><br/>${o.name} — ${o.phone}<br/>${o.governorate}<br/>
-      الإجمالي: <b>${o.total.toLocaleString("en")} د.ع</b>
+  const site = process.env.SITE_URL ?? "https://khazf.shop";
+  const intl = "964" + String(o.phone ?? "").replace(/[^0-9]/g, "").replace(/^0+/, "").replace(/^964/, "");
+
+  const rows = (o.items ?? []).map((i) =>
+    `<tr>
+      <td style="padding:6px 0;font-size:13px">${i.name} <span style="color:#6e6459">×${i.qty}</span></td>
+      <td style="padding:6px 0;font-size:13px;text-align:left" dir="ltr">${m(i.line)}</td>
+    </tr>`).join("");
+
+  const line = (label: string, value: string, color = "#6e6459") =>
+    `<tr><td style="padding:3px 0;font-size:12.5px;color:#6e6459">${label}</td>
+     <td style="padding:3px 0;font-size:12.5px;text-align:left;color:${color}" dir="ltr">${value}</td></tr>`;
+
+  await sendMail(admin, `طلب جديد ${o.orderNumber} — ${m(o.total)} د.ع`, wrap(`
+    <p style="font-size:16px;font-weight:bold;margin:0 0 4px">طلب جديد 🎉</p>
+    <p style="font-size:13px;color:#6e6459;margin:0 0 14px">
+      ${o.orderNumber}${o.isNewCustomer ? ' · <b style="color:#A66A4C">زبون جديد</b>' : o.ordersCount ? ` · طلبه رقم ${m(o.ordersCount)}` : ""}
     </p>
-    <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none">الفاتورة</a>
+
+    <div style="background:#f4f1ea;border-radius:12px;padding:14px 16px;margin:0 0 14px">
+      <p style="font-size:14px;font-weight:bold;margin:0 0 6px">${o.name}</p>
+      <p style="font-size:13px;line-height:1.9;color:#6e6459;margin:0">
+        <span dir="ltr">${o.phone}</span><br/>
+        ${o.governorate}${o.address ? ` — ${o.address}` : ""}
+        ${o.email ? `<br/><span dir="ltr">${o.email}</span>` : ""}
+        ${o.note ? `<br/><b style="color:#A66A4C">ملاحظة:</b> ${o.note}` : ""}
+      </p>
+      <a href="https://wa.me/${intl}" style="display:inline-block;background:#25D366;color:#fff;padding:8px 18px;border-radius:8px;font-size:12.5px;font-weight:bold;text-decoration:none;margin-top:10px">واتساب الزبون</a>
+    </div>
+
+    ${rows ? `<table style="width:100%;border-collapse:collapse;margin:0 0 10px">${rows}</table>` : ""}
+
+    <table style="width:100%;border-collapse:collapse;border-top:1px solid #E4DDD0;padding-top:8px">
+      ${o.itemsSubtotal != null ? line("المنتجات", m(o.itemsSubtotal)) : ""}
+      ${o.journeyDiscount ? line("خصم الولاء", "−" + m(o.journeyDiscount), "#5b8a4e") : ""}
+      ${o.pointsUsed ? line("كاش باك مستخدم", "−" + m(o.pointsUsed), "#5b8a4e") : ""}
+      ${o.giftName ? line("هدية", o.giftName, "#c9a961") : ""}
+      ${line("التوصيل", o.deliveryCharged === 0 ? "مجاني" : m(o.deliveryCharged ?? 0))}
+      <tr><td style="padding:8px 0 0;font-size:15px;font-weight:bold;border-top:1px solid #E4DDD0">الإجمالي</td>
+      <td style="padding:8px 0 0;font-size:15px;font-weight:bold;text-align:left;border-top:1px solid #E4DDD0" dir="ltr">${m(o.total)} د.ع</td></tr>
+      ${o.profit != null ? `<tr><td style="padding:4px 0;font-size:12px;color:#6e6459">الربح التقديري</td><td style="padding:4px 0;font-size:12px;text-align:left;color:#5b8a4e" dir="ltr">${m(o.profit)} د.ع</td></tr>` : ""}
+    </table>
+
+    <div style="margin-top:16px">
+      <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none;margin-left:8px">الفاتورة</a>
+      <a href="${site}/alikhazf25/orders/" style="display:inline-block;border:1px solid #E4DDD0;color:#332b24;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none">اللوحة</a>
+    </div>
   `, logo), "admin_order");
 }
 
@@ -84,7 +135,6 @@ export async function emailOrderCustomer(o: {
 }) {
   if (!o.email) return;
   const logo = await getLogo();
-  const m = (n: number) => n.toLocaleString("en");
   const rowsHtml = (o.items ?? []).map((i) =>
     `<tr>
       <td style="padding:8px 0;font-size:13px">
@@ -268,7 +318,6 @@ export async function emailNewProduct(o: {
 }) {
   if (!o.email) return;
   const logo = await getLogo();
-  const m = (n: number) => n.toLocaleString("en");
   await sendMail(o.email, `وصل حديثاً: ${o.productName} — خزف`, wrap(`
     <p style="font-size:12px;letter-spacing:2px;color:#A66A4C;margin:0 0 8px">وصل حديثاً</p>
     <p style="font-size:19px;font-weight:bold;margin:0 0 12px">${o.productName}</p>

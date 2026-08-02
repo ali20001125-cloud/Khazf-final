@@ -72,7 +72,21 @@ export async function POST(req: Request) {
     /* إشعارات الإيميل (لا توقف الطلب إن فشلت) */
     const site = process.env.SITE_URL ?? "https://khazf.shop";
     const invoiceUrl = `${site}/invoice/?n=${result.orderNumber}&p=${encodeURIComponent(phone)}`;
-    emailNewOrderAdmin({ orderNumber: result.orderNumber, name: body.name?.trim() || "زبون خزف", phone, governorate: body.governorate, total: result.total, invoiceUrl }).catch(() => {});
+    emailNewOrderAdmin({
+      orderNumber: result.orderNumber,
+      name: body.name?.trim() || "زبون خزف",
+      phone, governorate: body.governorate, total: result.total, invoiceUrl,
+      address: body.address?.trim() || null,
+      note: body.note?.trim() || null,
+      email: body.email?.trim() || null,
+      items: result.items?.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal })) ?? [],
+      itemsSubtotal: result.itemsSubtotal,
+      journeyDiscount: result.journeyDiscount,
+      pointsUsed: result.pointsUsedDinars,
+      deliveryCharged: result.deliveryCharged,
+      giftName: result.appliedJourney?.giftName ?? null,
+      ordersCount: result.seqNo,
+    }).catch(() => {});
     // سياق المكافآت للإيميل: الرصيد بعد الطلب وموقع الزبون من رحلة الولاء
     const rewardCtx = await (async () => {
       try {

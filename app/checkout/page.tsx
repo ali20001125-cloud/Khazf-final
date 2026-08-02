@@ -242,7 +242,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* ٢) المحافظة — قائمة بارزة */}
-              <div className="relative sm:col-span-2">
+              <div className="relative">
                 <span className="pointer-events-none absolute -top-2 end-3 bg-bg px-2 text-[10.5px] font-bold text-accent">المحافظة *</span>
                 <select id="f-gov" required value={form.governorate}
                   onChange={(e) => setForm({ ...form, governorate: e.target.value })}
@@ -266,9 +266,9 @@ export default function CheckoutPage() {
               </div>
 
               {/* ٣) العنوان */}
-              <input id="f-address" required placeholder="العنوان: المنطقة، أقرب نقطة دالة" value={form.address}
+              <input id="f-address" required placeholder="المنطقة وأقرب نقطة دالّة" value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                className={`${inputCls} sm:col-span-2`} />
+                className={inputCls} />
 
               {/* ٤) الملاحظات */}
               <textarea rows={2} placeholder="ملاحظات للطلب (اختياري)" value={form.note}
