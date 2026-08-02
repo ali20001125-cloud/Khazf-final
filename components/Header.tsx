@@ -151,8 +151,8 @@ export default function Header() {
   return (
     <>
       <header ref={ref} className="site-header fixed inset-x-0 top-0 z-50">
-        {/* Top Bar — يظهر فقط عند وجود حملة */}
-        {topBarMessages.length > 0 && (
+        {/* شريط علوي واحد: الحملة إن وُجدت، وإلا وعد التوصيل */}
+        {topBarMessages.length > 0 ? (
           <Link href="/shipping/" className="topbar block overflow-hidden text-[12px] font-bold text-gold"
             style={{ background: "var(--deep)" }}>
             <span className="marquee-track">
@@ -160,6 +160,11 @@ export default function Header() {
                 <span key={i} className="mx-8">{m}</span>
               ))}
             </span>
+          </Link>
+        ) : (
+          <Link href="/shipping/"
+            className="block bg-olive py-2 text-center text-[11.5px] font-semibold text-olive-text">
+            توصيل مجاني على طلبك الأول · الدفع عند الاستلام
           </Link>
         )}
 

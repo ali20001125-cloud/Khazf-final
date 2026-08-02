@@ -73,6 +73,7 @@ function score(c: Coffee, a: Answers): number {
 export default function CoffeeFinder() {
   const { coffees } = useCatalog();
   const { addToCart } = useStore();
+  const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [added, setAdded] = useState(false);
@@ -93,9 +94,26 @@ export default function CoffeeFinder() {
 
   if (coffees.length === 0) return null;
 
+  // بطاقة مغلقة — لا تأخذ مساحة حتى يفتحها الزائر
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)}
+        className="flex w-full items-center gap-3.5 rounded-[16px] border border-clay bg-clay/5 p-4 text-start transition-all active:scale-[0.99]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-clay/14 text-clay">
+          <Sparkles size={18} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14px] font-bold">لا أعرف أيّها أختار</span>
+          <span className="mt-0.5 block text-[11.5px] text-muted">ثلاثة أسئلة ونرشّح لك — ٢٠ ثانية</span>
+        </span>
+        <ArrowLeft size={15} className="shrink-0 text-clay" />
+      </button>
+    );
+  }
+
   return (
-    <section className="mx-auto max-w-3xl px-4 py-16 md:px-8">
-      <div className="rounded-[24px] border border-line bg-card p-6 md:p-8">
+    <section>
+      <div className="rounded-[16px] border border-clay bg-card p-5">
         {!done ? (
           <>
             <div className="flex items-center gap-2 text-accent">

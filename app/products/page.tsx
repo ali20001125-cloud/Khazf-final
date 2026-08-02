@@ -1,8 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
+import { StickyCartBar } from "@/components/scenes/home5";
 import gsap from "gsap";
 import { ChevronLeft } from "lucide-react";
 import { type ToolCat, type Coffee, type Tool } from "@/lib/data";
@@ -40,6 +42,7 @@ function ShopInner() {
     ? params.get("cat")
     : "all") as Tab;
   const type = params.get("sub") ?? params.get("type") ?? "الكل";
+  const [q, setQ] = useState("");
   const sort = (["new", "best", "price"].includes(params.get("sort") ?? "")
     ? params.get("sort")
     : "new") as Sort;
@@ -63,7 +66,7 @@ function ShopInner() {
   }, [tab]);
 
   /* القائمة النهائية */
-  const list = useMemo<Item[]>(() => {
+  const list0 = useMemo<Item[]>(() => {
     let items: Item[] = [];
     if (tab === "all")
       items = [
@@ -87,6 +90,19 @@ function ShopInner() {
       items.sort((a, b) => Number(b.isNew ?? false) - Number(a.isNew ?? false));
     return items;
   }, [tab, type, sort]);
+
+  /* بحث نصّي على الاسم والنكهات والصنف */
+  const list = useMemo<Item[]>(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return list0;
+    return list0.filter((it) => [
+      it.name,
+      "notes" in it ? (it.notes ?? []).join(" ") : "",
+      "country" in it ? String(it.country ?? "") : "",
+      "type" in it ? String(it.type ?? "") : "",
+      it.slug,
+    ].join(" ").toLowerCase().includes(term));
+  }, [q, list0]);
 
   /* ظهور متدرّج سريع عند أي تغيير */
   useEffect(() => {
@@ -121,7 +137,17 @@ function ShopInner() {
         ))}
       </nav>
 
-      <h1 className="reveal mt-3 text-3xl font-bold md:text-4xl">المتجر</h1>
+      <h1 className="reveal mt-3 text-[26px] font-bold md:text-3xl">المتجر</h1>
+
+      {/* بحث فوري */}
+      <div className="relative mt-4">
+        <Search size={16} className="pointer-events-none absolute inset-y-0 end-4 my-auto text-muted" />
+        <input
+          value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder="ابحث عن محصول أو أداة…"
+          className="w-full rounded-[14px] border border-line bg-card py-3 pe-11 ps-4 text-[13.5px] outline-none transition-colors focus:border-accent"
+        />
+      </div>
 
       {/* التبويبات الرئيسية */}
       <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">
@@ -195,6 +221,7 @@ function ShopInner() {
       {list.length === 0 && (
         <p className="py-16 text-center text-sm text-muted">لا نتائج بهذا الفلتر</p>
       )}
+      <StickyCartBar />
     </div>
   );
 }

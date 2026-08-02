@@ -56,16 +56,16 @@ export function HeroPick() {
 }
 
 /* ═══ ٢) المسارات الثلاثة: تحسم حيرة الزائر ═══ */
-export function PathCards() {
+export function PathCards({ children }: { children?: React.ReactNode }) {
   const paths = [
-    { href: "/products/?cat=coffee", Icon: Search, t: "أعرف ما أريد", d: "تصفّح كل المحاصيل", hot: false },
-    { href: "#finder", Icon: Sparkles, t: "لا أعرف أيّها أختار", d: "ثلاثة أسئلة ونرشّح لك — ٢٠ ثانية", hot: true },
+    { href: "/products/?cat=coffee", Icon: Search, t: "أعرف ما أريد", d: "تصفّح كل المحاصيل والأدوات", hot: false },
     { href: "/box/", Icon: Package, t: "أريد أكثر من كيس", d: "اصنع صندوقك ووفّر حتى ٢٠٪", hot: false },
   ];
   return (
-    <section className="mx-auto max-w-lg px-4 pt-9 md:max-w-5xl md:px-8">
-      <h2 className="mb-3 text-[16px] font-bold">كيف نساعدك؟</h2>
-      <div className="flex flex-col gap-2.5 md:grid md:grid-cols-3">
+    <section className="mx-auto max-w-lg px-4 pt-11 md:max-w-5xl md:px-8">
+      <h2 className="mb-3 text-[17px] font-bold">كيف نساعدك؟</h2>
+      {children}
+      <div className="mt-2.5 flex flex-col gap-2.5 md:grid md:grid-cols-2">
         {paths.map(({ href, Icon, t, d, hot }) => (
           <Link key={t} href={href}
             className={`flex items-center gap-3.5 rounded-[16px] border p-4 transition-all active:scale-[0.99] ${

@@ -19,19 +19,11 @@ export default function Home() {
       <WelcomeSheet />
       <ExitCapture />
 
-      {/* شريط الوعد */}
-      <div className="bg-olive py-2.5 text-center text-[11.5px] font-semibold text-olive-text">
-        توصيل مجاني على طلبك الأول · الدفع عند الاستلام
-      </div>
-
       <HeroPick />
-      <PathCards />
       <CropsGrid />
-
-      <div id="finder">
+      <PathCards>
         <CoffeeFinder />
-      </div>
-
+      </PathCards>
       <BoxBlock />
 
       {activePlaces.includes("cups") && (
