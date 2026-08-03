@@ -79,7 +79,11 @@ function AccountInner() {
     fetch("/api/customer/me/").then((r) => r.json()).then(setMe).catch(() => setMe({ guest: true }));
   }, []);
 
-  const favItems = [...coffees, ...tools].filter((p) => favorites.includes(p.slug));
+  // المفضلة تُحفظ بصيغة "c:slug" أو "t:slug" — لا slug مجرّداً
+  const favItems = [
+    ...coffees.filter((c) => favorites.includes(`c:${c.slug}`)),
+    ...tools.filter((t) => favorites.includes(`t:${t.slug}`)),
+  ];
 
   /* تحميل */
   if (!me) return (
@@ -172,7 +176,7 @@ function AccountInner() {
         {([["orders", "طلباتي", Package], ["cashback", "الكاش باك", Wallet], ["fav", "المفضلة", Heart]] as const).map(([k, label, Icon]) => (
           <button key={k} onClick={() => setTab(k)}
             className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[14px] py-2.5 text-[11.5px] font-bold transition-all ${
-              tab === k ? "bg-ink text-cream" : "bg-card text-muted"
+              tab === k ? "border border-clay bg-clay/8 text-clay" : "border border-line bg-card text-muted"
             }`}>
             <Icon size={17} />
             <span>{label}</span>
