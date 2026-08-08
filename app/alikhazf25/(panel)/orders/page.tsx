@@ -12,12 +12,13 @@ const tabs = [
   { k: "ALL", l: "الكل" },
 ];
 
-export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ s?: string; q?: string }> }) {
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ s?: string; q?: string; test?: string }> }) {
   const sp = await searchParams;
   const tab = tabs.some((t) => t.k === sp.s) ? sp.s! : "CONFIRMED";
   const q = sp.q?.trim();
 
-  const conds: SQL[] = [];
+  const showTest = sp.test === "1";
+  const conds: SQL[] = [eq(s.orders.isTest, showTest)];
   if (tab !== "ALL") conds.push(eq(s.orders.status, tab as "CONFIRMED" | "DELIVERED" | "CANCELLED"));
   if (q) conds.push(or(ilike(s.orders.orderNumber, `%${q}%`), ilike(s.orders.phone, `%${q}%`), ilike(s.orders.name, `%${q}%`))!);
 
@@ -31,12 +32,20 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const counts = await db
     .select({ status: s.orders.status, n: sql<number>`count(*)::int` })
     .from(s.orders)
+    .where(eq(s.orders.isTest, showTest))
     .groupBy(s.orders.status);
   const cnt = (k: string) => counts.find((c) => c.status === k)?.n ?? 0;
 
   return (
     <div>
       <PageTitle title="الطلبات" sub="حالتان فقط: تأكيد ← توصيل · الإلغاء يرجّع كل شيء" />
+
+      <div className="mb-3 flex items-center gap-3">
+        <Link href="/alikhazf25/orders/"
+          className={`text-[13px] font-bold ${!showTest ? "text-accent" : "text-muted"}`}>الطلبات</Link>
+        <Link href="/alikhazf25/orders/?test=1"
+          className={`text-[13px] font-bold ${showTest ? "text-accent" : "text-muted"}`}>طلبات الاختبار</Link>
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {tabs.map((t) => (

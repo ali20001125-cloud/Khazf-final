@@ -256,13 +256,18 @@ export async function createOrder(input: CheckoutInput) {
 
     /* رقم داخلي متسلسل (للمالك) — يُحسب من الطلبات الفعلية لا من عدّاد،
        لأن عدّاد PostgreSQL يتقدّم حتى لو فشلت المحاولة فتظهر قفزات */
-    const seqRow = await tx.execute(sql`SELECT COALESCE(MAX(seq_no), 0) + 1 AS n FROM orders`);
-    const seqNo = (seqRow.rows[0] as { n: number }).n;
+    const seqRow = await tx.execute(sql`SELECT COALESCE(MAX(seq_no), 0) + 1 AS n FROM orders WHERE is_test = false`);
+    const realSeq = (seqRow.rows[0] as { n: number }).n;
+    // طلبات الاختبار: تسلسل منفصل ولا تستهلك أرقام الطلبات الحقيقية
+    const testCount = isTest
+      ? (((await tx.execute(sql`SELECT COUNT(*)::int AS n FROM orders WHERE is_test = true`)).rows[0] as { n: number }).n ?? 0) + 1
+      : 0;
+    const seqNo = isTest ? 0 : realSeq;
     /* رقم فاتورة قافز (للزبون) — يقفز ١٣..٤٧ فوق آخر رقم، يبدأ من ١٠٠٠+ */
-    const lastRow = await tx.execute(sql`SELECT COALESCE(MAX((regexp_replace(order_number,'\\D','','g'))::int),1000) AS m FROM orders`);
+    const lastRow = await tx.execute(sql`SELECT COALESCE(MAX((regexp_replace(order_number,'\\D','','g'))::int),1000) AS m FROM orders WHERE is_test = false`);
     const lastInv = (lastRow.rows[0] as { m: number }).m;
     const jump = 13 + Math.floor(Math.random() * 35);
-    const orderNumber = `KHZ-${lastInv + jump}`;
+    const orderNumber = isTest ? `TEST-${String(testCount).padStart(2, "0")}` : `KHZ-${lastInv + jump}`;
 
     /* upsert الزبون + تقدّم الرحلة + تجديد الصلاحية */
     const validity = new Date(Date.now() + settings.loyaltyValidityDays * 86400_000);
