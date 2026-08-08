@@ -196,7 +196,7 @@ export default function BoxPage() {
           {/* المستويات كصفّ واحد */}
           <div className="mt-4 flex gap-px overflow-hidden rounded-[12px] bg-line">
             {tiers.map((t, i) => {
-              const on = count >= i + 3;
+              const on = count >= i + 2;
               return (
                 <div key={t.n} className={`flex-1 px-2 py-3 text-center transition-colors ${
                   on ? (t.gold ? "bg-gold text-olive" : "bg-olive text-olive-text") : "bg-card text-muted"
