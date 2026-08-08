@@ -2,9 +2,16 @@
 import { db, schema as s } from "./db";
 import { eq } from "drizzle-orm";
 
+let _settingsCache: { data: unknown; at: number } | null = null;
+const SETTINGS_TTL = 120_000;
+export function invalidateSettings() { _settingsCache = null; }
+
 export async function getSettings() {
+  if (_settingsCache && Date.now() - _settingsCache.at < SETTINGS_TTL)
+    return _settingsCache.data as never;
   const [row] = await db.select().from(s.settings).where(eq(s.settings.id, 1));
   if (!row) throw new Error("settings row missing — شغّل npm run seed");
+  _settingsCache = { data: row, at: Date.now() };
   return row;
 }
 

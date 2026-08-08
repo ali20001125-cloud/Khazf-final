@@ -140,7 +140,21 @@ function toolFromRow(
 }
 
 /** الجلب الكامل — استدعاء واحد من الـ layout لكل زيارة */
+/* ── تخزين مؤقت في الذاكرة: يقلّل استعلامات القاعدة كثيراً ──
+   المتجر لا يتغيّر كل ثانية، ودقيقتان تكفيان لظهور أي تعديل. */
+let _cache: { data: CatalogData; at: number } | null = null;
+const CATALOG_TTL = 120_000;
+
+export function invalidateCatalog() { _cache = null; }
+
 export async function getCatalog(): Promise<CatalogData> {
+  if (_cache && Date.now() - _cache.at < CATALOG_TTL) return _cache.data;
+  const fresh = await buildCatalog();
+  _cache = { data: fresh, at: Date.now() };
+  return fresh;
+}
+
+async function buildCatalog(): Promise<CatalogData> {
   // خيارات المنتجات (مقاس/عبوة/لون) — استعلام واحد
   const variantRows = await db.select().from(s.productVariants)
     .where(eq(s.productVariants.active, true))

@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { invalidateCatalog } from "@/lib/server/catalog";
+import { invalidateSettings } from "@/lib/server/settings";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
@@ -30,7 +32,7 @@ export async function addGift(f: FormData) {
     name = p?.n ?? "";
   }
   if (name) await db.insert(s.boxGifts).values({ name, productId, note });
-  revalidatePath("/alikhazf25/loyalty"); revalidatePath("/");
+  revalidatePath("/alikhazf25/loyalty"); invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }
 
 export async function toggleGift(f: FormData) {
@@ -39,5 +41,5 @@ export async function toggleGift(f: FormData) {
   const id = Number(f.get("id"));
   const [g] = await db.select({ a: s.boxGifts.active }).from(s.boxGifts).where(eq(s.boxGifts.id, id));
   await db.update(s.boxGifts).set({ active: !g.a }).where(eq(s.boxGifts.id, id));
-  revalidatePath("/alikhazf25/loyalty"); revalidatePath("/");
+  revalidatePath("/alikhazf25/loyalty"); invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }

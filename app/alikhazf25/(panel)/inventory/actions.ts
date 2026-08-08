@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { invalidateCatalog } from "@/lib/server/catalog";
+import { invalidateSettings } from "@/lib/server/settings";
 import { asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
@@ -57,7 +59,7 @@ export async function addShipment(f: FormData) {
     }
   });
   revalidatePath("/alikhazf25/inventory");
-  revalidatePath("/");
+  invalidateCatalog(); invalidateSettings(); revalidatePath("/");
   } catch (e) { await flashSaved("⚠️ " + (e instanceof Error ? e.message : "خطأ غير متوقع")); }
 }
 
@@ -77,7 +79,7 @@ export async function addToolBatch(f: FormData) {
     await tx.insert(s.inventoryMovements).values({ productId, batchId: b.id, type: "IN", qtyDelta: qty, reason: "أدوات" });
   });
   revalidatePath("/alikhazf25/inventory");
-  revalidatePath("/");
+  invalidateCatalog(); invalidateSettings(); revalidatePath("/");
   } catch (e) { await flashSaved("⚠️ " + (e instanceof Error ? e.message : "خطأ غير متوقع")); }
 }
 
@@ -117,6 +119,6 @@ export async function adjustStock(f: FormData) {
     }
   });
   revalidatePath("/alikhazf25/inventory");
-  revalidatePath("/");
+  invalidateCatalog(); invalidateSettings(); revalidatePath("/");
   } catch (e) { await flashSaved("⚠️ " + (e instanceof Error ? e.message : "خطأ غير متوقع")); }
 }

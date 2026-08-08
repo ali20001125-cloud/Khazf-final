@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { invalidateCatalog } from "@/lib/server/catalog";
+import { invalidateSettings } from "@/lib/server/settings";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
@@ -37,7 +39,7 @@ export async function savePublicSettings(f: FormData) {
     metaPixelId: String(f.get("metaPixelId") ?? "").trim() || null,
     gaId: String(f.get("gaId") ?? "").trim() || null,
   }).where(eq(s.settings.id, 1));
-  revalidatePath("/alikhazf25/settings"); revalidatePath("/");
+  revalidatePath("/alikhazf25/settings"); invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }
 
 export async function saveInternalSettings(f: FormData) {
@@ -71,5 +73,5 @@ export async function togglePlace(f: FormData) {
   await db.update(s.places).set({ active: !pl.a }).where(eq(s.places.id, id));
   const { flashSaved } = await import("@/lib/server/flash");
   await flashSaved(pl.a ? "أُخفي القسم من المتجر ✓" : "ظهر القسم بالمتجر ✓");
-  revalidatePath("/alikhazf25/settings"); revalidatePath("/");
+  revalidatePath("/alikhazf25/settings"); invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }

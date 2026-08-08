@@ -131,17 +131,25 @@ function AccountInner() {
           <p className="text-[14px] font-bold">رحلة الولاء</p>
           <span className="font-num text-[12px] font-semibold text-muted">{inCycle}/6</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-1.5">
           {(me.journeyLevels ?? []).slice(0, 6).map((l) => {
             const done = l.level <= inCycle;
             const isNext = l.level === inCycle + 1;
+            const short = l.rewardType === "PERCENT" ? `${l.value}٪`
+              : l.rewardType === "FREE_DELIVERY" ? "توصيل"
+              : (l.giftName ?? "هدية");
             return (
-              <div key={l.level}
-                className={`flex h-9 flex-1 items-center justify-center rounded-full text-[12px] font-bold transition-all ${
+              <div key={l.level} className="flex flex-1 flex-col items-center gap-1.5">
+              <div
+                className={`flex h-9 w-full items-center justify-center rounded-full text-[12px] font-bold transition-all ${
                   done ? "bg-olive text-olive-text"
                   : isNext ? "bg-gold/25 text-ink ring-1 ring-gold"
                   : "bg-bg text-muted/50"}`}>
                 {done ? "✓" : l.level}
+              </div>
+              <span className={`text-center text-[9.5px] leading-tight ${
+                done ? "font-bold text-olive" : isNext ? "font-bold text-gold" : "text-muted/60"
+              }`}>{short}</span>
               </div>
             );
           })}

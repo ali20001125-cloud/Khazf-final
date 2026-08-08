@@ -95,6 +95,18 @@ export default async function AnalyticsPage() {
       GROUP BY governorate ORDER BY orders DESC, revenue DESC`)).rows as unknown as typeof govs;
   } catch { /* تجاهل */ }
 
+  /* ── ملخّص السلات ── */
+  let cartStats = { total: 0, recovered: 0, open: 0 };
+  try {
+    cartStats = (await db.execute(sql`
+      SELECT COUNT(*)::int AS total,
+             COUNT(*) FILTER (WHERE recovered)::int AS recovered,
+             COUNT(*) FILTER (WHERE NOT recovered)::int AS open
+      FROM abandoned_carts
+      WHERE (email IS NULL OR lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email'))
+        AND (phone IS NULL OR phone NOT IN (SELECT value FROM test_identities WHERE kind='phone'))`)).rows[0] as unknown as typeof cartStats;
+  } catch { /* تجاهل */ }
+
   /* هويات الاختبار — تُستثنى من كل الأرقام */
   const NOT_TEST_EMAIL = sql`lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')`;
 
@@ -345,6 +357,19 @@ export default async function AnalyticsPage() {
           <p className="mt-2 text-[11.5px] text-muted">فشل إرسال {mail.failed} خلال ٧ أيام</p>
         )}
       </div>
+
+      {/* ملخّص السلات */}
+      {cartStats.total > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-[15px] font-bold">السلات</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Card className="p-4"><p className="text-[11px] text-muted">إجمالي السلات</p><p className="font-num mt-1 text-2xl font-bold">{cartStats.total}</p></Card>
+            <Card className="p-4"><p className="text-[11px] text-muted">استُرجعت</p><p className="font-num mt-1 text-2xl font-bold text-ok">{cartStats.recovered}</p></Card>
+            <Card className="p-4"><p className="text-[11px] text-muted">مفتوحة الآن</p><p className="font-num mt-1 text-2xl font-bold text-accent">{cartStats.open}</p></Card>
+            <Card className="p-4"><p className="text-[11px] text-muted">نسبة الاسترجاع</p><p className="font-num mt-1 text-2xl font-bold">{cartStats.total > 0 ? Math.round((cartStats.recovered / cartStats.total) * 100) : 0}٪</p></Card>
+          </div>
+        </div>
+      )}
 
       {/* إحصائيات تذكير السلة */}
       {reminderStats.sent > 0 && (

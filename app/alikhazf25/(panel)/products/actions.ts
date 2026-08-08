@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { invalidateCatalog } from "@/lib/server/catalog";
+import { invalidateSettings } from "@/lib/server/settings";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/admin-guard";
@@ -97,7 +99,7 @@ export async function createProduct(f: FormData) {
   await syncPlaces(row.id, f);
   if (data.type === "TOOL") await syncVariants(row.id, f);
   revalidatePath("/alikhazf25/products");
-  revalidatePath("/");
+  invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }
 
 
@@ -163,7 +165,7 @@ export async function updateProduct(f: FormData) {
   await syncPlaces(id, f);
   if (data.type === "TOOL") await syncVariants(id, f);
   revalidatePath("/alikhazf25/products");
-  revalidatePath("/");
+  invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }
 
 export async function toggleProduct(f: FormData) {
@@ -173,5 +175,5 @@ export async function toggleProduct(f: FormData) {
   const [p] = await db.select({ a: s.products.active }).from(s.products).where(eq(s.products.id, id));
   await db.update(s.products).set({ active: !p.a }).where(eq(s.products.id, id));
   revalidatePath("/alikhazf25/products");
-  revalidatePath("/");
+  invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }
