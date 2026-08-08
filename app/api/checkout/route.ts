@@ -28,6 +28,20 @@ export async function POST(req: Request) {
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       }
     }
+    // بيئة الاختبار: لا تُقبل طلبات إلا من هويات الاختبار المسجّلة
+    if (process.env.NEXT_PUBLIC_ENV === "staging") {
+      const em = (body.email ?? "").trim().toLowerCase();
+      const ph = (body.phone ?? "").trim();
+      const allowed = (await db.execute(sql`
+        SELECT 1 FROM test_identities
+        WHERE (kind='email' AND lower(value) = ${em})
+           OR (kind='phone' AND value = ${ph}) LIMIT 1`)).rows.length > 0;
+      if (!allowed)
+        return NextResponse.json(
+          { error: "بيئة اختبار — استخدم بريداً أو رقماً مسجّلاً في هويات الاختبار" },
+          { status: 403 });
+    }
+
     const result = await createOrder(body);
 
     /* ═ استرداد السلات ═
