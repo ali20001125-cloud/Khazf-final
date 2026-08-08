@@ -51,10 +51,11 @@ export async function createOrder(input: CheckoutInput) {
     const bySlug = new Map(products.map((p) => [p.slug, p]));
 
     /* خيارات المنتجات المطلوبة (مقاس/عبوة/لون) */
-    const wantedVariantIds = [...new Set(input.items.map((i) => i.variantId).filter((x): x is number => !!x))];
-    const variantRows = wantedVariantIds.length > 0
+    // كل خيارات منتجات الطلب — نحتاجها حتى لو لم يُختر خيار (إضافة سريعة)
+    const productIds = products.map((p) => p.id);
+    const variantRows = productIds.length > 0
       ? await tx.select().from(s.productVariants).where(
-          sql`${s.productVariants.id} IN (${sql.join(wantedVariantIds.map((x) => sql`${x}`), sql`, `)})`)
+          sql`${s.productVariants.productId} IN (${sql.join(productIds.map((x) => sql`${x}`), sql`, `)})`)
       : [];
     const byVariantId = new Map(variantRows.map((v) => [v.id, v]));
 
@@ -323,6 +324,34 @@ export async function createOrder(input: CheckoutInput) {
               boxGroup: l.boxGroup, isGift: l.isGift, batchBreakdown: null,
             });
             continue;
+          }
+
+          // له خيارات لكن لم يُختر واحد (إضافة سريعة) — نخصم من الخيارات المتاحة
+          if (batchQty === 0 && prod?.stockPieces == null) {
+            const vs = variantRows.filter((v) => v.productId === l.productId && v.active && v.stock > 0);
+            const totalV = vs.reduce((t, v) => t + v.stock, 0);
+            if (totalV > 0) {
+              if (totalV < l.qty)
+                throw new Error(`المخزون لا يكفي: ${l.name} — الطلب أُلغي بالكامل`);
+              let need = l.qty;
+              for (const v of vs.sort((a, b) => b.stock - a.stock)) {
+                if (need <= 0) break;
+                const take = Math.min(need, v.stock);
+                await tx.update(s.productVariants)
+                  .set({ stock: sql`GREATEST(${s.productVariants.stock} - ${take}, 0)` })
+                  .where(eq(s.productVariants.id, v.id));
+                need -= take;
+              }
+              const unitCost = vs[0]?.costPrice ?? prod?.costPiece ?? 0;
+              productProfit += l.lineTotal - Math.round(unitCost * l.qty);
+              await tx.insert(s.orderItems).values({
+                orderId: order.id, productId: l.productId, nameSnapshot: l.name,
+                variant: l.variant, unitPrice: l.unitPrice, qty: l.qty,
+                gramsTotal: l.gramsTotal, lineTotal: l.lineTotal,
+                boxGroup: l.boxGroup, isGift: l.isGift, batchBreakdown: null,
+              });
+              continue;
+            }
           }
 
           if (batchQty === 0 && prod?.stockPieces != null) {
