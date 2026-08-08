@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Smooth from "@/lib/smooth";
 import StoreChrome from "@/components/StoreChrome";
+import StagingBanner from "@/components/StagingBanner";
 import { StoreProvider, GlobalToast, type SiteConfig } from "@/lib/store";
 import { getSettings } from "@/lib/server/settings";
 import { getCatalog, type CatalogData } from "@/lib/server/catalog";
@@ -113,7 +114,8 @@ export default async function RootLayout({
         <StoreProvider config={config}>
           <Smooth>
             <div className="grain" />
-            <StoreChrome>{children}</StoreChrome>
+            <StagingBanner />
+        <StoreChrome>{children}</StoreChrome>
             <VisitTracker />
             <GlobalToast />
           </Smooth>

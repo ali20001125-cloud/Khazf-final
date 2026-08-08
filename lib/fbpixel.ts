@@ -10,6 +10,7 @@ type FbParams = {
 
 /** أجهزة الاختبار المستثناة لا ترسل أحداثاً — تفسد استهداف الإعلانات */
 function excluded(): boolean {
+  if (process.env.NEXT_PUBLIC_ENV === "staging") return true;   // بيئة اختبار — لا أحداث
   if (typeof document === "undefined") return false;
   return document.cookie.includes("khz_no_track=1");
 }

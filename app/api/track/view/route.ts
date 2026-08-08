@@ -10,6 +10,10 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     // لا نتتبّع صاحب المتجر/المدير عند تصفّحه المتجر
+    // بيئة الاختبار لا تُسجّل زيارات إطلاقاً
+    if (process.env.NEXT_PUBLIC_ENV === "staging")
+      return NextResponse.json({ ok: true, skipped: "staging" });
+
     const admin = await getAdmin().catch(() => null);
     if (admin) return NextResponse.json({ ok: true, skipped: "admin" });
 
