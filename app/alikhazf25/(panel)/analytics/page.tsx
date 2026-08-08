@@ -30,8 +30,7 @@ export default async function AnalyticsPage() {
 
   // ── الطلبات ومعدّل التحويل (٧ أيام) ──
   const orders7d = (await db.execute(sql`
-    SELECT COUNT(*)::int AS n FROM orders WHERE is_test = false
-    WHERE created_at >= now() - interval '7 day' AND status <> 'CANCELLED'`)).rows[0] as unknown as { n: number };
+    SELECT COUNT(*)::int AS n FROM orders WHERE is_test = false AND created_at >= now() - interval '7 day' AND status <> 'CANCELLED'`)).rows[0] as unknown as { n: number };
   const conv = visits.visitors_7d > 0 ? ((orders7d.n / visits.visitors_7d) * 100) : 0;
 
   // ── السلات المهجورة (لم تُسترد، آخر تحديث > ساعة) ──
@@ -92,8 +91,7 @@ export default async function AnalyticsPage() {
              COUNT(*)::int AS orders,
              COALESCE(SUM(total),0)::int AS revenue,
              ROUND(AVG(total))::int AS avg_order
-      FROM orders WHERE is_test = false
-      WHERE status <> 'CANCELLED' AND governorate IS NOT NULL
+      FROM orders WHERE is_test = false AND status <> 'CANCELLED' AND governorate IS NOT NULL
       GROUP BY governorate ORDER BY orders DESC, revenue DESC`)).rows as unknown as typeof govs;
   } catch { /* تجاهل */ }
 
