@@ -49,6 +49,17 @@ export function checkEmail(raw: string): { error?: string; suggest?: string } {
   const tld = domain.split(".").pop() ?? "";
   if (tld.length < 2) return { error: "امتداد النطاق قصير — تأكّد منه" };
 
+  // أخطاء امتداد شائعة (حرف بجانب حرف بلوحة المفاتيح)
+  const TLD_FIX: Record<string, string> = {
+    con: "com", cim: "com", cpm: "com", comm: "com", cmo: "com",
+    xom: "com", vom: "com", ocm: "com", cin: "com", coom: "com",
+    ner: "net", nte: "net", ogr: "org", orgg: "org",
+  };
+  if (TLD_FIX[tld]) {
+    const fixed = domain.replace(new RegExp(`\\.${tld}$`), "." + TLD_FIX[tld]);
+    return { suggest: email.replace(/@.+$/, "@" + fixed) };
+  }
+
   const near = suggestDomain(domain);
   if (near) return { suggest: email.replace(/@.+$/, "@" + near) };
   return {};

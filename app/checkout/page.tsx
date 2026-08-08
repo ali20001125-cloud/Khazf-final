@@ -5,6 +5,7 @@ import { fetchMe } from "@/lib/me";
 import Link from "next/link";
 import { Check, HandCoins, Gift, Sparkles, ArrowLeft , ChevronDown } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
+import { checkEmail } from "@/lib/email-check";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { fbTrack } from "@/lib/fbpixel";
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
   const config = useSiteConfig();
   const { cart, clearCart, coupon, useCashback, setUseCashback, boxGiftChoice, showToast, setQty } = useStore();
 
+  const [emailHint, setEmailHint] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
 
   /* حدث بدء الدفع (مرة واحدة عند فتح الصفحة مع سلة غير فارغة) */
@@ -270,8 +272,24 @@ export default function CheckoutPage() {
                 <input type="email" inputMode="email" dir="ltr"
                   placeholder="بريدك الإلكتروني (اختياري)"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailHint(null); }}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (!v) { setEmailHint(null); return; }
+                    const c = checkEmail(v);
+                    setEmailHint(c.suggest ? `هل تقصد ${c.suggest}؟` : c.error ?? null);
+                  }}
                   className={`${inputCls} text-end`} />
+                {emailHint && (
+                  <button type="button"
+                    onClick={() => {
+                      const m = emailHint.match(/هل تقصد (.+)؟/);
+                      if (m) { setForm({ ...form, email: m[1] }); setEmailHint(null); }
+                    }}
+                    className="mt-1.5 block text-[12px] font-bold text-accent">
+                    {emailHint}
+                  </button>
+                )}
                 <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted">
                   لتأكيد الطلب وتتبّعه، وللحصول على العروض والخصومات الخاصة
                 </p>
