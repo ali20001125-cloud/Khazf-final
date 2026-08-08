@@ -62,6 +62,41 @@ export default async function AnalyticsPage() {
   const recoveryRate = reminderStats.sent > 0
     ? ((reminderStats.recovered_after / reminderStats.sent) * 100).toFixed(0) : "0";
 
+  /* ── مسار الشراء (Funnel) — آخر ٣٠ يوماً ── */
+  let funnel = { visitors: 0, viewed_product: 0, viewed_cart: 0, started_checkout: 0, orders: 0 };
+  try {
+    funnel = (await db.execute(sql`
+      WITH s AS (
+        SELECT session_id,
+          BOOL_OR(path LIKE '/product%') AS saw_product,
+          BOOL_OR(path LIKE '/cart%')    AS saw_cart,
+          BOOL_OR(path LIKE '/checkout%') AS saw_checkout
+        FROM page_views
+        WHERE created_at >= now() - interval '30 days'
+        GROUP BY session_id
+      )
+      SELECT
+        COUNT(*)::int AS visitors,
+        COUNT(*) FILTER (WHERE saw_product)::int  AS viewed_product,
+        COUNT(*) FILTER (WHERE saw_cart)::int     AS viewed_cart,
+        COUNT(*) FILTER (WHERE saw_checkout)::int AS started_checkout,
+        (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '30 days' AND status <> 'CANCELLED')::int AS orders
+      FROM s`)).rows[0] as unknown as typeof funnel;
+  } catch { /* تجاهل */ }
+
+  /* ── إحصاءات المحافظات ── */
+  let govs: { governorate: string; orders: number; revenue: number; avg_order: number }[] = [];
+  try {
+    govs = (await db.execute(sql`
+      SELECT governorate,
+             COUNT(*)::int AS orders,
+             COALESCE(SUM(total),0)::int AS revenue,
+             ROUND(AVG(total))::int AS avg_order
+      FROM orders
+      WHERE status <> 'CANCELLED' AND governorate IS NOT NULL
+      GROUP BY governorate ORDER BY orders DESC, revenue DESC`)).rows as unknown as typeof govs;
+  } catch { /* تجاهل */ }
+
   /* هويات الاختبار — تُستثنى من كل الأرقام */
   const NOT_TEST_EMAIL = sql`lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')`;
 
@@ -159,6 +194,77 @@ export default async function AnalyticsPage() {
           )}
         </Card>
       </div>
+
+      {/* مسار الشراء */}
+      {funnel.visitors > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 text-[15px] font-bold">
+            مسار الشراء <span className="text-[12px] font-normal text-muted">— آخر ٣٠ يوماً</span>
+          </h2>
+          <Card className="p-5">
+            {([
+              ["زائر", funnel.visitors, funnel.visitors],
+              ["شاهد منتجاً", funnel.viewed_product, funnel.visitors],
+              ["فتح السلة", funnel.viewed_cart, funnel.viewed_product],
+              ["بدأ الدفع", funnel.started_checkout, funnel.viewed_cart],
+              ["أتمّ الطلب", funnel.orders, funnel.started_checkout],
+            ] as const).map(([label, val, prev], i) => {
+              const widthPct = funnel.visitors > 0 ? (val / funnel.visitors) * 100 : 0;
+              const dropPct = prev > 0 ? Math.round((1 - val / prev) * 100) : 0;
+              return (
+                <div key={label} className={i > 0 ? "mt-3" : ""}>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[13px] font-semibold">{label}</span>
+                    <span className="font-num text-[14px] font-bold">
+                      {val.toLocaleString("en")}
+                      {i > 0 && prev > 0 && (
+                        <span className={`ms-2 text-[11.5px] font-normal ${dropPct > 60 ? "text-accent" : "text-muted"}`}>
+                          تسرّب {dropPct}٪
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-bg-alt">
+                    <div className={`h-full rounded-full ${i === 4 ? "bg-ok" : "bg-clay"}`}
+                      style={{ width: `${Math.max(2, widthPct)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            <p className="mt-4 border-t border-line pt-3 text-[11.5px] text-muted">
+              التحويل الكلي:{" "}
+              <span className="font-num font-bold text-ink">
+                {funnel.visitors > 0 ? ((funnel.orders / funnel.visitors) * 100).toFixed(1) : "0"}٪
+              </span>
+              {" "}من الزوار أتمّوا طلباً
+            </p>
+          </Card>
+        </div>
+      )}
+
+      {/* المحافظات */}
+      {govs.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 text-[15px] font-bold">حسب المحافظة</h2>
+          <Card className="overflow-x-auto">
+            <table className="w-full min-w-[420px]">
+              <thead className="border-b border-line">
+                <tr><Th>المحافظة</Th><Th>الطلبات</Th><Th>المبيعات</Th><Th>متوسط الطلب</Th></tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {govs.map((g) => (
+                  <tr key={g.governorate} className="hover:bg-bg-alt/50">
+                    <Td className="font-semibold">{g.governorate}</Td>
+                    <Td className="font-num">{g.orders}</Td>
+                    <Td className="font-num">{money(g.revenue)}</Td>
+                    <Td className="font-num text-muted">{money(g.avg_order)}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </div>
+      )}
 
       {/* أدوات الاختبار */}
       <div className="mb-5 flex flex-wrap items-center gap-2 rounded-[14px] border border-line bg-bg-alt px-4 py-3">

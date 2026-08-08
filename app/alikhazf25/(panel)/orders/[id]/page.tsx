@@ -1,4 +1,5 @@
 import Link from "next/link";
+import WhatsAppOrder from "@/components/admin/WhatsAppOrder";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
@@ -90,6 +91,14 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
             {o.email && <p className="font-num mt-0.5 text-[12px] text-muted" dir="ltr">{o.email}</p>}
             <p className="mt-3 text-[13px] leading-relaxed text-muted">{o.governorate} · {o.address}</p>
             {o.note && <p className="mt-3 rounded-[10px] bg-bg-alt px-3.5 py-2.5 text-[12.5px]">📝 {o.note}</p>}
+            <div className="mt-4">
+              <WhatsAppOrder
+                phone={o.phone} name={o.name} orderNumber={o.orderNumber}
+                items={items.map((it) => ({ name: it.nameSnapshot, qty: it.qty, line: it.lineTotal }))}
+                total={o.total} governorate={o.governorate} address={o.address} status={o.status}
+              />
+            </div>
+
             <div className="mt-4 flex flex-wrap gap-4 text-[12.5px] font-bold">
               <Link href={`/alikhazf25/customers/${o.customerPhone}/`} className="text-accent">ملف الزبون ←</Link>
               <Link href={`/invoice/?n=${o.orderNumber}&p=${o.customerPhone}`} target="_blank" className="text-accent">🧾 الفاتورة</Link>
