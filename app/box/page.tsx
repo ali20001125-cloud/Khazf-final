@@ -57,12 +57,10 @@ function BoxIntro() {
 
 function hintFor(count: number): string {
   if (count === 0) return "ابدأ بأول كيس — كل كيس يقرّبك لمكافأة";
-  if (count === 1) return "بداية موفقة! كيسان يفصلانك عن خصم ١٠٪";
-  if (count === 2) return "كيس واحد بس… وخصم ١٠٪ صار لك";
-  if (count === 3) return "مبروك! خصم ١٠٪ · أضف كيساً لخصم ٢٠٪";
-  if (count === 4) return "خصم ٢٠٪ فعّال! كيس إضافي = توصيل مجاني";
-  if (count === 5) return "توصيل مجاني! كيس أخير وتختار هديتك";
-  return "وصلت للقمة — اختر هديتك تحت";
+  if (count === 1) return "كيس واحد بعد… وخصم ٤٪ صار لك";
+  if (count === 2) return "خصم ٤٪ فعّال · كيس ثالث يرفعه إلى ١٢٪ مع ملعقة";
+  if (count === 3) return "خصم ١٢٪ والملعقة لك · كيس رابع = ٢٠٪ مع كوب";
+  return "خصم ٢٠٪ والكوب لك — أعلى مستوى";
 }
 
 const discountFor = (c: number) => (c >= 4 ? 0.2 : c >= 3 ? 0.12 : c >= 2 ? 0.04 : 0);
@@ -175,7 +173,7 @@ export default function BoxPage() {
             </div>
             <p className="mt-1 truncate text-[11px] font-semibold text-muted">{hintFor(count)}</p>
           </div>
-          {count >= 3 && (
+          {count >= 2 && (
             <button onClick={order} className="shrink-0 rounded-full bg-olive px-4 py-2 text-[12px] font-bold text-olive-text">أضف للسلة</button>
           )}
         </div>
@@ -325,28 +323,33 @@ export default function BoxPage() {
 
         {/* الهدية — ظاهرة دائماً (تحفيز)، معطّلة حتى الوصول لـ٦ أكياس */}
         <div className={`mt-10 rounded-[22px] border p-6 text-center transition-all ${
-          count >= 6 ? "border-gold/50 bg-gold/10" : "border-line bg-card"
+          count >= 3 ? "border-gold/50 bg-gold/10" : "border-line bg-card"
         }`}>
-          <Gift size={26} className={`mx-auto ${count >= 6 ? "text-gold" : "text-muted/50"}`} />
-          <h2 className={`mt-3 text-xl font-bold ${count >= 6 ? "" : "text-muted"}`}>
-            {count >= 6 ? "اختر هديتك" : "هديتك المجانية"}
+          <Gift size={26} className={`mx-auto ${count >= 3 ? "text-gold" : "text-muted/50"}`} />
+          <h2 className={`mt-3 text-xl font-bold ${count >= 3 ? "" : "text-muted"}`}>
+            {count >= 3 ? "اختر هديتك" : "هديتك المجانية"}
           </h2>
           <p className="mt-1 text-[13px] text-muted">
-            {count >= 6
-              ? "وصلت لـ ٦ أكياس — هديتك علينا"
-              : `أضف ${6 - count} ${6 - count === 1 ? "كيساً" : "أكياس"} لتفتح هديتك المجانية`}
+            {count >= 4
+              ? "أربعة أكياس — الكوب علينا"
+              : count >= 3
+                ? "ثلاثة أكياس — الملعقة علينا · وبالرابع كوب"
+                : `أضف ${3 - count} ${3 - count === 1 ? "كيساً" : "أكياس"} لتفتح هديتك`}
           </p>
-          <div className={`mt-6 grid grid-cols-2 gap-3 transition-opacity ${count >= 6 ? "" : "pointer-events-none opacity-45"}`}>
+          <div className={`mt-6 grid grid-cols-2 gap-3 transition-opacity ${count >= 3 ? "" : "pointer-events-none opacity-45"}`}>
             {gifts.map((g) => {
-              const picked = count >= 6 && gift === g.key;
+              // الملعقة تُفتح من ٣ أكياس · الكوب من ٤
+              const needed = /كوب/.test(g.name) ? 4 : 3;
+              const unlocked = count >= needed;
+              const picked = unlocked && gift === g.key;
               return (
               <button
                 key={g.key}
-                onClick={() => count >= 6 && setGift(g.key)}
+                onClick={() => count >= 3 && setGift(g.key)}
                 disabled={count < 6}
                 className={`flex flex-col items-center gap-2 overflow-hidden rounded-[16px] border-2 p-3 transition-colors ${
                   picked ? "border-gold bg-gold/15" : "border-line bg-card"
-                } ${count >= 6 ? "hover:border-muted" : ""}`}
+                } ${count >= 3 ? "hover:border-muted" : ""}`}
               >
                 {g.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -361,7 +364,9 @@ export default function BoxPage() {
                 {g.price != null && (
                   <span className="font-num text-[11.5px] text-muted line-through">{formatIQD(g.price)}</span>
                 )}
-                {g.note && <span className="text-[11px] text-muted">{g.note}</span>}
+                <span className={`text-[11px] ${unlocked ? "text-muted" : "font-bold text-accent"}`}>
+                  {unlocked ? (g.note ?? "") : `من ${needed === 4 ? "٤" : "٣"} أكياس`}
+                </span>
               </button>
               );
             })}
@@ -389,7 +394,7 @@ export default function BoxPage() {
                 {count >= 5 ? "مجاني" : "يُحسب بالسلة"}
               </span>
             </div>
-            {gift && count >= 6 && (
+            {gift && count >= 3 && (
               <div className="flex justify-between py-1.5 text-[13px] text-gold">
                 <span>هديتك</span>
                 <span className="font-semibold">{gift}</span>
