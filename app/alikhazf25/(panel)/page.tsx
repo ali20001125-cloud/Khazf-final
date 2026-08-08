@@ -27,10 +27,10 @@ async function stats() {
     pending, todayOrders, salesToday, salesWeek, lowStock, pendingReviews,
     newCustomersToday, viewsToday, viewsWeek, abandonedActive,
   ] = await Promise.all([
-    q(`SELECT count(*) v FROM orders WHERE status='CONFIRMED'`),
-    q(`SELECT count(*) v FROM orders WHERE created_at::date = now()::date AND status <> 'CANCELLED'`),
-    q(`SELECT COALESCE(SUM(total),0) v FROM orders WHERE created_at::date = now()::date AND status <> 'CANCELLED'`),
-    q(`SELECT COALESCE(SUM(total),0) v FROM orders WHERE created_at >= now() - interval '7 days' AND status <> 'CANCELLED'`),
+    q(`SELECT count(*) v FROM orders WHERE is_test = false AND status='CONFIRMED'`),
+    q(`SELECT count(*) v FROM orders WHERE is_test = false AND created_at::date = now()::date AND status <> 'CANCELLED'`),
+    q(`SELECT COALESCE(SUM(total),0) v FROM orders WHERE is_test = false AND created_at::date = now()::date AND status <> 'CANCELLED'`),
+    q(`SELECT COALESCE(SUM(total),0) v FROM orders WHERE is_test = false AND created_at >= now() - interval '7 days' AND status <> 'CANCELLED'`),
     q(`SELECT count(*) v FROM (SELECT p.id FROM products p LEFT JOIN inventory_batches b ON b.product_id = p.id WHERE p.active GROUP BY p.id, p.stock_threshold HAVING COALESCE(SUM(b.qty_remaining),0) <= p.stock_threshold) x`),
     q(`SELECT count(*) v FROM reviews WHERE status='PENDING'`),
     q(`SELECT count(*) v FROM customers WHERE created_at::date = now()::date`),
@@ -42,7 +42,7 @@ async function stats() {
   // آخر الطلبات المحتاجة إجراء
   const recentPending = await rows(`
     SELECT order_number, name, total, created_at
-    FROM orders WHERE status='CONFIRMED'
+    FROM orders WHERE is_test = false AND status='CONFIRMED'
     ORDER BY created_at DESC LIMIT 5
   `).catch(() => []);
 

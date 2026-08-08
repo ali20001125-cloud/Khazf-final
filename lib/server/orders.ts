@@ -247,6 +247,13 @@ export async function createOrder(input: CheckoutInput) {
     const pointsEarned = Math.floor(earnBase / settings.cashbackPerAmount) * settings.pointValue;
 
     /* ── ٩) رقم الطلب التسلسلي + إدراج الطلب ── */
+    /* هوية اختبار؟ (بريد أو رقم مسجّل في test_identities) */
+    const testRow = await tx.execute(sql`
+      SELECT 1 FROM test_identities
+      WHERE (kind='email' AND lower(value) = ${(input.email ?? "").trim().toLowerCase()})
+         OR (kind='phone' AND value = ${phone}) LIMIT 1`);
+    const isTest = testRow.rows.length > 0;
+
     /* رقم داخلي متسلسل (للمالك) — يُحسب من الطلبات الفعلية لا من عدّاد،
        لأن عدّاد PostgreSQL يتقدّم حتى لو فشلت المحاولة فتظهر قفزات */
     const seqRow = await tx.execute(sql`SELECT COALESCE(MAX(seq_no), 0) + 1 AS n FROM orders`);
@@ -282,7 +289,7 @@ export async function createOrder(input: CheckoutInput) {
     const [order] = await tx
       .insert(s.orders)
       .values({
-        orderNumber, seqNo, customerPhone: phone,
+        orderNumber, seqNo, customerPhone: phone, isTest,
         name: input.name, phone, email: input.email || null,
         governorate: input.governorate, address: input.address, note: input.note || null,
         itemsSubtotal, quantityDiscount,

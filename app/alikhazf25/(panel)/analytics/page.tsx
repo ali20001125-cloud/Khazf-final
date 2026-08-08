@@ -30,7 +30,7 @@ export default async function AnalyticsPage() {
 
   // ── الطلبات ومعدّل التحويل (٧ أيام) ──
   const orders7d = (await db.execute(sql`
-    SELECT COUNT(*)::int AS n FROM orders
+    SELECT COUNT(*)::int AS n FROM orders WHERE is_test = false
     WHERE created_at >= now() - interval '7 day' AND status <> 'CANCELLED'`)).rows[0] as unknown as { n: number };
   const conv = visits.visitors_7d > 0 ? ((orders7d.n / visits.visitors_7d) * 100) : 0;
 
@@ -80,7 +80,7 @@ export default async function AnalyticsPage() {
         COUNT(*) FILTER (WHERE saw_product)::int  AS viewed_product,
         COUNT(*) FILTER (WHERE saw_cart)::int     AS viewed_cart,
         COUNT(*) FILTER (WHERE saw_checkout)::int AS started_checkout,
-        (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '30 days' AND status <> 'CANCELLED')::int AS orders
+        (SELECT COUNT(*) FROM orders WHERE is_test = false AND created_at >= now() - interval '30 days' AND status <> 'CANCELLED')::int AS orders
       FROM s`)).rows[0] as unknown as typeof funnel;
   } catch { /* تجاهل */ }
 
@@ -92,7 +92,7 @@ export default async function AnalyticsPage() {
              COUNT(*)::int AS orders,
              COALESCE(SUM(total),0)::int AS revenue,
              ROUND(AVG(total))::int AS avg_order
-      FROM orders
+      FROM orders WHERE is_test = false
       WHERE status <> 'CANCELLED' AND governorate IS NOT NULL
       GROUP BY governorate ORDER BY orders DESC, revenue DESC`)).rows as unknown as typeof govs;
   } catch { /* تجاهل */ }

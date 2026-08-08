@@ -61,7 +61,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               <tr key={o.id} className="transition-colors hover:bg-bg-alt/50">
                 <Td>
                   <Link href={`/alikhazf25/orders/${o.id}/`} className="font-num font-bold text-accent">#{o.seqNo ?? "—"}</Link>
-                  <p className="font-num text-[10px] text-muted">{o.orderNumber}</p>
+                  <p className="font-num text-[10px] text-muted">
+                    {o.orderNumber}
+                    {o.isTest && <span className="ms-1.5 rounded-full bg-accent/15 px-1.5 py-0.5 font-bold text-accent">اختبار</span>}
+                  </p>
                 </Td>
                 <Td>
                   <p className="font-semibold">{o.name}</p>

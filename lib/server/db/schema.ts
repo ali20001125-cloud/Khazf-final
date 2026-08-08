@@ -249,6 +249,7 @@ export const orders = pgTable(
     pointsEarned: integer("points_earned").notNull().default(0),
 
     status: orderStatus("status").notNull().default("CONFIRMED"),
+    isTest: boolean("is_test").notNull().default(false),  // طلب اختبار — لا يدخل الإحصاءات
     notifiedTelegram: boolean("notified_telegram").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     deliveredAt: timestamp("delivered_at", { withTimezone: true }),

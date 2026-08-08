@@ -71,8 +71,10 @@ export async function notifyOrderTelegram(
       `الإجمالي: ${money(o.total)} د.ع (${o.deliveryCharged ? "شامل التوصيل" : "توصيل مجاني"})\n` +
       `التوصيل: ${o.governorate}\n` +
       `الوصول: بين ${d(1)} و${d(2)} — الدفع عند الاستلام\n\n` +
+      `لتتبّع طلبك:\n${o.invoiceUrl}\n` +
+      `(أو من khazf.shop برقم الطلب ${o.orderNumber} ورقم هاتفك)\n\n` +
       `للتعديل أو تغيير الموعد راسلنا هنا.\n` +
-      `وبإمكانك إنشاء حساب على khazf.shop لتتبّع طلباتك والحصول على الخصومات والهدايا.`;
+      `وبإنشاء حساب على khazf.shop تتابع طلباتك وتحصل على الخصومات والهدايا.`;
 
     const base = `https://api.telegram.org/bot${s.telegramBotToken}`;
     const res = await fetch(`${base}/sendMessage`, {

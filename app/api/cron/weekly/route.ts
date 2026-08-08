@@ -27,12 +27,12 @@ export async function GET(req: Request) {
   const stats = (await db.execute(sql`
     SELECT
       (SELECT COUNT(DISTINCT session_id) FROM page_views WHERE created_at >= now() - interval '7 days')::int AS visitors,
-      (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS orders,
-      (SELECT COALESCE(SUM(total),0) FROM orders WHERE created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS revenue,
-      (SELECT COALESCE(SUM(product_profit),0) FROM orders WHERE created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS profit,
+      (SELECT COUNT(*) FROM orders WHERE is_test = false AND created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS orders,
+      (SELECT COALESCE(SUM(total),0) FROM orders WHERE is_test = false AND created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS revenue,
+      (SELECT COALESCE(SUM(product_profit),0) FROM orders WHERE is_test = false AND created_at >= now() - interval '7 days' AND status <> 'CANCELLED')::int AS profit,
       (SELECT COUNT(*) FROM customers WHERE created_at >= now() - interval '7 days')::int AS new_customers,
-      (SELECT COALESCE(SUM(total),0) FROM orders WHERE created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_revenue,
-      (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_orders,
+      (SELECT COALESCE(SUM(total),0) FROM orders WHERE is_test = false AND created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_revenue,
+      (SELECT COUNT(*) FROM orders WHERE is_test = false AND created_at >= now() - interval '14 days' AND created_at < now() - interval '7 days' AND status <> 'CANCELLED')::int AS prev_orders,
       (SELECT COUNT(*) FROM auth.users WHERE created_at >= now() - interval '7 days')::int AS new_accounts,
       (SELECT COUNT(*) FROM auth.users)::int AS total_accounts,
       (SELECT COUNT(*) FROM customers)::int AS total_customers,

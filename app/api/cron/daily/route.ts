@@ -30,9 +30,9 @@ export async function GET(req: Request) {
     SELECT
       (SELECT COUNT(DISTINCT session_id) FROM page_views WHERE created_at >= now() - interval '1 day')::int AS visitors,
       (SELECT COUNT(*) FROM page_views WHERE created_at >= now() - interval '1 day')::int AS views,
-      (SELECT COUNT(*) FROM orders WHERE created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS orders,
-      (SELECT COALESCE(SUM(total),0) FROM orders WHERE created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS revenue,
-      (SELECT COALESCE(SUM(product_profit),0) FROM orders WHERE created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS profit,
+      (SELECT COUNT(*) FROM orders WHERE is_test = false AND created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS orders,
+      (SELECT COALESCE(SUM(total),0) FROM orders WHERE is_test = false AND created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS revenue,
+      (SELECT COALESCE(SUM(product_profit),0) FROM orders WHERE is_test = false AND created_at >= now() - interval '1 day' AND status <> 'CANCELLED')::int AS profit,
       (SELECT COUNT(*) FROM abandoned_carts WHERE recovered = false AND updated_at < now() - interval '1 hour' AND updated_at >= now() - interval '1 day')::int AS abandoned,
       (SELECT COUNT(*) FROM auth.users WHERE created_at >= now() - interval '1 day')::int AS new_accounts,
       (SELECT COUNT(*) FROM email_log WHERE created_at >= now() - interval '1 day')::int AS emails_today,
