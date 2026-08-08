@@ -58,7 +58,7 @@ export default function LandingClient({ coffee }: { coffee: Coffee }) {
         {coffee.soldOut ? "نفد مؤقتاً" : `اطلبه الآن — ${formatIQD(price ?? 0)}`}
       </button>
       <p className="mt-2.5 text-center text-[12px] text-muted">
-        دفع عند الاستلام · توصيل ١–٢ يوم · توصيل مجاني على طلبك الأول
+        دفع عند الاستلام · توصيل ١–٢ يوم
       </p>
     </div>
   );

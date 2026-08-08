@@ -9,14 +9,13 @@ import { formatIQD } from "@/lib/data";
 import { useCatalog } from "@/lib/catalog-context";
 import { Gift as GiftIcon } from "lucide-react";
 import { useMotion, reduced } from "@/lib/motion";
-import { useStore } from "@/lib/store";
+import { useStore, useSiteConfig } from "@/lib/store";
 import BagArt from "@/components/BagArt";
 
 const tiers = [
-  { n: "٣", label: "خصم ١٠٪" },
-  { n: "٤", label: "خصم ٢٠٪" },
-  { n: "٥", label: "توصيل مجاني" },
-  { n: "٦", label: "اختر هديتك", gold: true },
+  { n: "٢", label: "خصم ٤٪" },
+  { n: "٣", label: "خصم ١٢٪ + ملعقة", gold: false },
+  { n: "٤", label: "خصم ٢٠٪ + كوب", gold: true },
 ];
 
 const GIFT_ICONS = [CoffeeIcon, Layers, GiftIcon];
@@ -66,7 +65,7 @@ function hintFor(count: number): string {
   return "وصلت للقمة — اختر هديتك تحت";
 }
 
-const discountFor = (c: number) => (c >= 4 ? 0.2 : c >= 3 ? 0.1 : 0);
+const discountFor = (c: number) => (c >= 4 ? 0.2 : c >= 3 ? 0.12 : c >= 2 ? 0.04 : 0);
 // تقريب لأعلى 250 (نفس منطق الطلب والسلة) — الزبون يرى النسبة، والحساب مقرّب
 const roundUp250 = (n: number) => Math.ceil(Math.max(0, n) / 250) * 250;
 
@@ -75,6 +74,7 @@ export default function BoxPage() {
   const router = useRouter();
   const { addToCart, showToast, setBoxGiftChoice } = useStore();
   const { coffees, boxGifts } = useCatalog();
+  const config = useSiteConfig();
   const gifts = boxGifts.map((g, i) => ({ ...g, key: g.name, icon: GIFT_ICONS[i % GIFT_ICONS.length] }));
   // نحفظ اختيار الأكياس مؤقتاً حتى لا يضيع عند زيارة صفحة محصول والرجوع
   const [bags, setBags] = useState<Record<string, number>>(() => {
@@ -239,6 +239,27 @@ export default function BoxPage() {
             <span className="btn btn-clay shrink-0 !px-5 !py-2.5 text-[12.5px]">جهّزه لي</span>
           </button>
         )}
+
+        {/* شريط التوصيل المجاني */}
+        {count > 0 && config.freeDeliveryThreshold > 0 && (() => {
+          const remaining = config.freeDeliveryThreshold - total;
+          return remaining > 0 ? (
+            <div className="reveal mt-4 rounded-[14px] border border-line bg-card p-4">
+              <p className="text-[13px] font-semibold">
+                باقي لك <span className="font-num text-accent">{formatIQD(remaining)}</span> ويصير التوصيل مجانياً
+              </p>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-bg-alt">
+                <div className="h-full rounded-full bg-clay transition-all duration-500"
+                  style={{ width: `${Math.min(100, (total / config.freeDeliveryThreshold) * 100)}%` }} />
+              </div>
+              <p className="mt-2 text-[11.5px] text-muted">أضِف كوباً أو فلاتر لتبلغها</p>
+            </div>
+          ) : (
+            <p className="reveal mt-4 rounded-[14px] bg-ok/10 px-4 py-3 text-[13px] font-bold text-ok">
+              توصيل مجاني ✓
+            </p>
+          );
+        })()}
 
         {/* المحاصيل */}
         <div className="reveal-group mt-8 space-y-4">

@@ -164,7 +164,7 @@ export default function Header() {
         ) : (
           <Link href="/shipping/"
             className="block bg-olive py-2 text-center text-[11.5px] font-semibold text-olive-text">
-            توصيل مجاني لأول طلب
+            توصيل مجاني للطلبات فوق ٩٠٬٠٠٠
           </Link>
         )}
 

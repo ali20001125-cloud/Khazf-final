@@ -79,7 +79,10 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
     if (t.rewardType === "PERCENT") boxPct = Math.max(boxPct, t.value ?? 0);
     if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
   }
-  const boxDiscount = Math.round((boxSubtotal * boxPct) / 100);
+  const rawBoxDiscount = Math.round((boxSubtotal * boxPct) / 100);
+  // سقف خصم البوكس
+  const boxCap = settings?.boxDiscountCap ?? 0;
+  const boxDiscount = boxCap > 0 ? Math.min(rawBoxDiscount, boxCap) : rawBoxDiscount;
   const itemsSubtotal = grossSubtotal - boxDiscount;
 
   // ٣) كوبون

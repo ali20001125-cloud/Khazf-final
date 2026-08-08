@@ -130,7 +130,10 @@ export async function createOrder(input: CheckoutInput) {
         if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
         if (t.rewardType === "GIFT") giftEligible = true;
       }
-    const quantityDiscount = Math.round((boxSubtotal * boxPct) / 100);
+    const rawBoxDiscount = Math.round((boxSubtotal * boxPct) / 100);
+    // سقف خصم البوكس — يحمي من الطلبات الكبيرة
+    const boxCap = settings?.boxDiscountCap ?? 0;
+    const quantityDiscount = boxCap > 0 ? Math.min(rawBoxDiscount, boxCap) : rawBoxDiscount;
     const itemsSubtotal = grossSubtotal - quantityDiscount;
 
     /* هدية البوكس (٦+): يختارها الزبون من هدايا اللوحة */

@@ -67,7 +67,7 @@ export default function WelcomeSheet() {
           </div>
           <div className="flex items-center gap-2.5">
             <Truck size={17} className="shrink-0 text-gold" />
-            <p className="text-[13px]">توصيل مجاني على طلبك الأول</p>
+            <p className="text-[13px]">توصيل مجاني فوق ٩٠٬٠٠٠ د.ع</p>
           </div>
         </div>
 

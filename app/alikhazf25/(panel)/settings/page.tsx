@@ -30,6 +30,9 @@ export default async function SettingsPage() {
           <Field label="عتبة التوصيل المجاني" hint="٠ = معطّل · الطلب فوق هذا المبلغ توصيله مجاني">
             <input name="freeDeliveryThreshold" defaultValue={pub.freeDeliveryThreshold ?? 0} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
+          <Field label="سقف خصم البوكس" hint="أقصى خصم بالدينار مهما زاد عدد الأكياس — ٠ = بلا سقف">
+            <input name="boxDiscountCap" defaultValue={pub.boxDiscountCap ?? 20000} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
           <Field label="أول طلب توصيله مجاني" hint="سياسة معلنة لكل زبون جديد">
             <label className="flex items-center gap-2 py-2.5 text-[13px] font-bold">
               <input type="checkbox" name="freeDeliveryFirstOrder"

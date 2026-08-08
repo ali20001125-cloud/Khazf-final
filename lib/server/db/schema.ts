@@ -408,6 +408,7 @@ export const settings = pgTable("settings", {
   freeDeliveryFirstMin: integer("free_delivery_first_min").notNull().default(15000),  // حدّه الأدنى // النقطة = دينار (الكاش بالدنانير مباشرة)
   loyaltyValidityDays: integer("loyalty_validity_days").notNull().default(90),
   boxDiscountPct: integer("box_discount_pct").notNull().default(20),
+  boxDiscountCap: integer("box_discount_cap").notNull().default(20000),  // سقف خصم البوكس
   boxTiers: jsonb("box_tiers").$type<BoxTier[]>().notNull()
     .default(sql`'[{"bags":3,"rewardType":"PERCENT","value":10},{"bags":4,"rewardType":"PERCENT","value":20},{"bags":5,"rewardType":"FREE_DELIVERY"},{"bags":6,"rewardType":"GIFT"}]'::jsonb`),
   featuredMode: text("featured_mode").notNull().default("manual"), // manual | auto

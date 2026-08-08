@@ -149,7 +149,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   })();
 
   /* ترقية البوكس — كم يوفّر لو أضاف كيسين */
-  const boxGain = Math.round(unit * 3 * 0.1);
+  const boxGain = Math.round(unit * 2 * 0.04);
 
   const similar = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
 
@@ -306,7 +306,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               </p>
             )}
             <p className="mt-3 text-center text-[11.5px] leading-relaxed text-muted">
-              توصيل ١–٢ يوم · دفع عند الاستلام · توصيل مجاني لأول طلب
+              توصيل ١–٢ يوم · دفع عند الاستلام
               {cashback > 0 && <> · تكسب <span className="font-num font-bold text-clay">{formatIQD(cashback)}</span> كاش باك</>}
             </p>
 
@@ -324,9 +324,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
                 <Gift size={18} className="shrink-0 text-gold" />
                 <div className="min-w-0 flex-1">
                   <p className="text-[13.5px] font-bold leading-snug">
-                    خذ ٣ أكياس ووفّر <span className="font-num text-clay">{formatIQD(boxGain)}</span>
+                    خذ كيسين ووفّر <span className="font-num text-clay">{formatIQD(boxGain)}</span>
                   </p>
-                  <p className="mt-0.5 text-[11.5px] text-muted">اصنع صندوقك — وبالسادس كيس مجاني</p>
+                  <p className="mt-0.5 text-[11.5px] text-muted">وأربعة أكياس توفّر ٢٠٪ مع كوب هدية</p>
                 </div>
                 <ArrowLeft size={15} className="shrink-0 text-gold" />
               </Link>

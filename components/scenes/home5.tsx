@@ -66,7 +66,7 @@ export function HeroPick() {
 export function PathCards({ children }: { children?: React.ReactNode }) {
   const paths = [
     { href: "/products/?cat=coffee", Icon: Search, t: "أعرف ما أريد", d: "تصفّح كل المحاصيل والأدوات", hot: false },
-    { href: "/box/", Icon: Package, t: "أريد أكثر من كيس", d: "اصنع صندوقك ووفّر حتى ٢٠٪", hot: false },
+    { href: "/box/", Icon: Package, t: "أريد أكثر من كيس", d: "كيسان يوفّران ٤٪ · وأربعة ٢٠٪ وهدية", hot: false },
   ];
   return (
     <section className="mx-auto max-w-lg px-4 pt-11 md:max-w-5xl md:px-8">
@@ -127,10 +127,10 @@ export function BoxBlock() {
           كل كيس تضيفه<br className="md:hidden" /> يكبّر مكافأتك
         </h2>
         <div className="mt-5 space-y-0 md:max-w-md">
-          {[["٣ أكياس", "خصم ١٠٪"], ["٤ أكياس", "خصم ٢٠٪"], ["٥ أكياس", "توصيل مجاني"], ["٦ أكياس", "كيس مجاني"]].map(([n, r], i) => (
-            <div key={n} className={`flex justify-between py-2.5 text-[13px] ${i < 3 ? "border-b border-olive-text/15" : ""}`}>
+          {[["كيسان", "خصم ٤٪"], ["٣ أكياس", "خصم ١٢٪ + ملعقة"], ["٤ أكياس فأكثر", "خصم ٢٠٪ + كوب"]].map(([n, r], i) => (
+            <div key={n} className={`flex justify-between py-2.5 text-[13px] ${i < 2 ? "border-b border-olive-text/15" : ""}`}>
               <span className="opacity-85">{n}</span>
-              <span className={i === 3 ? "font-bold text-gold" : "opacity-75"}>{r}</span>
+              <span className={i === 2 ? "font-bold text-gold" : "opacity-75"}>{r}</span>
             </div>
           ))}
         </div>
