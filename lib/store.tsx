@@ -11,6 +11,7 @@ export interface SiteConfig {
   pointValue: number;
   cashbackPerAmount: number;
   boxTiers: BoxTier[];
+  boxDiscountCap: number;
   topBarMessages: string[];
   instagram: string | null;
   logoUrl: string | null;

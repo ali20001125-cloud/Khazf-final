@@ -151,7 +151,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   /* ترقية البوكس — كم يوفّر لو أضاف كيسين */
   const boxGain = Math.round(unit * 2 * 0.04);
 
-  const similar = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
+  const similar = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 2);
+  // أدوات تناسب طريقة التحضير المختارة
+  const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 4);
 
   return (
     <div ref={scope} className="pb-28 pt-28 md:pt-32">
@@ -428,8 +430,21 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         <ReviewsSection slug={coffee.slug} rating={coffee.rating} count={coffee.reviewsCount} />
 
         {/* محاصيل أخرى */}
+        {gearPicks.length > 0 && (
+          <section className="pt-12">
+            <h2 className="text-[19px] font-bold">يُشترى معه عادةً</h2>
+            <div className="no-scrollbar -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2">
+              {gearPicks.map((t) => (
+                <div key={t.slug} className="w-[42%] max-w-[180px] shrink-0">
+                  <ToolCard tool={t} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {similar.length > 0 && (
-          <section className="pt-14">
+          <section className="pt-12">
             <h2 className="text-[19px] font-bold">محاصيل أخرى</h2>
             <div className="no-scrollbar -mx-4 mt-5 flex gap-3 overflow-x-auto px-4 pb-2">
               {similar.map((c) => (

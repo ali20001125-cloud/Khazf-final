@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic"; // متجر حي من القاعدة —
 
 const FALLBACK: SiteConfig = {
   deliveryPrice: 3000, freeDeliveryThreshold: 0, pointValue: 30, cashbackPerAmount: 1000,
+  boxDiscountCap: 20000,
   boxTiers: [
     { bags: 3, rewardType: "PERCENT", value: 10 },
     { bags: 4, rewardType: "PERCENT", value: 20 },
@@ -48,6 +49,7 @@ async function loadConfig(): Promise<SiteConfig> {
       pointValue: st.pointValue,
       cashbackPerAmount: st.cashbackPerAmount,
       boxTiers: st.boxTiers,
+      boxDiscountCap: st.boxDiscountCap ?? 20000,
       topBarMessages: st.topBarMessages,
       instagram: st.instagram,
       logoUrl: st.logoUrl ?? null,

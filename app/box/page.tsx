@@ -10,6 +10,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { Gift as GiftIcon } from "lucide-react";
 import { useMotion, reduced } from "@/lib/motion";
 import { useStore, useSiteConfig } from "@/lib/store";
+import CompleteCart from "@/components/CompleteCart";
 import BagArt from "@/components/BagArt";
 
 const tiers = [
@@ -97,8 +98,11 @@ export default function BoxPage() {
     [bags]
   );
   const discount = discountFor(count);
-  const total = roundUp250(subtotal * (1 - discount));
-  const savings = subtotal - total;
+  const CAP = config.boxDiscountCap ?? 20000;
+  // الخصم مسقوف — لا يتجاوز CAP مهما زاد العدد
+  const rawSaving = Math.round(subtotal * discount);
+  const savings = Math.min(rawSaving, CAP);
+  const total = roundUp250(subtotal - savings);
 
   /* المكسب من الكيس التالي — يحفّز الإضافة بأرقام حقيقية */
   const nextGain = useMemo(() => {
@@ -109,8 +113,8 @@ export default function BoxPage() {
     const need = target - count;
     /* المكسب الحقيقي = الخصم الإضافي على ما في صندوقك الآن.
        لا نحسب خصم الكيس الجديد لأن الزبون يدفع ثمنه — ذلك ليس ربحاً. */
-    const extraPct = discountFor(target) - discountFor(count);
-    const extraSaving = Math.round(subtotal * extraPct);
+    const nextSaving = Math.min(Math.round(subtotal * discountFor(target)), CAP);
+    const extraSaving = Math.max(0, nextSaving - savings);
     const perk = target === 5 ? "توصيل مجاني" : target === 6 ? "هديتك المجانية" : null;
     return { need, target, extraSaving, perk };
   }, [count, subtotal, savings, coffees.length]);
@@ -341,7 +345,7 @@ export default function BoxPage() {
               // الملعقة تُفتح من ٣ أكياس · الكوب من ٤
               const needed = /كوب/.test(g.name) ? 4 : 3;
               const unlocked = count >= needed;
-              const picked = unlocked && gift === g.key;
+              const picked = unlocked;   // الهدية تُمنح تلقائياً عند بلوغ العدد
               return (
               <button
                 key={g.key}
@@ -373,6 +377,8 @@ export default function BoxPage() {
           </div>
         </div>
       </div>
+
+      {count > 0 && <div className="mx-auto max-w-3xl px-4 md:px-6"><CompleteCart subtotal={total} compact /></div>}
 
       {/* الملخّص الشفاف — قبل الإضافة بلا مفاجآت */}
       {count > 0 && (

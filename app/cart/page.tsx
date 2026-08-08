@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchMe } from "@/lib/me";
+import CompleteCart from "@/components/CompleteCart";
 import Link from "next/link";
 import { Minus, Plus, Trash2, Ticket, Wallet, Gift, ArrowLeft } from "lucide-react";
 import { formatIQD } from "@/lib/data";
@@ -309,6 +310,8 @@ export default function CartPage() {
             );
           })()}
         </div>
+
+        <CompleteCart subtotal={preview?.itemsSubtotal ?? afterBox} />
 
         {/* الملخص */}
         <aside className="h-fit space-y-4 rounded-[22px] border border-line bg-card p-6 lg:sticky lg:top-28">
