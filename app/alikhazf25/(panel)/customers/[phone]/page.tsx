@@ -86,7 +86,16 @@ export default async function CustomerDetail({ params }: { params: Promise<{ pho
               <textarea name="notes" rows={4} defaultValue={c.adminNotes ?? ""} className={inputCls} placeholder="لا يراها الزبون" />
               <SubmitBtn>حفظ</SubmitBtn>
             </form>
-            <p className="mt-3 text-[12px] leading-relaxed text-muted">{c.governorate} · {c.address}{c.email ? ` · ${c.email}` : ""}{c.marketingOptIn ? " · ✅ يقبل العروض" : ""}</p>
+            <p className="mt-3 text-[12px] leading-relaxed text-muted">{c.governorate} · {c.address}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px]">
+              {c.email
+                ? <span className="font-num rounded-full bg-bg-alt px-2.5 py-1" dir="ltr">{c.email}</span>
+                : <span className="rounded-full bg-bg-alt px-2.5 py-1 text-muted">بلا بريد</span>}
+              {c.authUserId
+                ? <span className="rounded-full bg-ok/12 px-2.5 py-1 font-bold text-ok">✅ مسجّل بحساب</span>
+                : <span className="rounded-full bg-bg-alt px-2.5 py-1 text-muted">⚪️ غير مسجّل</span>}
+              {c.marketingOptIn && <span className="rounded-full bg-gold/15 px-2.5 py-1 font-bold text-gold">يقبل العروض</span>}
+            </div>
           </Card>
         </div>
       </div>

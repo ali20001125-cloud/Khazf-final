@@ -37,7 +37,9 @@ export async function notifyTelegram(text: string): Promise<boolean> {
 }
 
 /** رسالة طلب مفصّلة + زر الفاتورة */
-export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
+export async function notifyOrderTelegram(
+  o: OrderMsg & { email?: string | null; registered?: boolean }
+): Promise<boolean> {
   try {
     const s = await getInternalSettings();
     if (!s.notifyNewOrder || !s.telegramBotToken || !s.telegramChatId) return false;
@@ -51,11 +53,27 @@ export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
     const text =
       `🆕 <b>طلب جديد #${o.seqNo ?? "?"}</b>\n` +
       `━━━━━━━━━━━━\n` +
-      `👤 ${o.name}\n📞 ${o.phone}\n💬 <code>${intlPhone(o.phone)}</code> (للنسخ لواتساب)\n📍 ${o.governorate} — ${o.address}\n` +
+      `👤 ${o.name}\n📞 ${o.phone}\n💬 <code>${intlPhone(o.phone)}</code>\n` +
+      (o.email ? `✉️ ${o.email}\n` : "✉️ بلا بريد\n") +
+      `${o.registered ? "✅ مسجّل بحساب" : "⚪️ غير مسجّل"}\n📍 ${o.governorate} — ${o.address}\n` +
       `━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━\n` +
       breakdown +
       `💰 <b>الإجمالي: ${money(o.total)} د.ع</b> (كاش)\n` +
       `🧾 فاتورة: ${o.orderNumber}`;
+
+    // رسالة واتساب جاهزة — قصيرة
+    const d = (n: number) => new Date(Date.now() + n * 864e5)
+      .toLocaleDateString("ar-IQ", { weekday: "long", day: "numeric", month: "long" });
+    const waMsg =
+      `مرحباً ${o.name} 🤎\n\n` +
+      `استلمنا طلبك ${o.orderNumber} وجارٍ تجهيزه.\n\n` +
+      o.items.map((it) => `• ${it.name} ×${it.qty}`).join("\n") + "\n\n" +
+      `الإجمالي: ${money(o.total)} د.ع (${o.deliveryCharged ? "شامل التوصيل" : "توصيل مجاني"})\n` +
+      `التوصيل: ${o.governorate}\n` +
+      `الوصول: بين ${d(1)} و${d(2)} — الدفع عند الاستلام\n\n` +
+      `للتعديل أو تغيير الموعد راسلنا هنا.\n` +
+      `وبإمكانك إنشاء حساب على khazf.shop لتتبّع طلباتك والحصول على الخصومات والهدايا.`;
+
     const base = `https://api.telegram.org/bot${s.telegramBotToken}`;
     const res = await fetch(`${base}/sendMessage`, {
       method: "POST",
@@ -64,7 +82,7 @@ export async function notifyOrderTelegram(o: OrderMsg): Promise<boolean> {
         chat_id: s.telegramChatId, text, parse_mode: "HTML", disable_web_page_preview: true,
         reply_markup: { inline_keyboard: [[
           { text: "🧾 الفاتورة", url: o.invoiceUrl },
-          { text: "💬 واتساب الزبون", url: `https://wa.me/${intlPhone(o.phone)}` },
+          { text: "💬 أرسل تأكيد الطلب", url: `https://wa.me/${intlPhone(o.phone)}?text=${encodeURIComponent(waMsg)}` },
         ]] },
       }),
       signal: AbortSignal.timeout(6000),

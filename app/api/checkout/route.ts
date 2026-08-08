@@ -126,6 +126,8 @@ export async function POST(req: Request) {
       orderNumber: result.orderNumber, seqNo: result.seqNo, name: body.name?.trim() || "زبون خزف",
       phone, governorate: body.governorate, address: body.address,
       total: result.total, invoiceUrl,
+      email: body.email?.trim() || null,
+      registered: !!gUser,
       itemsSubtotal: result.itemsSubtotal,
       deliveryCharged: result.deliveryCharged,
       journeyDiscount: result.journeyDiscount,
