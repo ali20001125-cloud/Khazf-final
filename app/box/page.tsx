@@ -418,7 +418,7 @@ export default function BoxPage() {
               <span className="font-num">{formatIQD(total)}</span>
             </div>
             <p className="mt-2 text-[11.5px] text-muted">
-              وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.round(total / 1000) * 30)}</span> كاش باك من هذا الطلب
+              وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.floor(total / (config.cashbackPerAmount || 33)))}</span> نقطة من هذا الطلب
             </p>
           </div>
         </div>

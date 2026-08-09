@@ -27,6 +27,7 @@ export interface Coffee {
   rating: number;
   reviewsCount: number;
   brew: { name: string; nums: string }[];
+  brewMethods?: string[];
   isNew?: boolean;
   stockLow?: number;
   soldOut?: boolean;

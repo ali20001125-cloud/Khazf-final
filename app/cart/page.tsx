@@ -117,6 +117,7 @@ export default function CartPage() {
   const cashRemaining = preview?.pointsRemaining ?? cashAvailable;
   const freeDelivery = preview?.freeDelivery ?? (box.freeDelivery || coupon?.type === "FREE_DELIVERY");
   const delivery = preview?.deliveryCharged ?? (freeDelivery ? 0 : config.deliveryPrice);
+  const itemsAfterAll = preview?.itemsSubtotal ?? afterBox;
   const previewTotal = preview?.total ?? (Math.max(0, afterBox - couponDiscount) + delivery);
 
   const tryCoupon = async () => {
@@ -413,7 +414,7 @@ export default function CartPage() {
             </div>
             {previewTotal > 0 && (
               <p className="text-[11.5px] text-muted">
-                وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.round(previewTotal / 1000) * 30)}</span> كاش باك من هذا الطلب
+                وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.floor(itemsAfterAll / (config.cashbackPerAmount || 33)))}</span> نقطة من هذا الطلب
               </p>
             )}
           </div>
