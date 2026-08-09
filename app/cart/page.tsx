@@ -210,8 +210,35 @@ export default function CartPage() {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         {/* الأسطر */}
         <div className="space-y-3">
-          {/* عناصر مفردة (خارج البوكس) */}
-          {cart.filter((i) => i.boxGroup == null).map((i) => (
+          {/* حزم «خذها معاً» — بطاقة واحدة لكل حزمة */}
+          {Array.from(new Set(cart.filter((i) => i.bundleId).map((i) => i.bundleId!))).map((bid) => {
+            const items = cart.filter((i) => i.bundleId === bid);
+            if (items.length === 0) return null;
+            const sum = items.reduce((t, i) => t + i.priceShown * i.qty, 0);
+            return (
+              <div key={bid} className="rounded-[18px] border border-gold/40 bg-gold/6 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13.5px] font-bold text-accent">حزمة خذها معاً</p>
+                    <div className="mt-2 flex flex-col gap-1">
+                      {items.map((i) => (
+                        <p key={i.key} className="truncate text-[12.5px] text-muted">
+                          {i.name}{i.meta && i.meta !== "حزمة" ? ` · ${i.meta}` : ""}
+                        </p>
+                      ))}
+                    </div>
+                    <p className="font-num mt-2 text-[14px] font-bold">{formatIQD(sum)}</p>
+                  </div>
+                  <button onClick={() => removeFromCart(items[0].key)} aria-label="احذف الحزمة"
+                    className="shrink-0 text-muted transition-colors hover:text-accent"><Trash2 size={17} /></button>
+                </div>
+                <p className="mt-2 text-[11.5px] text-muted">تُحذف كحزمة واحدة</p>
+              </div>
+            );
+          })}
+
+          {/* عناصر مفردة (خارج البوكس والحزم) */}
+          {cart.filter((i) => i.boxGroup == null && !i.bundleId).map((i) => (
             <div key={i.key} className="flex items-center gap-4 rounded-[18px] border border-line bg-card p-4">
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold">{i.name}</p>

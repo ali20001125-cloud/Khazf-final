@@ -25,6 +25,7 @@ import { fbTrack } from "@/lib/fbpixel";
 import { fmtDate } from "@/lib/datetime";
 import ProductJsonLd from "@/components/ProductJsonLd";
 import LeadCapture from "@/components/LeadCapture";
+import { infoSlides } from "@/components/InfoSlides";
 import BagArt from "@/components/BagArt";
 import { CoffeeCard, ToolCard, Stars, ToolVisual } from "@/components/Cards";
 
@@ -98,6 +99,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const batchLeft = 5 + (coffee.slug.split("").reduce((t, c) => t + c.charCodeAt(0), 0) % 8);
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
   const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
+  const slides = infoSlides(coffee);
+  const totalShots = gallery.length + slides.length;
   const n = (x: number) => x.toLocaleString("en");
   const r250 = (x: number) => Math.ceil(Math.max(0, x) / 250) * 250;
   // أرقام البوكس بعد التقريب الفعلي — تطابق ما يدفعه بالضبط
@@ -155,7 +158,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     ["حلاوة", coffee.flavorSweetness], ["قوام", coffee.flavorBody],
   ] as [string, number | undefined][]).filter(([, v]) => v) as [string, number][];
 
-  const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 3);
+  const suggestions = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 4);
   const others = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
 
   /* حزمة «خذها معاً» — أدوات تناسب الطحن المختار */
@@ -283,25 +286,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       ))}
     </div>
   )});
-  if (others.length) sections.push({ key: "more", title: "محاصيل أخرى", body: (
-    <div className="flex flex-col gap-2.5">
-      {others.map((c) => (
-        <Link key={c.slug} href={`/product/?c=${c.slug}`} className="flex items-center gap-3">
-          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-bg-alt">
-            {c.image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={c.image} alt="" className="h-full w-full object-cover" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-semibold">{c.name}</p>
-            <p className="truncate text-[11.5px] text-muted">{c.notes?.join(" · ")}</p>
-          </div>
-          <span className="font-num text-[12.5px]">{n(c.prices.g250)}</span>
-        </Link>
-      ))}
-    </div>
-  )});
+
 
   return (
     <div ref={scope} className="mx-auto max-w-lg pb-40 md:max-w-2xl">
@@ -311,11 +296,13 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         faq={coffee.notes?.length ? [{ q: `ما نكهات ${coffee.name}؟`, a: coffee.notes.join("، ") + "." }] : []} />
 
       {/* ═══ المعرض ═══ */}
-      <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-[#F5F1EC] via-[#EFE7DE] to-[#E4D8CC]">
-        {gallery.length > 0 ? (
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-[#F5F1EC] via-[#EFE7DE] to-[#E4D8CC]">
+        {shot < gallery.length ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={gallery[shot] ?? gallery[0]} alt={coffee.name} className="h-full w-full object-cover" />
-        ) : <span className="font-[Amiri,serif] text-[15px] text-muted">{coffee.name}</span>}
+          <img src={gallery[shot]} alt={coffee.name} className="h-full w-full object-cover" />
+        ) : slides[shot - gallery.length]
+          ? <div className="h-full w-full">{slides[shot - gallery.length].el}</div>
+          : <span className="font-[Amiri,serif] text-[15px] text-muted">{coffee.name}</span>}
 
         {coffee.badge && (
           <span className="absolute end-4 top-3.5 rounded-[6px] bg-bg-alt px-[11px] py-1.5 text-[11px] font-medium text-accent">
@@ -326,9 +313,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
           <span className="absolute start-4 top-3.5 rounded-[6px] bg-accent px-[11px] py-1.5 text-[11px] font-bold text-white">نفد مؤقتاً</span>
         )}
 
-        {gallery.length > 1 && (
+        {totalShots > 1 && (
           <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
-            {gallery.slice(0, 5).map((_, i) => (
+            {Array.from({ length: totalShots }).map((_, i) => (
               <button key={i} onClick={() => setShot(i)} aria-label={`صورة ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all ${i === shot ? "w-5 bg-ink" : "w-1.5 bg-ink/30"}`} />
             ))}
@@ -457,12 +444,21 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         </p>
 
         <div className="mt-3 flex flex-col gap-2 rounded-[10px] bg-bg-alt p-[13px_14px] text-[13px]">
-          <div className="flex items-start justify-between gap-3">
-            <span className="text-muted">رحلة طلبك</span>
-            <span className="flex flex-col items-end gap-1 text-[12.5px]">
-              <span className="font-medium">اليوم — نستلم ونجهّز</span>
-              <span className="font-medium">{arrival} — يصلك بابك</span>
-            </span>
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[12.5px]">
+              <span className="text-muted">اطلب اليوم · </span>
+              <span className="font-bold">يصلك {arrival}</span>
+            </p>
+            <div className="flex items-start">
+              {[["نجهّز", "اليوم"], ["يخرج للشحن", "غداً"], ["يصلك", arrival.split("،")[0] ?? arrival]].map(([t, d], i, a) => (
+                <div key={t} className="relative flex flex-1 flex-col items-center gap-1.5">
+                  {i < a.length - 1 && <span className="absolute top-[5px] h-px w-full translate-x-1/2 bg-line" />}
+                  <span className={`relative h-2.5 w-2.5 rounded-full ${i === 2 ? "border-2 border-clay bg-bg" : "bg-clay"}`} />
+                  <span className="text-[11px] font-semibold">{t}</span>
+                  <span className="text-[10px] text-muted">{d}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex justify-between"><span className="text-muted">الدفع</span><span className="font-medium">عند الاستلام</span></div>
           <div className="flex justify-between"><span className="text-muted">نقاطك من هذا الطلب</span><span className="font-num font-medium text-ok">{n(cashback)} نقطة</span></div>
@@ -577,6 +573,26 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             أضف الحزمة للسلة
           </button>
           <p className="mt-2 text-center text-[11.5px] text-muted">تُضاف وتُحذف كحزمة واحدة</p>
+        </section>
+      )}
+
+      {/* ═══ مقترحات ═══ */}
+      {(others.length > 0 || suggestions.length > 0) && (
+        <section className="px-4 pt-8">
+          <h2 className="font-[Amiri,serif] text-[22px] font-bold">قد يعجبك أيضاً</h2>
+          {others.length > 0 && (
+            <p className="mt-1 text-[12.5px] text-muted">
+              إن أعجبتك {coffee.name}، جرّب {others.map((c) => c.name).join(" أو ")}
+            </p>
+          )}
+          <div className="no-scrollbar -mx-4 mt-3.5 flex gap-3 overflow-x-auto px-4 pb-2">
+            {others.map((c) => (
+              <div key={c.slug} className="w-[42%] max-w-[180px] shrink-0"><CoffeeCard coffee={c} /></div>
+            ))}
+            {suggestions.map((t: Tool) => (
+              <div key={t.slug} className="w-[42%] max-w-[180px] shrink-0"><ToolCard tool={t} /></div>
+            ))}
+          </div>
         </section>
       )}
 
