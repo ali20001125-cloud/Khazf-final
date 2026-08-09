@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import gsap from "gsap";
@@ -99,7 +99,16 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
   const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
   const n = (x: number) => x.toLocaleString("en");
-  const two = Math.round(unit * 2 * 0.96);
+  const r250 = (x: number) => Math.ceil(Math.max(0, x) / 250) * 250;
+  // أرقام البوكس بعد التقريب الفعلي — تطابق ما يدفعه بالضبط
+  const boxRows = ([[2, 0.04, "ملعقة إسبريسو"], [3, 0.12, "ملعقة إسبريسو"], [4, 0.2, "كوب سيراميك"]] as const)
+    .map(([bags, pct, gift]) => {
+      const gross = unit * bags;
+      const capped = Math.min(Math.round(gross * pct), config.boxDiscountCap ?? 20000);
+      const pay = r250(gross - capped);
+      return { bags, gift: bags >= 3 ? gift : null, pay, save: gross - pay, gross };
+    });
+  const two = boxRows[0].pay;
   const arrival = new Date(Date.now() + 2 * 864e5).toLocaleDateString("ar-IQ", { weekday: "long", day: "numeric", month: "long" });
 
   useEffect(() => { setQty((q) => Math.min(q, maxQty)); }, [maxQty]);
@@ -148,6 +157,40 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
   const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 3);
   const others = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
+
+  /* حزمة «خذها معاً» — أدوات تناسب الطحن المختار */
+  const bundle = useMemo(() => {
+    const want = /إسبريسو/.test(grind) ? ["tamper", "distributor", "cup"] : ["filter", "dripper", "server", "cup"];
+    const picked: Tool[] = [];
+    for (const key of want) {
+      const t = tools.find((x) => !x.soldOut && (x.price ?? 0) > 0 && !picked.includes(x)
+        && (x.slug.includes(key) || (x.type ?? "").includes(key)));
+      if (t) picked.push(t);
+      if (picked.length >= 2) break;
+    }
+    if (picked.length < 2) {
+      for (const t of tools) {
+        if (picked.length >= 2) break;
+        if (!t.soldOut && (t.price ?? 0) > 0 && !picked.includes(t)) picked.push(t);
+      }
+    }
+    return picked;
+  }, [tools, grind]);
+
+  const gearSum = bundle.reduce((t: number, x: Tool) => t + (x.price ?? 0), 0);
+  const bundleSave = Math.round(gearSum * 0.1);
+  const bundleTotal = Math.ceil((unit + gearSum - bundleSave) / 250) * 250;
+
+  const addBundle = () => {
+    addToCart({ slug: coffee.slug, variant: safeWeight.toUpperCase() as "G250" | "G500" | "G1000",
+      grind, name: coffee.name, meta: `${weightLabel} · ${grind}`, priceShown: unit });
+    bundle.forEach((t: Tool) => addToCart({
+      slug: t.slug, variant: "PIECE", grind: "", name: t.name, meta: "",
+      priceShown: Math.round((t.price ?? 0) * 0.9),
+    }));
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 2600);
+  };
 
   /* الأقسام المطوية */
   const sections: { key: string; title: string; body: React.ReactNode }[] = [];
@@ -421,16 +464,14 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               خذ كيسين — تدفع <span className="font-num text-clay">{n(two)}</span> بدل <span className="font-num text-muted line-through">{n(unit * 2)}</span>
             </p>
             <div className="mt-3 flex flex-col gap-2">
-              {[
-                ["كيسان", "خصم ٤٪", n(Math.round(unit * 2 * 0.04)) + " د.ع توفير"],
-                ["ثلاثة", "خصم ١٢٪ + ملعقة", n(Math.round(unit * 3 * 0.12)) + " د.ع توفير"],
-                ["أربعة", "خصم ٢٠٪ + كوب", n(Math.min(Math.round(unit * 4 * 0.2), config.boxDiscountCap ?? 20000)) + " د.ع توفير"],
-              ].map(([a, b, c], i) => (
-                <div key={a} className={`flex items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 ${
+              {boxRows.map((r, i) => (
+                <div key={r.bags} className={`flex items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 ${
                   i === 2 ? "bg-gold/20" : "bg-bg/60"}`}>
-                  <span className="text-[13px] font-semibold">{a}</span>
-                  <span className="text-[12.5px] text-accent">{b}</span>
-                  <span className="font-num text-[12px] font-bold text-ok">{c}</span>
+                  <span className="font-num text-[13px] font-semibold">
+                    {r.bags === 2 ? "كيسان" : r.bags === 3 ? "٣ أكياس" : "٤ أكياس"}
+                  </span>
+                  {r.gift && <span className="text-[11.5px] text-accent">+ {r.gift}</span>}
+                  <span className="font-num text-[12px] font-bold text-ok">توفّر {n(r.save)}</span>
                 </div>
               ))}
             </div>
@@ -472,26 +513,52 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         ))}
       </div>
 
-      {/* ═══ يُشترى معه ═══ */}
-      {gearPicks.length > 0 && (
-        <section className="px-4 pt-7">
-          <h2 className="font-[Amiri,serif] text-[22px] font-bold">يُشترى معه عادةً</h2>
-          <div className="no-scrollbar -mx-4 mt-3.5 flex gap-3 overflow-x-auto px-4 pb-2">
-            {others.slice(0, 2).map((c) => (
-              <div key={c.slug} className="w-[42%] max-w-[180px] shrink-0"><CoffeeCard coffee={c} /></div>
-            ))}
-            {gearPicks.map((t) => (
-              <div key={t.slug} className="w-[42%] max-w-[180px] shrink-0"><ToolCard tool={t} /></div>
+      {/* ═══ خذها معاً — حزمة بخصم ═══ */}
+      {!coffee.soldOut && bundle.length > 0 && (
+        <section className="mx-4 mt-8 rounded-[14px] border border-line bg-bg p-4">
+          <p className="font-[Amiri,serif] text-[22px] font-bold">خذها معاً</p>
+          <p className="mt-1 text-[12.5px] text-muted">كل ما تحتاجه لتحضير فنجان — بخصم على الحزمة</p>
+
+          <div className="mt-3.5 flex items-center gap-2">
+            {[coffee, ...bundle].map((it, i) => (
+              <div key={i} className="flex items-center gap-2">
+                {i > 0 && <span className="text-[15px] text-muted">+</span>}
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[10px] border border-line bg-card">
+                  {("image" in it ? it.image : (it as Tool).images?.[0]) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={("image" in it ? it.image : (it as Tool).images?.[0])!} alt="" className="h-full w-full object-cover" />
+                  )}
+                </div>
+              </div>
             ))}
           </div>
-        </section>
-      )}
 
-      {/* ═══ التقييمات ═══ */}
-      {coffee.reviewsCount > 0 && (
-        <div id="reviews" className="scroll-mt-20 px-4 pt-7">
-          <ReviewsSection slug={coffee.slug} rating={coffee.rating} count={coffee.reviewsCount} />
-        </div>
+          <div className="mt-3 flex flex-col gap-1.5">
+            <div className="flex justify-between text-[13px]">
+              <span className="text-muted">{coffee.name} · {weightLabel}</span>
+              <span className="font-num">{n(unit)}</span>
+            </div>
+            {bundle.map((t: Tool) => (
+              <div key={t.slug} className="flex justify-between text-[13px]">
+                <span className="text-muted">{t.name}</span>
+                <span className="font-num">{n(t.price ?? 0)}</span>
+              </div>
+            ))}
+            <div className="mt-1 flex justify-between border-t border-line pt-2 text-[13px] text-ok">
+              <span>خصم الحزمة ١٠٪ على الأدوات</span>
+              <span className="font-num">−{n(bundleSave)}</span>
+            </div>
+            <div className="flex justify-between text-[15px] font-bold">
+              <span>الإجمالي</span>
+              <span className="font-num">{n(bundleTotal)} د.ع</span>
+            </div>
+          </div>
+
+          <button onClick={addBundle}
+            className="mt-3.5 flex min-h-[50px] w-full items-center justify-center rounded-[10px] bg-olive text-[15px] font-semibold text-olive-text transition-all hover:brightness-110 active:scale-[0.98]">
+            أضف الحزمة للسلة
+          </button>
+        </section>
       )}
 
       {/* ═══ الطمأنة ═══ */}

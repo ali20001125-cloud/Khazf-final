@@ -101,8 +101,10 @@ export default function BoxPage() {
   const CAP = config.boxDiscountCap ?? 20000;
   // الخصم مسقوف — لا يتجاوز CAP مهما زاد العدد
   const rawSaving = Math.round(subtotal * discount);
-  const savings = Math.min(rawSaving, CAP);
-  const total = roundUp250(subtotal - savings);
+  const capped = Math.min(rawSaving, CAP);
+  const total = roundUp250(subtotal - capped);
+  // التوفير المعروض = الفرق الفعلي بعد التقريب — لا رقم نظري
+  const savings = subtotal - total;
 
   /* المكسب من الكيس التالي — يحفّز الإضافة بأرقام حقيقية */
   const nextGain = useMemo(() => {
@@ -113,8 +115,12 @@ export default function BoxPage() {
     const need = target - count;
     /* المكسب الحقيقي = الخصم الإضافي على ما في صندوقك الآن.
        لا نحسب خصم الكيس الجديد لأن الزبون يدفع ثمنه — ذلك ليس ربحاً. */
-    const nextSaving = Math.min(Math.round(subtotal * discountFor(target)), CAP);
-    const extraSaving = Math.max(0, nextSaving - savings);
+    // مكسب حقيقي: نحسب الإجمالي المستقبلي فعلياً بنفس التقريب
+    const avg = subtotal / Math.max(1, count);
+    const nextSubtotal = subtotal + avg * need;
+    const nextCapped = Math.min(Math.round(nextSubtotal * discountFor(target)), CAP);
+    const nextTotal = roundUp250(nextSubtotal - nextCapped);
+    const extraSaving = Math.max(0, (nextSubtotal - nextTotal) - savings);
     const perk = target === 5 ? "توصيل مجاني" : target === 6 ? "هديتك المجانية" : null;
     return { need, target, extraSaving, perk };
   }, [count, subtotal, savings, coffees.length]);
