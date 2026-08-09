@@ -482,7 +482,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       )}
 
       {/* ═══ البوكس — مباشرة بعد الشراء، بمكسب محسوب ═══ */}
-      {!coffee.soldOut && (
+      {!coffee.soldOut && safeWeight === "g250" && (
         <div className="mx-4 mt-4 overflow-hidden rounded-[14px] border-2 border-gold/45 bg-gold/8">
           <div className="p-4">
             <p className="text-[11px] font-bold tracking-wide text-accent">وفّر أكثر</p>
