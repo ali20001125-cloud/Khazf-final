@@ -43,12 +43,12 @@ export default function CompleteCart({
       </div>
       <p className="mt-1 text-[11.5px] text-muted">هذه تكمّل طلبك — وتصل معه بلا أجرة إضافية</p>
 
-      <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {picks.map((t) => {
           const hits = (t.price ?? 0) >= remaining;
           return (
             <div key={t.slug}
-              className={`w-[42%] max-w-[168px] shrink-0 overflow-hidden rounded-[14px] border bg-card ${
+              className={`overflow-hidden rounded-[14px] border bg-card ${
                 hits ? "border-clay/45" : "border-line"
               }`}>
               <Link href={`/product/?t=${t.slug}`} className="block aspect-square bg-white">
