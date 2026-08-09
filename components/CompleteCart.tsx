@@ -43,7 +43,7 @@ export default function CompleteCart({
       </div>
       <p className="mt-1 text-[11.5px] text-muted">هذه تكمّل طلبك — وتصل معه بلا أجرة إضافية</p>
 
-      <div className="no-scrollbar -mx-4 mt-3 flex gap-2.5 overflow-x-auto px-4 pb-1">
+      <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1">
         {picks.map((t) => {
           const hits = (t.price ?? 0) >= remaining;
           return (

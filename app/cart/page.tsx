@@ -154,7 +154,7 @@ export default function CartPage() {
     );
 
   return (
-    <div ref={scope} className="mx-auto max-w-5xl px-4 pb-28 pt-28 md:px-8 md:pt-32">
+    <div ref={scope} className="mx-auto w-full max-w-5xl overflow-x-hidden px-4 pb-28 pt-28 md:px-8 md:pt-32">
       <h1 className="text-[26px] font-bold md:text-3xl">سلّتك</h1>
 
       {/* تقدّم واضح */}
