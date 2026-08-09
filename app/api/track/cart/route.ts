@@ -8,6 +8,20 @@ export const dynamic = "force-dynamic";
 
 /** يحفظ لقطة السلة عند صفحة الدفع (لكشف الهجران لاحقاً) */
 export async function POST(req: Request) {
+  // هويات الاختبار لا تُسجَّل سلاتها
+  try {
+    const bodyPeek = await req.clone().json().catch(() => ({}));
+    const em = String(bodyPeek?.email ?? "").trim().toLowerCase();
+    const ph = String(bodyPeek?.phone ?? "").trim();
+    if (em || ph) {
+      const t = await db.execute(sql`
+        SELECT 1 FROM test_identities
+        WHERE (kind='email' AND lower(value) = ${em})
+           OR (kind='phone' AND value = ${ph}) LIMIT 1`);
+      if (t.rows.length > 0) return NextResponse.json({ ok: true, skipped: "test" });
+    }
+  } catch { /* تجاهل */ }
+
   try {
     // لا نتتبّع سلة المدير عند اختباره المتجر
     const admin = await getAdmin().catch(() => null);

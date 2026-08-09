@@ -133,7 +133,7 @@ export default async function RootLayout({
         {analytics.ga && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga}`} />
-            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${analytics.ga}');` }} />
+            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${analytics.ga}',{send_page_view: !location.pathname.startsWith('/alikhazf25')});` }} />
           </>
         )}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([

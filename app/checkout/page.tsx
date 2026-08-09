@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchMe } from "@/lib/me";
 import Link from "next/link";
 import { Check, HandCoins, Gift, Sparkles, ArrowLeft , ChevronDown } from "lucide-react";
 import { formatIQD, governorates } from "@/lib/data";
 import { checkEmail } from "@/lib/email-check";
+import { gaPurchase, gaBeginCheckout } from "@/lib/ga";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { fbTrack } from "@/lib/fbpixel";
@@ -165,15 +166,35 @@ export default function CheckoutPage() {
   };
 
   /* حدث شراء لـ Pixel + GA عند نجاح الطلب */
+  /* الشراء — مرة واحدة لكل رقم طلب */
   useEffect(() => {
     if (!done) return;
+    gaPurchase({
+      transactionId: done.orderNumber,
+      value: done.total,
+      
+      coupon: coupon?.code ?? null,
+      items: cart.map((i) => ({
+        item_id: i.slug, item_name: i.name, price: i.priceShown, quantity: i.qty,
+      })),
+    });
     try {
-      // @ts-expect-error fbq عام
-      if (window.fbq) window.fbq("track", "Purchase", { value: done.total, currency: "IQD" });
-      // @ts-expect-error gtag عام
-      if (window.gtag) window.gtag("event", "purchase", { value: done.total, currency: "IQD", transaction_id: done.orderNumber });
-    } catch {}
-  }, [done]);
+      const w = window as unknown as { fbq?: (...a: unknown[]) => void };
+      if (w.fbq) w.fbq("track", "Purchase", { value: done.total, currency: "IQD" });
+    } catch { /* تجاهل */ }
+  }, [done, cart, coupon]);
+
+  /* بدء الدفع — مرة واحدة */
+  const bcSent = useRef(false);
+  useEffect(() => {
+    if (bcSent.current || cart.length === 0 || done) return;
+    bcSent.current = true;
+    gaBeginCheckout(
+      cart.map((i) => ({ item_id: i.slug, item_name: i.name, price: i.priceShown, quantity: i.qty })),
+      cart.reduce((t, i) => t + i.priceShown * i.qty, 0),
+      coupon?.code ?? null
+    );
+  }, [cart, done, coupon]);
 
   /* ─── النجاح: حقيقة الخادم ─── */
   if (done)

@@ -22,6 +22,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useMotion, reduced } from "@/lib/motion";
 import { useStore, useSiteConfig } from "@/lib/store";
 import { fbTrack } from "@/lib/fbpixel";
+import { gaViewItem, gaAddToCart } from "@/lib/ga";
 import { fmtDate } from "@/lib/datetime";
 import ProductJsonLd from "@/components/ProductJsonLd";
 import LeadCapture from "@/components/LeadCapture";
@@ -120,6 +121,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     pushRecent(`c:${coffee.slug}`);
     fbTrack("ViewContent", { content_name: coffee.name, content_ids: [coffee.slug],
       content_type: "product", value: coffee.prices.g250, currency: "IQD" });
+    gaViewItem({ item_id: coffee.slug, item_name: coffee.name, price: coffee.prices.g250, item_category: "قهوة" });
   }, [coffee.slug, pushRecent, coffee.name, coffee.prices.g250]);
 
   /* الشريط يظهر بعد تجاوز منطقة الشراء */
@@ -135,6 +137,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     if (coffee.soldOut) return;
     addToCart({ slug: coffee.slug, variant: safeWeight.toUpperCase() as "G250" | "G500" | "G1000",
       grind, name: coffee.name, meta: `${weightLabel} · ${grind}`, priceShown: unit }, qty);
+    gaAddToCart({ item_id: coffee.slug, item_name: coffee.name, price: unit, quantity: qty,
+      item_category: "قهوة", item_variant: `${weightLabel} · ${grind}` });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2600);
   };
@@ -798,6 +802,7 @@ function ToolView({ tool }: { tool: Tool }) {
     pushRecent(`t:${tool.slug}`);
     fbTrack("ViewContent", { content_name: tool.name, content_ids: [tool.slug],
       content_type: "product", value: tool.price ?? 0, currency: "IQD" });
+    gaViewItem({ item_id: tool.slug, item_name: tool.name, price: tool.price ?? 0, item_category: tool.type || "أدوات" });
   }, [tool.slug, pushRecent, tool.name, tool.price]);
 
   useEffect(() => {
@@ -814,6 +819,8 @@ function ToolView({ tool }: { tool: Tool }) {
       slug: tool.slug, variant: "PIECE", grind: "", name: tool.name,
       meta: picked?.label ?? "", priceShown: unit, variantId: picked?.id ?? null,
     }, qty);
+    gaAddToCart({ item_id: tool.slug, item_name: tool.name, price: unit, quantity: qty,
+      item_category: tool.type || "أدوات", item_variant: picked?.label });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2600);
   };

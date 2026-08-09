@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchMe } from "@/lib/me";
 import Link from "next/link";
 import { Minus, Plus, Trash2, Ticket, Wallet, Gift, ArrowLeft } from "lucide-react";
@@ -8,18 +8,32 @@ import { formatIQD } from "@/lib/data";
 import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { useCatalog } from "@/lib/catalog-context";
 import { useMotion } from "@/lib/motion";
+import { gaViewCart } from "@/lib/ga";
 
 type Me = { guest?: boolean; pointsBalance?: number; pointsValueDinars?: number; name?: string; email?: string | null; phone?: string | null };
 
 export default function CartPage() {
   const scope = useMotion();
+  const gaSent = useRef(false);
+
   const config = useSiteConfig();
   const { coffees, tools } = useCatalog();
+
   const {
     cart, setQty, removeFromCart, addToCart, convertToBox,
     coupon, setCoupon, useCashback, setUseCashback,
     boxGiftChoice, showToast,
   } = useStore();
+
+  /* حدث فتح السلة — مرة واحدة */
+  useEffect(() => {
+    if (gaSent.current || cart.length === 0) return;
+    gaSent.current = true;
+    gaViewCart(
+      cart.map((i) => ({ item_id: i.slug, item_name: i.name, price: i.priceShown, quantity: i.qty })),
+      cart.reduce((t, i) => t + i.priceShown * i.qty, 0)
+    );
+  }, [cart]);
 
   const [code, setCode] = useState("");
   const [checking, setChecking] = useState(false);
