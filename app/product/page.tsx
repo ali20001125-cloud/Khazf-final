@@ -502,8 +502,10 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               ))}
             </div>
             <Link href="/box/"
-              className="mt-3.5 flex min-h-[50px] w-full items-center justify-center rounded-[10px] bg-clay text-[15px] font-semibold text-white transition-transform active:scale-[0.98]">
+              style={{ background: "var(--olive)", color: "var(--olive-text)" }}
+              className="mt-3.5 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-bold shadow-sm transition-all hover:brightness-110 active:scale-[0.98]">
               اصنع صندوقك
+              <ArrowLeft size={16} />
             </Link>
             <p className="mt-2 text-center text-[11.5px] text-muted">اخلط المحاصيل كما تشاء — والهدية تُضاف تلقائياً</p>
           </div>
