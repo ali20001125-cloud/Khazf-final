@@ -244,7 +244,8 @@ export async function createOrder(input: CheckoutInput) {
     /* ── ٨) كسب الكاش (بالدنانير): ٣٠ د لكل ١٠٠٠ د منفقة (٣٪) على المنتجات المدفوعة فعلاً،
        بعد كل الخصومات والكاش المستخدم، قبل التوصيل — لا كاش على مبلغ مدفوع بالكاش ── */
     const earnBase = Math.max(0, afterDiscounts - pointsUsedDinars);
-    const pointsEarned = Math.floor(earnBase / settings.cashbackPerAmount) * settings.pointValue;
+    // نسبة صريحة — أدقّ من القسمة
+    const pointsEarned = Math.floor((earnBase * (settings.cashbackPct ?? 3)) / 100);
 
     /* ── ٩) رقم الطلب التسلسلي + إدراج الطلب ── */
     /* هوية اختبار؟ (بريد أو رقم مسجّل في test_identities) */

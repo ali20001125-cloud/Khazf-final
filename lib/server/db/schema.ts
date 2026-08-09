@@ -410,6 +410,7 @@ export const settings = pgTable("settings", {
   storeName: text("store_name").notNull().default("خزف"),
   deliveryCustomerPrice: integer("delivery_customer_price").notNull().default(3000), // موحّد لكل العراق
   freeDeliveryThreshold: integer("free_delivery_threshold").notNull().default(0), // 0=معطّل · الإجمالي فوقه = توصيل مجاني
+  cashbackPct: integer("cashback_pct").notNull().default(3),
   cashbackPerAmount: integer("cashback_per_amount").notNull().default(1000), // كل ١٠٠٠ د = نقطة
   pointValue: integer("point_value").notNull().default(1),
   boxGiftPicks: smallint("box_gift_picks").notNull().default(1),  // كم هدية يختار الزبون

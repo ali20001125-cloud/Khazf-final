@@ -43,6 +43,9 @@ export default async function SettingsPage() {
           <Field label="حدّ أول طلب المجاني" hint="أقل مبلغ يستحق التوصيل المجاني — يحميك من الطلبات الصغيرة">
             <input name="freeDeliveryFirstMin" defaultValue={pub.freeDeliveryFirstMin ?? 15000} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
+          <Field label="نسبة الكاش باك ٪" hint="٣ = الزبون يكسب ٣٪ من قيمة منتجاته نقاطاً">
+            <input name="cashbackPct" defaultValue={pub.cashbackPct ?? 3} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
           <Field label="كل … دينار = نقطة"><input name="cashbackPerAmount" defaultValue={pub.cashbackPerAmount} className={`${inputCls} font-num`} dir="ltr" /></Field>
           <Field label="قيمة النقطة (د.ع)"><input name="pointValue" defaultValue={pub.pointValue} className={`${inputCls} font-num`} dir="ltr" /></Field>
           <Field label="صلاحية الولاء (يوم)"><input name="loyaltyValidityDays" defaultValue={pub.loyaltyValidityDays} className={`${inputCls} font-num`} dir="ltr" /></Field>

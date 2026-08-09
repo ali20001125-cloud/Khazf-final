@@ -414,7 +414,7 @@ export default function CartPage() {
             </div>
             {previewTotal > 0 && (
               <p className="text-[11.5px] text-muted">
-                وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.floor(itemsAfterAll / (config.cashbackPerAmount || 33)))}</span> نقطة من هذا الطلب
+                وتكسب <span className="font-num font-bold text-clay">{formatIQD(Math.floor((itemsAfterAll * (config.cashbackPct ?? 3)) / 100))}</span> نقطة من هذا الطلب
               </p>
             )}
           </div>

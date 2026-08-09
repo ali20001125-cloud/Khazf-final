@@ -51,6 +51,11 @@ export default function CoffeeForm({
         <Field label="التحميص"><input name="roast" defaultValue={p.roast ?? ""} className={inputCls} placeholder="وسط" /></Field>
         <Field label="تاريخ التحميص" hint="يظهر بصفحة المنتج ٣٠ يوماً ثم يختفي تلقائياً">
           <input type="date" name="roastedOn" defaultValue={p.roastedOn ? String(p.roastedOn) : ""} className={`${inputCls} font-num`} dir="ltr" />
+          <textarea name="brewMethods" rows={2}
+            defaultValue={(p.brewMethods ?? []).join("، ")}
+            placeholder="إسبريسو، V60، كيمكس، فرنش برس، لاتيه وكابتشينو، آيس لاتيه، كولد برو، قهوة تركية"
+            className={`${inputCls} mt-2`} />
+          <p className="mt-1 text-[11px] text-muted">المشروبات التي تناسبها — تظهر في معرض الصور · افصل بفاصلة</p>
           <select name="roastDisplay" defaultValue={p.roastDisplay ?? "relative"} className={`${inputCls} mt-2`}>
             <option value="relative">اعرضه هكذا: حُمّص قبل ٦ أيام</option>
             <option value="date">اعرضه بالتاريخ: حُمّص ١٨ يوليو</option>

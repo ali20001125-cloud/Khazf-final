@@ -10,6 +10,7 @@ export interface SiteConfig {
   freeDeliveryThreshold: number;
   pointValue: number;
   cashbackPerAmount: number;
+  cashbackPct: number;
   boxTiers: BoxTier[];
   boxDiscountCap: number;
   topBarMessages: string[];
