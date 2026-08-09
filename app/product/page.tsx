@@ -80,20 +80,24 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const [grind, setGrind] = useState<string>("حبوب كاملة");
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const [imgIdx, setImgIdx] = useState(0);
-  const [openFaq, setOpenFaq] = useState(false);
+  const [shot, setShot] = useState(0);
+  const [showBar, setShowBar] = useState(false);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const buyRef = useRef<HTMLDivElement>(null);
 
   const availableWeights = weights.filter((w) => (coffee.prices[w.k] ?? 0) > 0);
   const safeWeight = (coffee.prices[weight] ?? 0) > 0 ? weight : (availableWeights[0]?.k ?? "g250");
   const unit = coffee.prices[safeWeight] || coffee.prices.g250;
   const weightLabel = weights.find((w) => w.k === safeWeight)!.label;
   const grams = safeWeight === "g1000" ? 1000 : safeWeight === "g500" ? 500 : 250;
+  const perCup = Math.round(unit / Math.max(1, Math.floor(grams / 18)));
   const totalPrice = unit * qty;
   const cashback = Math.round(totalPrice / (config.cashbackPerAmount || 33));
 
   const maxQty = coffee.bagsLeft != null ? Math.max(1, Math.floor((coffee.bagsLeft * 250) / grams)) : 99;
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
   const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
+  const n = (x: number) => x.toLocaleString("en");
 
   useEffect(() => { setQty((q) => Math.min(q, maxQty)); }, [maxQty]);
   useEffect(() => {
@@ -102,12 +106,21 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       content_type: "product", value: coffee.prices.g250, currency: "IQD" });
   }, [coffee.slug, pushRecent, coffee.name, coffee.prices.g250]);
 
+  /* الشريط يظهر بعد تجاوز منطقة الشراء */
+  useEffect(() => {
+    const el = buyRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting && e.boundingClientRect.top < 0));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   const add = () => {
     if (coffee.soldOut) return;
     addToCart({ slug: coffee.slug, variant: safeWeight.toUpperCase() as "G250" | "G500" | "G1000",
       grind, name: coffee.name, meta: `${weightLabel} · ${grind}`, priceShown: unit }, qty);
     setAdded(true);
-    window.setTimeout(() => setAdded(false), 1600);
+    window.setTimeout(() => setAdded(false), 2600);
   };
 
   const roastAge = (() => {
@@ -117,394 +130,345 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     return d === 0 ? "حُمّص اليوم" : d === 1 ? "حُمّص أمس" : `حُمّص قبل ${d} يوماً`;
   })();
 
-  const arrival = new Date(Date.now() + 2 * 864e5)
-    .toLocaleDateString("ar-IQ", { weekday: "long", day: "numeric", month: "long" });
-
   const identity = ([
     ["الدولة", coffee.country], ["المنطقة", coffee.region],
-    ["الارتفاع", coffee.altitude], ["المعالجة", coffee.process],
-    ["السلالة", coffee.variety], ["التحميص", coffee.roast],
-  ] as [string, string | undefined][]).filter(([, v]) => v) as [string, string][];
+    ["الارتفاع", coffee.altitude], ["السلالة", coffee.variety],
+    ["المعالجة", coffee.process], ["التحميص", coffee.roast],
+    ["المزرعة", coffee.farm], ["تقييم SCA", coffee.sca],
+  ] as [string, string | number | undefined][]).filter(([, v]) => v) as [string, string][];
 
   const meters = ([
     ["حموضة", coffee.flavorAcidity], ["حلاوة", coffee.flavorSweetness], ["قوام", coffee.flavorBody],
   ] as [string, number | undefined][]).filter(([, v]) => v) as [string, number][];
 
-  const compare = coffees.filter((c) => !c.soldOut).slice(0, 3);
   const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 4);
-  const boxGain = Math.round(unit * 3 * 0.12);
+  const others = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
 
-  const S = {
-    h2: "font-[Amiri,serif] text-[24px] font-bold text-deep",
-    body: "text-[14.5px] leading-[2.1] text-ink",
-  };
+  /* الأقسام المطوية */
+  const sections: { key: string; title: string; body: React.ReactNode }[] = [];
+  if (coffee.brew?.length) sections.push({ key: "brew", title: "كيف أحضّرها", body: (
+    <div className="flex flex-col gap-3">
+      {coffee.brew.map((b) => (
+        <div key={b.name} className="flex flex-col gap-1">
+          <p className="text-[13.5px] font-semibold">{b.name}</p>
+          <p className="font-num text-[13.5px] leading-[1.95] text-muted">{b.nums}</p>
+        </div>
+      ))}
+      <p className="text-[13.5px] leading-[1.95] text-muted">
+        اترك الكيس يرتاح من يومين إلى أربعة بعد التحميص — الحبّ الطازج جداً يطلق غازاً يرفع الحموضة بحدّة.
+      </p>
+    </div>
+  )});
+  if (coffee.story) sections.push({ key: "story", title: "قصة المحصول", body: (
+    <div className="flex flex-col gap-3">
+      {coffee.story.split("\n").filter(Boolean).map((p, i) => (
+        <p key={i} className="text-[13.5px] leading-[1.95] text-muted">{p}</p>
+      ))}
+      {coffee.process && (
+        <div className="mt-1 flex flex-col gap-2.5">
+          <p className="text-[13.5px] font-semibold">المعالجة خطوة بخطوة</p>
+          {processSteps(coffee.process).map((s, i) => (
+            <div key={s.title} className="flex gap-3">
+              <span className="font-num flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line bg-bg-alt text-[11px] font-semibold">{i + 1}</span>
+              <div>
+                <p className="text-[13px] font-semibold">{s.title}</p>
+                <p className="mt-0.5 text-[13px] leading-[1.9] text-muted">{s.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )});
+  if (meters.length) sections.push({ key: "sensory", title: "التفصيل الحسّي", body: (
+    <div className="flex flex-col gap-3">
+      {meters.map(([k, v]) => (
+        <div key={k} className="flex items-center gap-3">
+          <span className="w-[70px] text-[13px] text-muted">{k}</span>
+          <div className="h-[5px] flex-1 overflow-hidden rounded-full bg-line">
+            <div className="h-full rounded-full bg-clay" style={{ width: `${(v / 5) * 100}%` }} />
+          </div>
+          <span className="font-num w-[26px] text-start text-[12px] text-muted">{v}/٥</span>
+        </div>
+      ))}
+      {coffee.roast && <p className="mt-1 text-[13.5px] leading-[1.95] text-muted">{roastPhilosophy(coffee.roast)}</p>}
+    </div>
+  )});
+  sections.push({ key: "trust", title: "لماذا تثق بقهوتنا", body: (
+    <div className="flex flex-col gap-3">
+      {[
+        ["تحميص حديث", "نحمّص بدفعات صغيرة، ولا نخزّن حبّاً محمّصاً أكثر من أسبوع."],
+        ["تاريخ على الكيس", "كل دفعة لها تاريخ تحميص مكتوب."],
+        ["صمّام أحادي", "يُخرج غازات التحميص ويمنع دخول الهواء."],
+        ["الدفع عند الاستلام", "افحص طلبك أمام المندوب قبل أن تدفع."],
+      ].map(([h, t]) => (
+        <div key={h} className="flex flex-col gap-1">
+          <p className="text-[13.5px] font-semibold">{h}</p>
+          <p className="text-[13.5px] leading-[1.95] text-muted">{t}</p>
+        </div>
+      ))}
+    </div>
+  )});
+  sections.push({ key: "faq", title: "أسئلة شائعة", body: (
+    <div className="flex flex-col gap-3">
+      {faqGeneral.slice(0, 4).map((f) => (
+        <div key={f.q} className="flex flex-col gap-1">
+          <p className="text-[13.5px] font-semibold">{f.q}</p>
+          <p className="text-[13.5px] leading-[1.95] text-muted">{f.a}</p>
+        </div>
+      ))}
+    </div>
+  )});
+  if (others.length) sections.push({ key: "more", title: "محاصيل أخرى", body: (
+    <div className="flex flex-col gap-2.5">
+      {others.map((c) => (
+        <Link key={c.slug} href={`/product/?c=${c.slug}`} className="flex items-center gap-3">
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-bg-alt">
+            {c.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.image} alt="" className="h-full w-full object-cover" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13.5px] font-semibold">{c.name}</p>
+            <p className="truncate text-[11.5px] text-muted">{c.notes?.join(" · ")}</p>
+          </div>
+          <span className="font-num text-[12.5px]">{n(c.prices.g250)}</span>
+        </Link>
+      ))}
+    </div>
+  )});
 
   return (
-    <div ref={scope} className="pb-32">
+    <div ref={scope} className="mx-auto max-w-lg pb-32 md:max-w-2xl">
       <ProductJsonLd name={coffee.name} description={coffee.trigger || coffee.story || undefined}
         image={gallery[0]} slug={`c:${coffee.slug}`} price={coffee.prices.g250}
         inStock={!coffee.soldOut} rating={coffee.rating || undefined} reviewsCount={coffee.reviewsCount || undefined}
         faq={coffee.notes?.length ? [{ q: `ما نكهات ${coffee.name}؟`, a: coffee.notes.join("، ") + "." }] : []} />
 
-      <div className="mx-auto max-w-lg md:max-w-2xl">
+      {/* ═══ المعرض ═══ */}
+      <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-[#F5F1EC] via-[#EFE7DE] to-[#E4D8CC]">
+        {gallery.length > 0 ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={gallery[shot] ?? gallery[0]} alt={coffee.name} className="h-full w-full object-cover" />
+        ) : <span className="font-[Amiri,serif] text-[15px] text-muted">{coffee.name}</span>}
 
-        {/* ═══ الصورة البطل ═══ */}
-        <div className="relative flex aspect-[4/5] items-end bg-gradient-to-br from-[#efe9df] via-[#e0d5c2] to-[#cfc0a8] md:aspect-[16/10]">
-          {gallery.length > 0 && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={gallery[imgIdx] ?? gallery[0]} alt={coffee.name} className="absolute inset-0 h-full w-full object-cover" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-deep/75 via-deep/15 to-transparent" />
-          {coffee.badge && (
-            <span className="absolute end-4 top-4 rounded-full bg-deep/75 px-3 py-1.5 text-[11px] text-cream backdrop-blur-sm">
-              {coffee.badge}
-            </span>
-          )}
-          {coffee.soldOut && (
-            <span className="absolute start-4 top-4 rounded-full bg-accent px-3 py-1.5 text-[11px] font-bold text-white">نفد مؤقتاً</span>
-          )}
-          <div className="relative w-full px-4 pb-5">
-            <p className="font-num text-[10px] font-semibold tracking-[0.3em] text-[#e2dbc9]">
-              {[coffee.latin || coffee.name, coffee.country].filter(Boolean).join(" · ").toUpperCase()}
-            </p>
-            <h1 className="mt-1.5 font-[Amiri,serif] text-[44px] font-bold leading-[1.1] text-cream">{coffee.name}</h1>
-            <p className="mt-1.5 text-[14px] text-[#e6e0d2]">
-              {[coffee.region, coffee.roast && `تحميص ${coffee.roast}`, coffee.process].filter(Boolean).join(" · ")}
-            </p>
-          </div>
-        </div>
+        {coffee.badge && (
+          <span className="absolute end-4 top-3.5 rounded-[6px] bg-bg-alt px-[11px] py-1.5 text-[11px] font-medium text-accent">
+            {coffee.badge}
+          </span>
+        )}
+        {coffee.soldOut && (
+          <span className="absolute start-4 top-3.5 rounded-[6px] bg-accent px-[11px] py-1.5 text-[11px] font-bold text-white">نفد مؤقتاً</span>
+        )}
 
-        {/* المصغّرات */}
         {gallery.length > 1 && (
-          <div className="flex gap-2 px-4 pt-2.5">
-            {gallery.slice(0, 5).map((src, i) => (
-              <button key={src + i} onClick={() => setImgIdx(i)}
-                className={`aspect-square flex-1 overflow-hidden rounded-[13px] transition-all ${
-                  i === imgIdx ? "ring-2 ring-olive" : "opacity-70"}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="h-full w-full bg-card object-cover" />
-              </button>
+          <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+            {gallery.slice(0, 5).map((_, i) => (
+              <button key={i} onClick={() => setShot(i)} aria-label={`صورة ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${i === shot ? "w-5 bg-ink" : "w-1.5 bg-ink/30"}`} />
             ))}
           </div>
         )}
+      </div>
 
-        {/* النكهات + الطزاجة */}
-        <div className="flex flex-wrap items-center gap-[7px] px-4 pt-4">
-          {coffee.notes?.map((n) => (
-            <span key={n} className="rounded-full border border-line bg-bg-alt px-3.5 py-[7px] text-[13px]">{n}</span>
-          ))}
-          {roastAge && (
-            <span className="ms-1 flex items-center gap-[7px] text-[13px] font-medium text-olive">
-              <span className="h-[7px] w-[7px] rounded-full bg-ok" />{roastAge}
-            </span>
-          )}
-        </div>
-
-        {/* ═══ لوحة الشراء ═══ */}
-        <div className="m-4 rounded-[22px] border border-line bg-card p-4">
-          <p className="mb-[9px] text-[13px] font-semibold">الوزن</p>
-          <div className="flex gap-[9px]">
-            {availableWeights.map((w) => {
-              const g = w.k === "g1000" ? 1000 : w.k === "g500" ? 500 : 250;
-              const on = safeWeight === w.k;
-              return (
-                <button key={w.k} onClick={() => setWeight(w.k)}
-                  className={`flex min-h-[74px] flex-1 flex-col gap-[3px] rounded-[16px] border-[1.5px] p-[11px_12px] text-start transition-all active:scale-[0.97] ${
-                    on ? "border-olive bg-olive text-olive-text" : "border-line bg-bg text-ink"}`}>
-                  <span className="text-[15px] font-semibold">{w.label}</span>
-                  <span className="font-num text-[13px]">{coffee.prices[w.k]!.toLocaleString("en")} د.ع</span>
-                  <span className="font-num text-[11px] opacity-75">≈ {Math.round(coffee.prices[w.k]! / Math.floor(g / 18)).toLocaleString("en")} للقدح</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <p className="mb-[9px] mt-[18px] text-[13px] font-semibold">الطحن</p>
-          <div className="flex flex-wrap gap-2">
-            {grindOptions.map((g) => {
-              const on = grind === g;
-              return (
-                <button key={g} onClick={() => setGrind(g)}
-                  className={`min-h-[44px] rounded-[13px] border-[1.5px] px-[15px] text-[13.5px] transition-all active:scale-[0.97] ${
-                    on ? "border-olive bg-olive text-olive-text" : "border-line bg-bg text-ink"}`}>{g}</button>
-              );
-            })}
-          </div>
-
-          <div className="mt-[18px] flex items-center justify-between gap-3">
-            <div className="flex flex-col gap-[3px]">
-              <span className="text-[13px] font-semibold">الكمية</span>
-              {maxQty < 99 && <span className="text-[12px] text-accent">تبقى {maxQty.toLocaleString("en")} أكياس من هذه الدفعة</span>}
-            </div>
-            <div className="flex items-center rounded-[14px] border border-line bg-bg p-1">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="أنقص"
-                className="h-11 w-11 rounded-[11px] text-[20px] hover:bg-bg-alt">−</button>
-              <span className="font-num min-w-[40px] text-center text-[16px] font-semibold">{qty}</span>
-              <button onClick={() => setQty(Math.min(maxQty, qty + 1))} disabled={qty >= maxQty} aria-label="زد"
-                className="h-11 w-11 rounded-[11px] text-[20px] hover:bg-bg-alt disabled:opacity-30">+</button>
-            </div>
-          </div>
-
-          <button onClick={add} disabled={coffee.soldOut}
-            className={`mt-4 flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-[17px] text-[16px] font-semibold transition-colors active:scale-[0.98] disabled:opacity-50 ${
-              added ? "bg-ok text-olive-text" : "bg-olive text-olive-text"}`}>
-            {coffee.soldOut ? "نفد مؤقتاً" : added ? "✓ أُضيف للسلة" : (
-              <><span>أضف للسلة</span><span className="opacity-50">—</span>
-              <span className="font-num">{totalPrice.toLocaleString("en")} د.ع</span></>
-            )}
-          </button>
-
-          <div className="mt-3.5 flex flex-col gap-2 border-t border-line pt-3.5 text-[12.5px] text-muted">
-            <div className="flex justify-between"><span>اطلب اليوم</span><span className="font-medium text-ink">يصلك {arrival}</span></div>
-            <div className="flex justify-between"><span>الدفع</span><span className="font-medium text-ink">عند الاستلام</span></div>
-            <div className="flex justify-between"><span>كاش باك متوقّع</span><span className="font-num font-medium text-ok">{cashback.toLocaleString("en")} د.ع</span></div>
-          </div>
-        </div>
-
-        {/* الجملة الأدبية */}
-        {coffee.trigger && (
-          <div className="px-4 pt-1.5">
-            <div className="border-e-[3px] border-gold pe-3.5">
-              <p className="font-[Amiri,serif] text-[21px] leading-[1.65] text-deep">{coffee.trigger}</p>
-            </div>
-          </div>
-        )}
-
-        {/* البوكس */}
-        {!coffee.soldOut && (
-          <div className="mx-4 mt-[22px] flex items-center justify-between gap-3 rounded-[18px] bg-olive p-4 text-olive-text">
-            <div className="flex flex-col gap-1">
-              <p className="text-[14.5px] font-semibold">خذ ثلاثة — خصم ١٢٪</p>
-              <p className="font-num text-[12.5px] text-[#d8d4c6]">توفّر {boxGain.toLocaleString("en")} د.ع، والرابع يرفعه إلى ٢٠٪</p>
-            </div>
-            <Link href="/box/"
-              className="min-h-[44px] shrink-0 whitespace-nowrap rounded-[13px] border border-olive-text px-4 py-3 text-[13.5px] font-semibold">
-              البوكس
-            </Link>
-          </div>
-        )}
-
-        {/* أهي المناسبة لك؟ */}
-        {compare.length > 1 && (
-          <div className="px-4 pt-[26px]">
-            <h2 className={S.h2}>أهي المناسبة لك؟</h2>
-            <div className="mt-3 overflow-hidden rounded-[18px] border border-line">
-              {compare.map((c) => {
-                const self = c.slug === coffee.slug;
-                return (
-                  <Link key={c.slug} href={`/product/?c=${c.slug}`}
-                    className={`flex items-center gap-3 border-b border-line p-[13px_14px] ${self ? "bg-bg-alt" : "bg-bg"}`}>
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[12px] bg-gradient-to-br from-[#efe9df] to-[#ddd1bd]">
-                      {c.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.image} alt="" className="h-full w-full object-cover" />
-                      )}
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
-                      <p className="font-[Amiri,serif] text-[18px] font-bold text-deep">{c.name}</p>
-                      <p className="truncate text-[11.5px] leading-[1.6] text-muted">{c.notes?.join(" · ")}</p>
-                    </div>
-                    <span className="font-num text-[12px]">{c.prices.g250.toLocaleString("en")}</span>
-                  </Link>
-                );
-              })}
-              <p className="p-[12px_14px] text-[12.5px] leading-[1.8] text-muted">
-                {coffee.notes?.[0] && `${coffee.name} ${coffee.notes.slice(0, 2).join(" و")}. `}
-                إن كنت تشربها بالحليب أو تحبّها ثقيلة، خذ سيرادو.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* هوية المحصول */}
-        {identity.length > 0 && (
-          <div className="mx-4 mt-6 rounded-[18px] border border-line bg-card p-4">
-            <p className="mb-3 text-[12px] font-semibold text-muted">هوية المحصول</p>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-3.5">
-              {identity.map(([k, v]) => (
-                <div key={k} className="flex flex-col gap-[3px]">
-                  <span className="text-[11px] text-muted">{k}</span>
-                  <span className="text-[14px] font-semibold">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ═══ القصة ═══ */}
-        <div className="px-4 pt-[30px]">
-          <p className="text-[10px] font-semibold tracking-[0.3em] text-accent">THE STORY</p>
-          <h2 className="mt-2 font-[Amiri,serif] text-[27px] font-bold leading-[1.35] text-deep">
-            من {coffee.region?.split("—")[0]?.trim() || coffee.country} إلى كيسك
-          </h2>
-          {coffee.story
-            ? coffee.story.split("\n").filter(Boolean).map((p, i) => (
-                <p key={i} className={`${S.body} mt-3`}>{p}</p>
-              ))
-            : <p className={`${S.body} mt-3`}>{coffee.farm || `محصول محدّد المصدر من ${coffee.country}.`}</p>}
-
-          {/* المعالجة خطوة بخطوة */}
-          {coffee.process && (
-            <>
-              <h2 className={`${S.h2} mt-[26px]`}>المعالجة خطوة بخطوة</h2>
-              <div className="mt-3">
-                {processSteps(coffee.process).map((s, i, arr) => (
-                  <div key={s.title} className="flex gap-[13px] pb-4">
-                    <div className="flex shrink-0 flex-col items-center gap-[5px]">
-                      <span className="font-num flex h-7 w-7 items-center justify-center rounded-full border border-line bg-bg-alt text-[12px] font-semibold">{i + 1}</span>
-                      {i < arr.length - 1 && <span className="w-[1.5px] flex-1 bg-line" />}
-                    </div>
-                    <div className="flex flex-col gap-1 pt-[3px]">
-                      <p className="text-[14.5px] font-semibold">{s.title}</p>
-                      <p className="text-[13.5px] leading-[1.95] text-muted">{s.body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* فلسفة التحميص */}
-          {coffee.roast && (
-            <>
-              <h2 className={`${S.h2} mt-3`}>فلسفة التحميص</h2>
-              <p className={`${S.body} mt-2.5`}>{roastPhilosophy(coffee.roast)}</p>
-            </>
-          )}
-
-          {/* تفصيل حسّي */}
-          {(meters.length > 0 || coffee.notes?.length > 0) && (
-            <>
-              <h2 className={`${S.h2} mt-[26px]`}>تفصيل حسّي</h2>
-              {coffee.notes?.length > 0 && (
-                <div className="mt-3 flex flex-col gap-3.5 rounded-[18px] border border-line bg-card p-4">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[13px] font-semibold text-olive">النكهات</p>
-                    <p className="text-[13.5px] leading-[1.9]">{coffee.notes.join(" · ")}</p>
-                  </div>
-                  {coffee.sca && (
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[13px] font-semibold text-olive">تقييم SCA</p>
-                      <p className="font-num text-[13.5px] leading-[1.9]">{coffee.sca}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-              {meters.length > 0 && (
-                <div className="mt-3.5 flex flex-col gap-[13px]">
-                  {meters.map(([k, v]) => (
-                    <div key={k} className="flex items-center gap-3">
-                      <span className="w-[74px] text-[13px] text-muted">{k}</span>
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
-                        <div className="h-full rounded-full bg-clay transition-all" style={{ width: `${(v / 5) * 100}%` }} />
-                      </div>
-                      <span className="font-num w-[26px] text-start text-[12.5px]">{v}/٥</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* نصيحة التهوية */}
-          <div className="mt-6 rounded-[0_16px_16px_0] border-e-[3px] border-gold bg-bg-alt p-4">
-            <p className="text-[13px] font-semibold text-olive">نصيحة التهوية</p>
-            <p className="mt-1.5 text-[13.5px] leading-[1.95]">
-              اترك الكيس يرتاح من يومين إلى أربعة بعد التحميص. الحبّ الطازج جداً يطلق غازاً يفسد التقطير ويرفع الحموضة بحدّة.
+      {/* ═══ الاسم والسعر ═══ */}
+      <div className="px-4 pt-[18px]">
+        <div className="flex items-start justify-between gap-3.5">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <h1 className="font-[Amiri,serif] text-[34px] font-bold leading-[1.1]">{coffee.name}</h1>
+            <p className="text-[13px] text-muted">
+              {[coffee.country, coffee.region, coffee.roast].filter(Boolean).join(" · ")}
             </p>
           </div>
-
-          {/* وصفات التحضير */}
-          {coffee.brew?.length > 0 && (
-            <>
-              <h2 className={`${S.h2} mt-[26px]`}>وصفات التحضير</h2>
-              <div className="mt-3 flex flex-col gap-[11px]">
-                {coffee.brew.map((b) => (
-                  <div key={b.name} className="rounded-[16px] border border-line bg-card p-[14px_15px]">
-                    <p className="text-[14px] font-semibold">{b.name}</p>
-                    <p className="font-num mt-1.5 text-[13px] leading-[2] text-muted">{b.nums}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* لماذا تثق */}
-          <div className="mt-6 flex flex-col gap-2.5 rounded-[18px] border border-line bg-bg p-4">
-            <p className="text-[14.5px] font-semibold">لماذا تثق بقهوتنا</p>
-            <p className="text-[13.5px] leading-[1.95] text-muted">نحمّص بدفعات صغيرة، ولا نخزّن حبّاً محمّصاً أكثر من أسبوع.</p>
-            <p className="text-[13.5px] leading-[1.95] text-muted">كل دفعة لها تاريخ تحميص مكتوب على الكيس.</p>
-            <p className="text-[13.5px] leading-[1.95] text-muted">الدفع عند الاستلام — لا تدفع قبل أن تستلم.</p>
+          <div className="flex shrink-0 flex-col items-start gap-[3px]">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-num text-[26px] font-bold leading-none">{n(unit)}</span>
+              <span className="text-[13px] text-muted">د.ع</span>
+            </div>
+            <span className="font-num text-[11.5px] text-muted">≈ {n(perCup)} د.ع للقدح</span>
           </div>
-
-          {/* أسئلة شائعة */}
-          <button onClick={() => setOpenFaq(!openFaq)}
-            className="mt-5 flex min-h-[54px] w-full items-center justify-between border-y border-line py-3.5 text-start">
-            <span className="text-[15px] font-semibold">أسئلة شائعة</span>
-            <span className="text-[19px] text-muted">{openFaq ? "−" : "+"}</span>
-          </button>
-          {openFaq && (
-            <div className="flex flex-col gap-4 border-b border-line px-0.5 pb-5 pt-4">
-              {faqGeneral.slice(0, 4).map((f) => (
-                <div key={f.q} className="flex flex-col gap-[5px]">
-                  <p className="text-[14px] font-semibold">{f.q}</p>
-                  <p className="text-[13.5px] leading-[1.95] text-muted">{f.a}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* الدعوة الأخيرة */}
-          {!coffee.soldOut && (
-            <div className="mt-6 rounded-[20px] bg-olive p-[20px_18px] text-olive-text">
-              <p className="font-[Amiri,serif] text-[24px] font-bold leading-[1.4]">قرأت كل شيء — جرّبه</p>
-              <p className="mt-1.5 text-[13px] leading-[1.9] text-[#d8d4c6]">
-                {maxQty < 99 ? `تبقى ${maxQty.toLocaleString("en")} أكياس · ` : ""}دفع عند الاستلام · يصلك {arrival}
-              </p>
-              <button onClick={add}
-                className="mt-3.5 flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-[15px] bg-cream text-[15.5px] font-semibold text-deep active:scale-[0.98]">
-                <span>أضف للسلة</span><span className="opacity-45">—</span>
-                <span className="font-num">{totalPrice.toLocaleString("en")} د.ع</span>
-              </button>
-            </div>
-          )}
         </div>
 
-        {coffee.soldOut && (
-          <div className="mt-6 px-4"><LeadCapture source="restock" productSlug={coffee.slug} productName={coffee.name} /></div>
+        {/* التقييم المختصر */}
+        {coffee.reviewsCount > 0 && (
+          <a href="#reviews"
+            className="mt-3 flex w-full items-center justify-between border-y border-line px-0.5 py-3">
+            <span className="flex items-center gap-2">
+              <Stars value={coffee.rating} size={13} />
+              <span className="font-num text-[13.5px] font-semibold">{coffee.rating}</span>
+              <span className="font-num text-[12.5px] text-muted">من {coffee.reviewsCount} تقييم</span>
+            </span>
+            <span className="text-[12.5px] text-accent">اقرأها</span>
+          </a>
         )}
 
+        {/* النكهات */}
+        {coffee.notes?.length > 0 && (
+          <div className="mt-3.5 flex flex-wrap items-center gap-[7px]">
+            {coffee.notes.map((nt) => (
+              <span key={nt} className="rounded-[6px] bg-bg-alt px-3 py-1.5 text-[12.5px] text-accent">{nt}</span>
+            ))}
+            {roastAge && (
+              <span className="flex items-center gap-1.5 text-[12.5px] font-medium text-olive">
+                <span className="h-[6px] w-[6px] rounded-full bg-ok" />{roastAge}
+              </span>
+            )}
+          </div>
+        )}
+
+        {coffee.trigger && (
+          <p className="mt-3 text-[14.5px] leading-[1.95]">{coffee.trigger}</p>
+        )}
+      </div>
+
+      {/* ═══ منطقة الشراء ═══ */}
+      <div ref={buyRef} className="px-4 pt-5">
+        <p className="mb-[9px] text-[12.5px] text-muted">الوزن</p>
+        <div className="flex gap-[9px]">
+          {availableWeights.map((w) => {
+            const on = safeWeight === w.k;
+            return (
+              <button key={w.k} onClick={() => setWeight(w.k)}
+                className={`flex min-h-[64px] flex-1 flex-col gap-0.5 rounded-[10px] p-[11px_12px] text-start transition-all active:scale-[0.97] ${
+                  on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg"}`}>
+                <span className="text-[15px]">{on ? "✓ " : ""}{w.label}</span>
+                <span className="font-num text-[12.5px] text-muted">{n(coffee.prices[w.k]!)} د.ع</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="mb-[9px] mt-4 text-[12.5px] text-muted">الطحن</p>
+        <div className="flex flex-wrap gap-2">
+          {grindOptions.map((g) => {
+            const on = grind === g;
+            return (
+              <button key={g} onClick={() => setGrind(g)}
+                className={`min-h-[44px] rounded-[10px] px-3.5 text-[13px] transition-all active:scale-[0.97] ${
+                  on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg"}`}>
+                {on ? "✓ " : ""}{g}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center rounded-[10px] border border-line bg-bg p-[3px]">
+            <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="أنقص"
+              className="h-12 w-11 rounded-[8px] text-[19px] hover:bg-bg-alt">−</button>
+            <span className="font-num min-w-[32px] text-center text-[15px] font-semibold">{qty}</span>
+            <button onClick={() => setQty(Math.min(maxQty, qty + 1))} disabled={qty >= maxQty} aria-label="زد"
+              className="h-12 w-11 rounded-[8px] text-[19px] hover:bg-bg-alt disabled:opacity-30">+</button>
+          </div>
+          <button onClick={add} disabled={coffee.soldOut}
+            className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-olive text-[16px] font-semibold text-olive-text transition-colors active:scale-[0.98] disabled:opacity-50">
+            {coffee.soldOut ? "نفد مؤقتاً" : (
+              <><span>أضف للسلة</span><span className="opacity-55">·</span><span className="font-num">{n(totalPrice)}</span></>
+            )}
+          </button>
+        </div>
+
+        {added && (
+          <div className="mt-2.5 rounded-[8px] border border-ok/35 bg-ok/8 p-[11px_13px] text-[13px] text-ok">
+            تمت إضافة المنتج إلى السلة.
+          </div>
+        )}
+        {qty >= maxQty && maxQty < 99 && (
+          <p className="mt-2.5 text-[12.5px] font-semibold text-accent">تبقى {n(maxQty)} من هذه الدفعة</p>
+        )}
+
+        <div className="mt-3 flex flex-col gap-2 rounded-[10px] bg-bg-alt p-[13px_14px] text-[13px]">
+          <div className="flex justify-between"><span className="text-muted">التوصيل المتوقّع</span><span className="font-medium">١–٢ يوم</span></div>
+          <div className="flex justify-between"><span className="text-muted">الدفع</span><span className="font-medium">عند الاستلام</span></div>
+          <div className="flex justify-between"><span className="text-muted">كاش باك</span><span className="font-num font-medium text-ok">{n(cashback)} د.ع</span></div>
+        </div>
+      </div>
+
+      {coffee.soldOut && (
+        <div className="px-4 pt-4"><LeadCapture source="restock" productSlug={coffee.slug} productName={coffee.name} /></div>
+      )}
+
+      {/* ═══ معلومات المحصول ═══ */}
+      {identity.length > 0 && (
+        <div className="mx-4 mt-[22px] rounded-[12px] border border-line bg-bg p-4">
+          <p className="mb-3 text-[12px] text-muted">معلومات المحصول</p>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+            {identity.map(([k, v]) => (
+              <div key={k} className="flex flex-col gap-[3px]">
+                <span className="text-[11px] text-muted">{k}</span>
+                <span className="text-[13.5px] font-semibold">{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ التقييمات ═══ */}
+      <div id="reviews" className="scroll-mt-20 px-4 pt-6">
         <ReviewsSection slug={coffee.slug} rating={coffee.rating} count={coffee.reviewsCount} />
+      </div>
 
-        {gearPicks.length > 0 && (
-          <section className="px-4 pt-10">
-            <h2 className={S.h2}>يُشترى معه عادةً</h2>
-            <div className="no-scrollbar -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2">
-              {gearPicks.map((t) => (
-                <div key={t.slug} className="w-[42%] max-w-[180px] shrink-0"><ToolCard tool={t} /></div>
-              ))}
-            </div>
-          </section>
-        )}
+      {/* ═══ البوكس ═══ */}
+      {!coffee.soldOut && (
+        <div className="mx-4 mt-[22px] rounded-[12px] bg-bg-alt p-[18px_16px]">
+          <p className="font-[Amiri,serif] text-[22px] font-bold">هل تريد تجربة أكثر من محصول؟</p>
+          <p className="mt-1.5 text-[13.5px] leading-[1.9] text-accent">
+            اطلب كيسين فأكثر واحصل على خصم ٤٪، وثلاثة ١٢٪ مع ملعقة إسبريسو، وأربعة ٢٠٪ مع كوب هدية.
+          </p>
+          <Link href="/box/"
+            className="mt-3 flex min-h-[48px] w-full items-center justify-center rounded-[10px] border border-accent text-[14.5px] font-semibold text-accent transition-colors hover:bg-accent/8">
+            جرّب البوكس
+          </Link>
+        </div>
+      )}
 
-        {/* شريط الطمأنة */}
-        <div className="mt-[26px] flex border-t border-line bg-bg-alt p-[18px_16px] text-center text-[12px] text-muted">
+      {/* ═══ الأقسام المطوية ═══ */}
+      <div className="px-4 pt-6">
+        {sections.map((s) => (
+          <div key={s.key} className="border-b border-line">
+            <button onClick={() => setOpen((o) => ({ ...o, [s.key]: !o[s.key] }))}
+              className="flex min-h-[54px] w-full items-center justify-between py-[15px] text-start">
+              <span className="text-[14.5px] font-semibold">{s.title}</span>
+              <span className="text-[18px] text-muted">{open[s.key] ? "−" : "+"}</span>
+            </button>
+            {open[s.key] && <div className="pb-[18px] pt-0.5">{s.body}</div>}
+          </div>
+        ))}
+      </div>
+
+      {/* ═══ يُشترى معه ═══ */}
+      {gearPicks.length > 0 && (
+        <section className="px-4 pt-7">
+          <h2 className="font-[Amiri,serif] text-[22px] font-bold">يُشترى معه عادةً</h2>
+          <div className="no-scrollbar -mx-4 mt-3.5 flex gap-3 overflow-x-auto px-4 pb-2">
+            {gearPicks.map((t) => (
+              <div key={t.slug} className="w-[42%] max-w-[180px] shrink-0"><ToolCard tool={t} /></div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ═══ الطمأنة ═══ */}
+      <div className="mt-7 flex flex-col gap-3 border-t border-line bg-bg-alt p-[20px_16px]">
+        <p className="font-[Amiri,serif] text-[21px] font-bold">خزف</p>
+        <div className="flex text-center text-[12px] text-muted">
           <span className="flex-1">توصيل ١–٢ يوم</span>
           <span className="flex-1 border-x border-line">٣٪ كاش باك</span>
           <span className="flex-1">تحميص حديث</span>
         </div>
       </div>
 
-      {/* شريط ثابت */}
-      {!coffee.soldOut && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/96 backdrop-blur-md">
+      {/* ═══ الشريط الثابت ═══ */}
+      {!coffee.soldOut && showBar && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg shadow-[0_-4px_18px_rgba(28,28,28,.06)]">
           <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 pb-[18px] pt-3">
             <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] text-muted">{coffee.name} · {weightLabel}</span>
-              <span className="font-num text-[15px] font-semibold">{totalPrice.toLocaleString("en")} د.ع</span>
+              <span className="text-[11.5px] text-muted">{weightLabel} · {grind}</span>
+              <span className="font-num text-[16px] font-bold">{n(totalPrice)} د.ع</span>
             </div>
             <button onClick={add}
-              className={`min-h-[50px] flex-1 rounded-[15px] text-[15px] font-semibold transition-colors active:scale-[0.98] ${
+              className={`min-h-[50px] flex-1 rounded-[10px] text-[15px] font-semibold transition-colors active:scale-[0.98] ${
                 added ? "bg-ok text-olive-text" : "bg-olive text-olive-text"}`}>
               {added ? "✓ أُضيف" : "أضف للسلة"}
             </button>
@@ -515,32 +479,31 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   );
 }
 
-/* خطوات المعالجة حسب النوع */
 function processSteps(process: string): { title: string; body: string }[] {
   if (/طبيعي/.test(process)) return [
     { title: "القطف", body: "تُقطف الثمرة الحمراء الناضجة وحدها، وتُترك الخضراء لجولة قادمة." },
     { title: "الفرز بالكثافة", body: "تُغمر الثمار بالماء فتطفو الخفيفة المعيبة وتُستبعد." },
     { title: "التجفيف بالقشرة", body: "تُنشر الثمار كاملة تحت الشمس وتُقلَّب يومياً — فتنتقل حلاوة اللبّ إلى الحبّة." },
-    { title: "التقشير والفرز", body: "تُزال القشرة الجافة، وتُفرز الحبوب يدوياً قبل التعبئة." },
+    { title: "التقشير والفرز", body: "تُزال القشرة الجافة وتُفرز الحبوب قبل التعبئة." },
   ];
   if (/عسل|هني/.test(process)) return [
     { title: "القطف", body: "قطف انتقائي للثمار الناضجة تماماً." },
     { title: "التقشير الجزئي", body: "تُزال القشرة ويُترك جزء من اللبّ اللزج على الحبّة." },
     { title: "التجفيف", body: "تجفّ على أسرّة مرتفعة مع اللبّ — فتكتسب حلاوة وقواماً." },
-    { title: "الفرز", body: "فرز نهائي قبل التعبئة والشحن." },
+    { title: "الفرز", body: "فرز نهائي قبل التعبئة." },
   ];
   return [
-    { title: "القطف الانتقائي", body: "تُجمع الثمرة الحمراء وحدها باليد وتُترك الخضراء لجولة قادمة بعد أسبوعين. أبطأ وأغلى، لكنه السبب الأول في نظافة الكوب." },
-    { title: "التقشير", body: "تُزال القشرة ومعظم اللبّ بآلة التقشير في محطة الغسل." },
-    { title: "التخمير", body: "تُنقع الحبوب في أحواض ماء لساعات حتى يتحلّل ما تبقّى من اللبّ، ثم تُغسل بماء نظيف." },
-    { title: "التجفيف", body: "تُنشر على أسرّة مرتفعة وتُقلَّب بانتظام حتى تصل رطوبتها نحو ١١٪." },
+    { title: "القطف الانتقائي", body: "تُجمع الثمرة الحمراء وحدها باليد وتُترك الخضراء لجولة قادمة بعد أسبوعين." },
+    { title: "التقشير", body: "تُزال القشرة ومعظم اللبّ في محطة الغسل." },
+    { title: "التخمير", body: "تُنقع الحبوب في أحواض ماء حتى يتحلّل ما تبقّى من اللبّ، ثم تُغسل." },
+    { title: "التجفيف", body: "تُنشر على أسرّة مرتفعة وتُقلَّب حتى تصل رطوبتها نحو ١١٪." },
   ];
 }
 
 function roastPhilosophy(roast: string): string {
-  if (/داكن/.test(roast)) return "نحمّصه داكناً بتحكّم دقيق في الحرارة. الهدف قوام ثقيل وحلاوة كراميلية عميقة بلا أن تنزلق إلى المرارة المحروقة.";
-  if (/متوسط/.test(roast)) return "نحمّصه متوسطاً لنوازن بين الحلاوة والقوام. تطوير كافٍ ليظهر الكراميل والمكسّرات، ووقوف قبل أن تُطمس نكهات الأصل.";
-  return "نحمّصه فاتحاً ونوقف التطوير مبكراً. أي زيادة تطمس الطبقات العليا وتحوّلها إلى مرارة مألوفة. الهدف أن يبقى الحمض حادّاً ونظيفاً، والحلاوة خلفه، والقوام خفيفاً كالشاي.";
+  if (/داكن/.test(roast)) return "نحمّصه داكناً بتحكّم دقيق. الهدف قوام ثقيل وحلاوة كراميلية عميقة بلا مرارة محروقة.";
+  if (/متوسط/.test(roast)) return "نحمّصه متوسطاً لنوازن بين الحلاوة والقوام — تطوير كافٍ ليظهر الكراميل والمكسّرات، ووقوف قبل أن تُطمس نكهات الأصل.";
+  return "نحمّصه فاتحاً ونوقف التطوير مبكراً. أي زيادة تطمس الطبقات العليا وتحوّلها إلى مرارة مألوفة — الهدف أن يبقى الحمض نظيفاً والقوام خفيفاً كالشاي.";
 }
 
 
