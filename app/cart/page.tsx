@@ -67,7 +67,11 @@ export default function CartPage() {
       if (t.rewardType === "FREE_DELIVERY") free = true;
       if (t.rewardType === "GIFT") gift = true;
     }
-    const saving = Math.round((sub * pct) / 100);
+    // التوفير الفعلي بعد التقريب لأعلى ٢٥٠ — يطابق ما يدفعه الزبون
+    const cap = config.boxDiscountCap ?? 20000;
+    const rawSave = Math.min(Math.round((sub * pct) / 100), cap);
+    const afterBoxTotal = Math.ceil(Math.max(0, sub - rawSave) / 250) * 250;
+    const saving = sub - afterBoxTotal;
     // المستوى التالي: كم كيساً ناقصاً وكم يمنح
     const next = tiers
       .filter((t) => t.bags > bags)
@@ -139,10 +143,10 @@ export default function CartPage() {
   if (cart.length === 0)
     return (
       <div ref={scope} className="mx-auto flex min-h-[70svh] max-w-md flex-col items-center justify-center px-6 text-center">
-        <p className="reveal text-5xl">🛍</p>
-        <h1 className="reveal mt-5 text-2xl font-bold">سلتك فارغة</h1>
-        <p className="reveal mt-2 text-sm text-muted">ابدأ من محاصيلنا — أو خلّي البوكس يوفّرلك</p>
-        <div className="reveal mt-7 flex gap-3">
+        <p className="text-5xl">🛍</p>
+        <h1 className="mt-5 text-2xl font-bold">سلتك فارغة</h1>
+        <p className="mt-2 text-sm text-muted">ابدأ من محاصيلنا — أو خلّي البوكس يوفّرلك</p>
+        <div className="mt-7 flex gap-3">
           <Link href="/products/?cat=coffee" className="btn btn-olive !px-6 !py-3 text-sm">تسوّق القهوة</Link>
           <Link href="/box/" className="btn btn-ghost !px-6 !py-3 text-sm">بناء البوكس</Link>
         </div>
@@ -151,10 +155,10 @@ export default function CartPage() {
 
   return (
     <div ref={scope} className="mx-auto max-w-5xl px-4 pb-28 pt-28 md:px-8 md:pt-32">
-      <h1 className="reveal text-[26px] font-bold md:text-3xl">سلّتك</h1>
+      <h1 className="text-[26px] font-bold md:text-3xl">سلّتك</h1>
 
       {/* تقدّم واضح */}
-      <div className="reveal mt-4 flex items-center gap-2.5">
+      <div className="mt-4 flex items-center gap-2.5">
         <span className="text-[12px] font-bold text-clay">١ السلة</span>
         <span className="h-px flex-1 bg-line" />
         <span className="text-[12px] text-muted">٢ التوصيل</span>
@@ -166,7 +170,7 @@ export default function CartPage() {
       {/* فرصة البوكس — تحويل بضغطة أو دعوة لإضافة كيس */}
       {boxChance && (
         boxChance.saving > 0 ? (
-          <div className="reveal mt-5 rounded-[16px] border border-gold/35 bg-gold/8 p-4">
+          <div className="mt-5 rounded-[16px] border border-gold/35 bg-gold/8 p-4">
             <p className="text-[13.5px] font-bold leading-snug">
               أكياسك الـ<span className="font-num">{boxChance.bags}</span> تصلح بوكس —
               وفّر <span className="font-num text-accent">{formatIQD(boxChance.saving)}</span>
@@ -178,7 +182,7 @@ export default function CartPage() {
             </button>
           </div>
         ) : boxChance.next ? (
-          <Link href="/box/" className="reveal mt-5 flex items-center justify-between gap-3 rounded-[16px] border border-line bg-card p-4 active:scale-[0.99]">
+          <Link href="/box/" className="mt-5 flex items-center justify-between gap-3 rounded-[16px] border border-line bg-card p-4 active:scale-[0.99]">
             <p className="text-[13px] font-semibold leading-snug">
               أضِف <span className="font-num text-accent">{boxChance.next.bags - boxChance.bags}</span>
               {boxChance.next.bags - boxChance.bags === 1 ? " كيساً" : " أكياس"} وتبدأ خصومات البوكس
@@ -193,7 +197,7 @@ export default function CartPage() {
         const remaining = config.freeDeliveryThreshold - subtotal;
         const pct = Math.min(100, (subtotal / config.freeDeliveryThreshold) * 100);
         return (
-          <div className="reveal mt-5 rounded-[16px] border border-line bg-card p-4">
+          <div className="mt-5 rounded-[16px] border border-line bg-card p-4">
             {remaining > 0 ? (
               <p className="text-[13px] font-semibold">
                 أضِف <span className="font-num text-accent">{formatIQD(remaining)}</span> وتحصل على <span className="text-ok">توصيل مجّاني</span>
@@ -310,7 +314,7 @@ export default function CartPage() {
             const suggestions = coffees.filter((c) => !inCart.has(c.slug) && !c.soldOut).slice(0, 3);
             if (suggestions.length === 0) return null;
             return (
-              <div className="reveal mt-6 rounded-[18px] border border-line bg-card p-5">
+              <div className="mt-6 rounded-[18px] border border-line bg-card p-5">
                 <p className="text-[14px] font-bold">أضِف إلى طلبك</p>
                 <p className="mt-0.5 text-[12px] text-muted">محاصيل قد تعجبك — وتقرّبك من التوصيل المجّاني</p>
                 <div className="mt-4 space-y-2.5">
@@ -427,7 +431,7 @@ export default function CartPage() {
       </div>
 
       {box.gift && !boxGiftChoice && (
-        <Link href="/box/" className="reveal mt-6 flex items-center justify-center gap-2 rounded-[16px] border border-gold/50 bg-gold/10 py-3.5 text-[13px] font-bold text-gold">
+        <Link href="/box/" className="mt-6 flex items-center justify-center gap-2 rounded-[16px] border border-gold/50 bg-gold/10 py-3.5 text-[13px] font-bold text-gold">
           <Gift size={15} /> وصلت لهدية البوكس — ارجع واختَرها
         </Link>
       )}

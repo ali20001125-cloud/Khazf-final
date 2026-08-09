@@ -290,7 +290,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
 
 
   return (
-    <div ref={scope} className="mx-auto max-w-lg pb-40 pt-16 md:max-w-2xl md:pt-20">
+    <div ref={scope} className="mx-auto max-w-lg pb-40 pt-24 md:max-w-2xl md:pt-28">
       <ProductJsonLd name={coffee.name} description={coffee.trigger || coffee.story || undefined}
         image={gallery[0]} slug={`c:${coffee.slug}`} price={coffee.prices.g250}
         inStock={!coffee.soldOut} rating={coffee.rating || undefined} reviewsCount={coffee.reviewsCount || undefined}
@@ -881,7 +881,7 @@ function ToolView({ tool }: { tool: Tool }) {
   )});
 
   return (
-    <div ref={scope} className="mx-auto max-w-lg pb-40 pt-16 md:max-w-2xl md:pt-20">
+    <div ref={scope} className="mx-auto max-w-lg pb-40 pt-24 md:max-w-2xl md:pt-28">
       <ProductJsonLd name={tool.name} description={tool.desc || undefined}
         image={gallery[0]} slug={`t:${tool.slug}`} price={tool.price ?? 0}
         inStock={!tool.soldOut} rating={tool.rating || undefined} reviewsCount={tool.reviewsCount || undefined} />
