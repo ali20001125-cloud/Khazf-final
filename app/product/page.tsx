@@ -770,6 +770,7 @@ function ToolView({ tool }: { tool: Tool }) {
   const [showBar, setShowBar] = useState(false);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [variantId, setVariantId] = useState<number | null>(null);
+  const [hotspot, setHotspot] = useState<number | null>(null);
   const buyRef = useRef<HTMLDivElement>(null);
 
   const variants = tool.variants ?? [];
@@ -1037,6 +1038,57 @@ function ToolView({ tool }: { tool: Tool }) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ═══ اكتشف كل جزء — نقاط تفاعلية ═══ */}
+      {ts?.hotspots && ts.hotspots.length > 0 && gallery[0] && (
+        <section className="px-4 pt-8">
+          <h2 className="font-[Amiri,serif] text-[22px] font-bold">اكتشف كل جزء</h2>
+          <div className="relative mt-3.5 overflow-hidden rounded-[14px] border border-line">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={gallery[0]} alt={tool.name} className="w-full object-contain" />
+            {ts.hotspots.map((h, i) => (
+              <button key={i} onClick={() => setHotspot(hotspot === i ? null : i)}
+                className={`absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 text-[13px] font-bold transition-all ${
+                  hotspot === i ? "border-gold bg-gold text-olive" : "border-accent bg-white/90 text-accent"}`}
+                style={{ right: `${h.x}%`, top: `${h.y}%` }}>
+                {i + 1}
+              </button>
+            ))}
+            <div className="absolute inset-x-3 bottom-3 rounded-[12px] bg-ink/92 p-3.5 text-cream">
+              {hotspot !== null ? (
+                <>
+                  <p className="text-[13px] font-bold text-gold">{ts.hotspots[hotspot].title}</p>
+                  <p className="mt-1 text-[12px] leading-relaxed opacity-90">{ts.hotspots[hotspot].desc}</p>
+                </>
+              ) : (
+                <p className="text-[12.5px] opacity-90">اضغط أي رقم على الصورة لتكتشف ميزة ذلك الجزء</p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ تفاصيل تصنع الفرق ═══ */}
+      {ts?.parts && ts.parts.length > 0 && (
+        <section className="px-4 pt-8">
+          <h2 className="font-[Amiri,serif] text-[22px] font-bold">تفاصيل تصنع الفرق</h2>
+          <div className="mt-3.5 flex flex-col gap-3">
+            {ts.parts.map((part, i) => (
+              <div key={i} className="flex items-stretch overflow-hidden rounded-[14px] border border-line bg-card">
+                {part.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={part.image} alt={part.title} className="h-[100px] w-[100px] shrink-0 object-cover" />
+                )}
+                <div className="flex flex-col justify-center p-3.5">
+                  {part.tag && <p className="text-[10.5px] font-bold tracking-wide text-accent">{part.tag}</p>}
+                  <h3 className="mt-1 text-[14.5px] font-bold">{part.title}</h3>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{part.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* ═══ الأقسام المطوية ═══ */}
