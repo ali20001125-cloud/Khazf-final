@@ -3,42 +3,40 @@
 import WelcomeSheet from "@/components/WelcomeSheet";
 import ExitCapture from "@/components/ExitCapture";
 import CoffeeFinder from "@/components/CoffeeFinder";
-import PromoBanners from "@/components/scenes/PromoBanners";
 import { useMotion } from "@/lib/motion";
-import { useCatalog } from "@/lib/catalog-context";
 import {
-  HeroPick, PathCards, CropsGrid, BoxBlock, GearRail, TrustRow, BeforeFooter,
-} from "@/components/scenes/home5";
+  CropsFirst, BoxStrip, ShopByCategory, OffersBlock, WhyKhazf, HelpLast,
+} from "@/components/scenes/home6";
 
 export default function Home() {
   const scope = useMotion();
-  const { activePlaces } = useCatalog();
 
   return (
-    <div ref={scope} className="pb-24 pt-20">
+    <div ref={scope} className="pb-16 pt-20">
       <WelcomeSheet />
       <ExitCapture />
 
-      <HeroPick />
-      <CropsGrid />
-      <PathCards>
-        <CoffeeFinder />
-      </PathCards>
-      <BoxBlock />
+      <CropsFirst />
+      <BoxStrip />
+      <ShopByCategory />
+      <OffersBlock />
+      <WhyKhazf />
 
-      {activePlaces.includes("cups") && (
-        <GearRail cat="أكواب" title="الأكواب والتقديم" href="/products/?cat=cups" />
-      )}
-      {activePlaces.includes("drip_tools") && (
-        <GearRail cat="تقطير" title="أدوات التقطير" href="/products/?cat=drip" />
-      )}
-      {activePlaces.includes("espresso_tools") && (
-        <GearRail cat="إسبريسو" title="أدوات الإسبريسو" href="/products/?cat=espresso" />
-      )}
+      <HelpLast>
+        <div id="finder"><CoffeeFinder /></div>
+      </HelpLast>
 
-      <PromoBanners />
-      <BeforeFooter />
-      <TrustRow />
+      {/* شريط الطمأنة */}
+      <div className="mt-12 border-y border-line bg-bg-alt">
+        <div className="mx-auto grid max-w-5xl grid-cols-3 divide-x divide-line rtl:divide-x-reverse">
+          {[["١–٢ يوم", "توصيل لكل العراق"], ["٣٪ نقاط", "تعود إليك"], ["دفع عند الاستلام", "بلا مخاطرة"]].map(([t, d]) => (
+            <div key={t} className="px-3 py-5 text-center">
+              <p className="text-[12.5px] font-bold">{t}</p>
+              <p className="mt-1 text-[10.5px] text-muted">{d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
