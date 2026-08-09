@@ -90,14 +90,17 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const unit = coffee.prices[safeWeight] || coffee.prices.g250;
   const weightLabel = weights.find((w) => w.k === safeWeight)!.label;
   const grams = safeWeight === "g1000" ? 1000 : safeWeight === "g500" ? 500 : 250;
-  const perCup = Math.round(unit / Math.max(1, Math.floor(grams / 18)));
   const totalPrice = unit * qty;
   const cashback = Math.round(totalPrice / (config.cashbackPerAmount || 33));
 
   const maxQty = coffee.bagsLeft != null ? Math.max(1, Math.floor((coffee.bagsLeft * 250) / grams)) : 99;
+  /* ما تبقّى من الدفعة — رقم ثابت لكل محصول بين ٥ و١٢ (ليس المخزون) */
+  const batchLeft = 5 + (coffee.slug.split("").reduce((t, c) => t + c.charCodeAt(0), 0) % 8);
   const gallery = (coffee.images?.length ? coffee.images : coffee.image ? [coffee.image] : []) as string[];
   const grindOptions = ["حبوب كاملة", "V60 / فلتر", "إسبريسو"];
   const n = (x: number) => x.toLocaleString("en");
+  const two = Math.round(unit * 2 * 0.96);
+  const arrival = new Date(Date.now() + 2 * 864e5).toLocaleDateString("ar-IQ", { weekday: "long", day: "numeric", month: "long" });
 
   useEffect(() => { setQty((q) => Math.min(q, maxQty)); }, [maxQty]);
   useEffect(() => {
@@ -123,10 +126,12 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     window.setTimeout(() => setAdded(false), 2600);
   };
 
+  /* الطزاجة — تعرض نسبياً أو بالتاريخ أو تُخفى حسب إعداد المنتج */
   const roastAge = (() => {
-    if (!coffee.roastedOn) return null;
+    if (!coffee.roastedOn || coffee.roastDisplay === "none") return null;
     const d = Math.floor((Date.now() - new Date(coffee.roastedOn).getTime()) / 864e5);
     if (d < 0 || d > 45) return null;
+    if (coffee.roastDisplay === "date") return `حُمّص ${fmtDate(coffee.roastedOn)}`;
     return d === 0 ? "حُمّص اليوم" : d === 1 ? "حُمّص أمس" : `حُمّص قبل ${d} يوماً`;
   })();
 
@@ -141,7 +146,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
     ["حموضة", coffee.flavorAcidity], ["حلاوة", coffee.flavorSweetness], ["قوام", coffee.flavorBody],
   ] as [string, number | undefined][]).filter(([, v]) => v) as [string, number][];
 
-  const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 4);
+  const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 3);
   const others = coffees.filter((c) => c.slug !== coffee.slug && !c.soldOut).slice(0, 3);
 
   /* الأقسام المطوية */
@@ -151,11 +156,11 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       {coffee.brew.map((b) => (
         <div key={b.name} className="flex flex-col gap-1">
           <p className="text-[13.5px] font-semibold">{b.name}</p>
-          <p className="font-num text-[13.5px] leading-[1.95] text-muted">{b.nums}</p>
+          <p className="font-num text-[13.5px] leading-[1.95] text-muted" dir="ltr" style={{ textAlign: "start" }}>{toLatinDigits(b.nums)}</p>
         </div>
       ))}
       <p className="text-[13.5px] leading-[1.95] text-muted">
-        اترك الكيس يرتاح من يومين إلى أربعة بعد التحميص — الحبّ الطازج جداً يطلق غازاً يرفع الحموضة بحدّة.
+        اترك الكيس يرتاح من ١٠ إلى ٢٠ يوماً بعد التحميص. الحبّ الطازج جداً يطلق ثاني أكسيد الكربون فيفسد التقطير ويرفع الحموضة بحدّة — وبعد هذه المدّة يستقرّ الطعم وتظهر الحلاوة.
       </p>
     </div>
   )});
@@ -197,8 +202,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   sections.push({ key: "trust", title: "لماذا تثق بقهوتنا", body: (
     <div className="flex flex-col gap-3">
       {[
-        ["تحميص حديث", "نحمّص بدفعات صغيرة، ولا نخزّن حبّاً محمّصاً أكثر من أسبوع."],
-        ["تاريخ على الكيس", "كل دفعة لها تاريخ تحميص مكتوب."],
+        ["تحميص بدفعات صغيرة", "نحمّص كميات صغيرة متكرّرة بدل تخزين كميات كبيرة على الرف."],
         ["صمّام أحادي", "يُخرج غازات التحميص ويمنع دخول الهواء."],
         ["الدفع عند الاستلام", "افحص طلبك أمام المندوب قبل أن تدفع."],
       ].map(([h, t]) => (
@@ -240,7 +244,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   )});
 
   return (
-    <div ref={scope} className="mx-auto max-w-lg pb-32 md:max-w-2xl">
+    <div ref={scope} className="mx-auto max-w-lg pb-40 md:max-w-2xl">
       <ProductJsonLd name={coffee.name} description={coffee.trigger || coffee.story || undefined}
         image={gallery[0]} slug={`c:${coffee.slug}`} price={coffee.prices.g250}
         inStock={!coffee.soldOut} rating={coffee.rating || undefined} reviewsCount={coffee.reviewsCount || undefined}
@@ -273,7 +277,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       </div>
 
       {/* ═══ الاسم والسعر ═══ */}
-      <div className="px-4 pt-[18px]">
+      <div className="px-4 pt-6">
         <div className="flex items-start justify-between gap-3.5">
           <div className="flex min-w-0 flex-col gap-1.5">
             <h1 className="font-[Amiri,serif] text-[34px] font-bold leading-[1.1]">{coffee.name}</h1>
@@ -286,7 +290,6 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               <span className="font-num text-[26px] font-bold leading-none">{n(unit)}</span>
               <span className="text-[13px] text-muted">د.ع</span>
             </div>
-            <span className="font-num text-[11.5px] text-muted">≈ {n(perCup)} د.ع للقدح</span>
           </div>
         </div>
 
@@ -320,10 +323,22 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         {coffee.trigger && (
           <p className="mt-3 text-[14.5px] leading-[1.95]">{coffee.trigger}</p>
         )}
+
+        {/* لماذا تختار هذه */}
+        <div className="mt-4 rounded-[12px] border border-line bg-bg-alt p-4">
+          <p className="text-[13px] font-bold">لماذا تختار {coffee.name}؟</p>
+          <ul className="mt-2.5 flex flex-col gap-2">
+            {whyPick(coffee).map((w) => (
+              <li key={w} className="flex gap-2 text-[13px] leading-[1.85] text-muted">
+                <span className="mt-[7px] h-[5px] w-[5px] shrink-0 rounded-full bg-clay" />{w}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       {/* ═══ منطقة الشراء ═══ */}
-      <div ref={buyRef} className="px-4 pt-5">
+      <div ref={buyRef} className="px-4 pt-7">
         <p className="mb-[9px] text-[12.5px] text-muted">الوزن</p>
         <div className="flex gap-[9px]">
           {availableWeights.map((w) => {
@@ -331,7 +346,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             return (
               <button key={w.k} onClick={() => setWeight(w.k)}
                 className={`flex min-h-[64px] flex-1 flex-col gap-0.5 rounded-[10px] p-[11px_12px] text-start transition-all active:scale-[0.97] ${
-                  on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg"}`}>
+                  on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg hover:border-olive/45 hover:bg-bg-alt"}`}>
                 <span className="text-[15px]">{on ? "✓ " : ""}{w.label}</span>
                 <span className="font-num text-[12.5px] text-muted">{n(coffee.prices[w.k]!)} د.ع</span>
               </button>
@@ -346,12 +361,14 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             return (
               <button key={g} onClick={() => setGrind(g)}
                 className={`min-h-[44px] rounded-[10px] px-3.5 text-[13px] transition-all active:scale-[0.97] ${
-                  on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg"}`}>
+                  on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg hover:border-olive/45 hover:bg-bg-alt"}`}>
                 {on ? "✓ " : ""}{g}
               </button>
             );
           })}
         </div>
+
+        <p className="mt-2.5 text-[12px] leading-relaxed text-muted">{grindHint(grind)}</p>
 
         <div className="mt-4 flex items-center gap-2.5">
           <div className="flex shrink-0 items-center rounded-[10px] border border-line bg-bg p-[3px]">
@@ -362,7 +379,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               className="h-12 w-11 rounded-[8px] text-[19px] hover:bg-bg-alt disabled:opacity-30">+</button>
           </div>
           <button onClick={add} disabled={coffee.soldOut}
-            className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-olive text-[16px] font-semibold text-olive-text transition-colors active:scale-[0.98] disabled:opacity-50">
+            className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-olive text-[16px] font-semibold text-olive-text transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50">
             {coffee.soldOut ? "نفد مؤقتاً" : (
               <><span>أضف للسلة</span><span className="opacity-55">·</span><span className="font-num">{n(totalPrice)}</span></>
             )}
@@ -374,14 +391,20 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             تمت إضافة المنتج إلى السلة.
           </div>
         )}
-        {qty >= maxQty && maxQty < 99 && (
-          <p className="mt-2.5 text-[12.5px] font-semibold text-accent">تبقى {n(maxQty)} من هذه الدفعة</p>
-        )}
+        <p className="mt-2.5 text-[12.5px] font-semibold text-accent">
+          تبقّى {n(batchLeft)} أكياس من هذه الدفعة
+        </p>
 
         <div className="mt-3 flex flex-col gap-2 rounded-[10px] bg-bg-alt p-[13px_14px] text-[13px]">
-          <div className="flex justify-between"><span className="text-muted">التوصيل المتوقّع</span><span className="font-medium">١–٢ يوم</span></div>
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-muted">رحلة طلبك</span>
+            <span className="flex flex-col items-end gap-1 text-[12.5px]">
+              <span className="font-medium">اليوم — نستلم ونجهّز</span>
+              <span className="font-medium">{arrival} — يصلك بابك</span>
+            </span>
+          </div>
           <div className="flex justify-between"><span className="text-muted">الدفع</span><span className="font-medium">عند الاستلام</span></div>
-          <div className="flex justify-between"><span className="text-muted">كاش باك</span><span className="font-num font-medium text-ok">{n(cashback)} د.ع</span></div>
+          <div className="flex justify-between"><span className="text-muted">نقاطك من هذا الطلب</span><span className="font-num font-medium text-ok">{n(cashback)} نقطة</span></div>
         </div>
       </div>
 
@@ -389,9 +412,40 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         <div className="px-4 pt-4"><LeadCapture source="restock" productSlug={coffee.slug} productName={coffee.name} /></div>
       )}
 
+      {/* ═══ البوكس — مباشرة بعد الشراء، بمكسب محسوب ═══ */}
+      {!coffee.soldOut && (
+        <div className="mx-4 mt-4 overflow-hidden rounded-[14px] border-2 border-gold/45 bg-gold/8">
+          <div className="p-4">
+            <p className="text-[11px] font-bold tracking-wide text-accent">وفّر أكثر</p>
+            <p className="mt-1.5 font-[Amiri,serif] text-[22px] font-bold leading-snug">
+              خذ كيسين — تدفع <span className="font-num text-clay">{n(two)}</span> بدل <span className="font-num text-muted line-through">{n(unit * 2)}</span>
+            </p>
+            <div className="mt-3 flex flex-col gap-2">
+              {[
+                ["كيسان", "خصم ٤٪", n(Math.round(unit * 2 * 0.04)) + " د.ع توفير"],
+                ["ثلاثة", "خصم ١٢٪ + ملعقة", n(Math.round(unit * 3 * 0.12)) + " د.ع توفير"],
+                ["أربعة", "خصم ٢٠٪ + كوب", n(Math.min(Math.round(unit * 4 * 0.2), config.boxDiscountCap ?? 20000)) + " د.ع توفير"],
+              ].map(([a, b, c], i) => (
+                <div key={a} className={`flex items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 ${
+                  i === 2 ? "bg-gold/20" : "bg-bg/60"}`}>
+                  <span className="text-[13px] font-semibold">{a}</span>
+                  <span className="text-[12.5px] text-accent">{b}</span>
+                  <span className="font-num text-[12px] font-bold text-ok">{c}</span>
+                </div>
+              ))}
+            </div>
+            <Link href="/box/"
+              className="mt-3.5 flex min-h-[50px] w-full items-center justify-center rounded-[10px] bg-clay text-[15px] font-semibold text-white transition-transform active:scale-[0.98]">
+              اصنع صندوقك
+            </Link>
+            <p className="mt-2 text-center text-[11.5px] text-muted">اخلط المحاصيل كما تشاء — والهدية تُضاف تلقائياً</p>
+          </div>
+        </div>
+      )}
+
       {/* ═══ معلومات المحصول ═══ */}
       {identity.length > 0 && (
-        <div className="mx-4 mt-[22px] rounded-[12px] border border-line bg-bg p-4">
+        <div className="mx-4 mt-7 rounded-[12px] border border-line bg-bg p-5">
           <p className="mb-3 text-[12px] text-muted">معلومات المحصول</p>
           <div className="grid grid-cols-2 gap-x-3 gap-y-3">
             {identity.map(([k, v]) => (
@@ -401,25 +455,6 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* ═══ التقييمات ═══ */}
-      <div id="reviews" className="scroll-mt-20 px-4 pt-6">
-        <ReviewsSection slug={coffee.slug} rating={coffee.rating} count={coffee.reviewsCount} />
-      </div>
-
-      {/* ═══ البوكس ═══ */}
-      {!coffee.soldOut && (
-        <div className="mx-4 mt-[22px] rounded-[12px] bg-bg-alt p-[18px_16px]">
-          <p className="font-[Amiri,serif] text-[22px] font-bold">هل تريد تجربة أكثر من محصول؟</p>
-          <p className="mt-1.5 text-[13.5px] leading-[1.9] text-accent">
-            اطلب كيسين فأكثر واحصل على خصم ٤٪، وثلاثة ١٢٪ مع ملعقة إسبريسو، وأربعة ٢٠٪ مع كوب هدية.
-          </p>
-          <Link href="/box/"
-            className="mt-3 flex min-h-[48px] w-full items-center justify-center rounded-[10px] border border-accent text-[14.5px] font-semibold text-accent transition-colors hover:bg-accent/8">
-            جرّب البوكس
-          </Link>
         </div>
       )}
 
@@ -442,11 +477,21 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         <section className="px-4 pt-7">
           <h2 className="font-[Amiri,serif] text-[22px] font-bold">يُشترى معه عادةً</h2>
           <div className="no-scrollbar -mx-4 mt-3.5 flex gap-3 overflow-x-auto px-4 pb-2">
+            {others.slice(0, 2).map((c) => (
+              <div key={c.slug} className="w-[42%] max-w-[180px] shrink-0"><CoffeeCard coffee={c} /></div>
+            ))}
             {gearPicks.map((t) => (
               <div key={t.slug} className="w-[42%] max-w-[180px] shrink-0"><ToolCard tool={t} /></div>
             ))}
           </div>
         </section>
+      )}
+
+      {/* ═══ التقييمات ═══ */}
+      {coffee.reviewsCount > 0 && (
+        <div id="reviews" className="scroll-mt-20 px-4 pt-7">
+          <ReviewsSection slug={coffee.slug} rating={coffee.rating} count={coffee.reviewsCount} />
+        </div>
       )}
 
       {/* ═══ الطمأنة ═══ */}
@@ -477,6 +522,29 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       )}
     </div>
   );
+}
+
+/** تلميح حسب الطحن المختار */
+function grindHint(g: string): string {
+  if (/حبوب/.test(g)) return "الأفضل للطزاجة — تطحنها عند التحضير فتحتفظ بالعطر كاملاً.";
+  if (/V60|فلتر/.test(g)) return "طحن متوسط يناسب V60 والكيمكس والقطرة.";
+  if (/إسبريسو/.test(g)) return "طحن ناعم للماكنة — أخبرنا بنوع الباسكت إن أردت ضبطاً أدقّ.";
+  return "";
+}
+
+/** ثلاثة أسباب للاختيار — من بيانات المحصول نفسه */
+function whyPick(c: Coffee): string[] {
+  const out: string[] = [];
+  if (c.notes?.length) out.push(`نكهاتها ${c.notes.join(" و")} — كوب واضح لا يحتاج سكّراً.`);
+  if (c.process) out.push(`معالجة ${c.process}${/مغسول/.test(c.process) ? " تعطي نظافة وحموضة مشرقة" : " تعطي حلاوة وقواماً أثقل"}.`);
+  if (c.altitude) out.push(`نمت على ارتفاع ${c.altitude} — النضج البطيء يركّز النكهة.`);
+  if (out.length < 3) out.push("محدّدة المصدر ومحمّصة بدفعات صغيرة — لا خلطات مجهولة.");
+  return out.slice(0, 3);
+}
+
+/** تحويل الأرقام العربية إلى لاتينية للوضوح */
+function toLatinDigits(t: string): string {
+  return String(t ?? "").replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 }
 
 function processSteps(process: string): { title: string; body: string }[] {
