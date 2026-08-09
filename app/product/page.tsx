@@ -778,6 +778,7 @@ function ToolView({ tool }: { tool: Tool }) {
   const [variantId, setVariantId] = useState<number | null>(null);
   const [hotspot, setHotspot] = useState<number | null>(null);
   const buyRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   const variants = tool.variants ?? [];
   const picked = variants.find((v) => v.id === variantId) ?? null;
@@ -787,7 +788,13 @@ function ToolView({ tool }: { tool: Tool }) {
   const cashback = Math.floor((totalPrice * (config.cashbackPct ?? 3)) / 100);
   const n = (x: number) => x.toLocaleString("en");
 
-  const gallery = (tool.images?.length ? tool.images : []) as string[];
+  /* المعرض: صورة الخيار المختار أولاً، ثم بقية الصور */
+  const gallery = (() => {
+    const base = (tool.images ?? []) as string[];
+    const vImg = picked?.image;
+    if (!vImg) return base;
+    return [vImg, ...base.filter((x) => x !== vImg)];
+  })();
   const stock = picked?.stock ?? (variants.length > 0 ? variants.reduce((t, v) => t + (v.stock ?? 0), 0) : 99);
   const maxQty = Math.max(1, Math.min(stock || 99, 99));
 
@@ -897,7 +904,8 @@ function ToolView({ tool }: { tool: Tool }) {
 
       {/* ═══ المعرض ═══ */}
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#F5F1EC] via-[#EFE7DE] to-[#E4D8CC]">
-        <div className="no-scrollbar flex h-full w-full snap-x snap-mandatory overflow-x-auto scroll-smooth"
+        <div ref={galleryRef}
+          className="no-scrollbar flex h-full w-full snap-x snap-mandatory overflow-x-auto scroll-smooth"
           onScroll={(e) => {
             const el = e.currentTarget;
             setShot(Math.round(Math.abs(el.scrollLeft) / Math.max(1, el.clientWidth)));
@@ -978,7 +986,7 @@ function ToolView({ tool }: { tool: Tool }) {
                 const on = v.id === variantId;
                 const out = (v.stock ?? 0) <= 0;
                 return (
-                  <button key={v.id} onClick={() => !out && setVariantId(v.id)} disabled={out}
+                  <button key={v.id} onClick={() => { if (out) return; setVariantId(v.id); setShot(0); galleryRef.current?.scrollTo({ left: 0 }); }} disabled={out}
                     className={`flex min-h-[44px] items-center gap-2 rounded-[10px] px-3.5 text-[13px] transition-all active:scale-[0.97] disabled:opacity-35 ${
                       on ? "border-2 border-olive bg-olive/6 font-semibold" : "border border-line bg-bg hover:border-olive/45"}`}>
                     {v.hex && <span className="h-4 w-4 rounded-full border border-line" style={{ background: v.hex }} />}
