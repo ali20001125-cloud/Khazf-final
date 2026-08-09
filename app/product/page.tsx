@@ -178,7 +178,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   }, [tools, grind]);
 
   const gearSum = bundle.reduce((t: number, x: Tool) => t + (x.price ?? 0), 0);
-  const bundleSave = Math.round(gearSum * 0.1);
+  const BUNDLE_OFF = 1000;
+  const bundleSave = bundle.length * BUNDLE_OFF;
   const bundleTotal = Math.ceil((unit + gearSum - bundleSave) / 250) * 250;
 
   const addBundle = () => {
@@ -186,7 +187,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       grind, name: coffee.name, meta: `${weightLabel} · ${grind}`, priceShown: unit });
     bundle.forEach((t: Tool) => addToCart({
       slug: t.slug, variant: "PIECE", grind: "", name: t.name, meta: "",
-      priceShown: Math.round((t.price ?? 0) * 0.9),
+      priceShown: Math.max(0, (t.price ?? 0) - BUNDLE_OFF),
     }));
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2600);
@@ -228,17 +229,27 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       )}
     </div>
   )});
-  if (meters.length) sections.push({ key: "sensory", title: "التفصيل الحسّي", body: (
+  if (meters.length) sections.push({ key: "sensory", title: "كيف طعمها؟", body: (
     <div className="flex flex-col gap-3">
-      {meters.map(([k, v]) => (
-        <div key={k} className="flex items-center gap-3">
-          <span className="w-[70px] text-[13px] text-muted">{k}</span>
-          <div className="h-[5px] flex-1 overflow-hidden rounded-full bg-line">
-            <div className="h-full rounded-full bg-clay" style={{ width: `${(v / 5) * 100}%` }} />
-          </div>
-          <span className="font-num w-[26px] text-start text-[12px] text-muted">{v}/٥</span>
+      {coffee.notes?.length >= 2 && (
+        <div className="flex flex-col gap-2">
+          {([["في البداية", coffee.notes[0]],
+             ["في الوسط", coffee.notes[1] ?? coffee.notes[0]],
+             ["والخاتمة", coffee.notes[2] ?? coffee.notes[1]]] as [string, string][]).map(([when, what]) => (
+            <div key={when} className="flex items-baseline gap-2.5">
+              <span className="w-[62px] shrink-0 text-[12px] text-muted">{when}</span>
+              <span className="text-[14px] font-semibold">{what}</span>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+      <div className="flex flex-wrap gap-2 border-t border-line pt-3">
+        {meters.map(([k, v]) => (
+          <span key={k} className="rounded-[8px] bg-bg-alt px-3 py-2 text-[12.5px]">
+            <span className="text-muted">{k}</span> <span className="font-semibold">{level(v)}</span>
+          </span>
+        ))}
+      </div>
       {coffee.roast && <p className="mt-1 text-[13.5px] leading-[1.95] text-muted">{roastPhilosophy(coffee.roast)}</p>}
     </div>
   )});
@@ -545,7 +556,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
               </div>
             ))}
             <div className="mt-1 flex justify-between border-t border-line pt-2 text-[13px] text-ok">
-              <span>خصم الحزمة ١٠٪ على الأدوات</span>
+              <span>خصم الحزمة — {n(BUNDLE_OFF)} لكل أداة</span>
               <span className="font-num">−{n(bundleSave)}</span>
             </div>
             <div className="flex justify-between text-[15px] font-bold">
@@ -589,6 +600,11 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       )}
     </div>
   );
+}
+
+/** وصف المستوى بكلمة بدل رقم */
+function level(v: number): string {
+  return v >= 5 ? "عالية جداً" : v >= 4 ? "عالية" : v >= 3 ? "متوسطة" : v >= 2 ? "خفيفة" : "خفيفة جداً";
 }
 
 /** تلميح حسب الطحن المختار */
