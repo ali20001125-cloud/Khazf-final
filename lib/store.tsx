@@ -36,6 +36,7 @@ export interface CartItem {
   priceShown: number; // للعرض فقط — الحساب النهائي من الخادم
   qty: number;
   boxGroup?: number;
+  bundleId?: string;   // حزمة «خذها معاً» — تُضاف وتُحذف ككتلة
   variantId?: number | null;    // خيار المنتج (مقاس/عبوة/لون)
   variantLabel?: string | null; // اسم الخيار للعرض
 }
@@ -71,7 +72,7 @@ interface StoreState {
 const StoreContext = createContext<StoreState | null>(null);
 
 const keyOf = (i: Omit<CartItem, "qty" | "key">) =>
-  [i.slug, i.variant, i.grind ?? "", i.boxGroup ?? "", i.variantId ?? ""].join("|");
+  [i.slug, i.variant, i.grind ?? "", i.boxGroup ?? "", i.variantId ?? "", i.bundleId ?? ""].join("|");
 
 export function StoreProvider({
   children,
@@ -169,16 +170,27 @@ export function StoreProvider({
     });
   }, []);
 
+  /* حذف بند — وإن كان جزءاً من حزمة، تُحذف الحزمة كاملة */
   const removeFromCart = useCallback(
-    (key: string) => setCart((p) => p.filter((i) => i.key !== key)),
+    (key: string) => setCart((p) => {
+      const it = p.find((i) => i.key === key);
+      if (it?.bundleId) return p.filter((i) => i.bundleId !== it.bundleId);
+      return p.filter((i) => i.key !== key);
+    }),
     []
   );
 
+  /* تغيير الكمية — الحزمة تتغيّر ككتلة */
   const setQty = useCallback(
     (key: string, qty: number) =>
-      setCart((p) =>
-        qty <= 0 ? p.filter((i) => i.key !== key) : p.map((i) => (i.key === key ? { ...i, qty } : i))
-      ),
+      setCart((p) => {
+        const it = p.find((i) => i.key === key);
+        if (it?.bundleId) {
+          if (qty <= 0) return p.filter((i) => i.bundleId !== it.bundleId);
+          return p.map((i) => (i.bundleId === it.bundleId ? { ...i, qty } : i));
+        }
+        return qty <= 0 ? p.filter((i) => i.key !== key) : p.map((i) => (i.key === key ? { ...i, qty } : i));
+      }),
     []
   );
 

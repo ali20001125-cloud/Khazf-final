@@ -152,7 +152,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   ] as [string, string | number | undefined][]).filter(([, v]) => v) as [string, string][];
 
   const meters = ([
-    ["حموضة", coffee.flavorAcidity], ["حلاوة", coffee.flavorSweetness], ["قوام", coffee.flavorBody],
+    ["حلاوة", coffee.flavorSweetness], ["قوام", coffee.flavorBody],
   ] as [string, number | undefined][]).filter(([, v]) => v) as [string, number][];
 
   const gearPicks = tools.filter((t) => !t.soldOut && (t.price ?? 0) > 0).slice(0, 3);
@@ -183,11 +183,12 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const bundleTotal = Math.ceil((unit + gearSum - bundleSave) / 250) * 250;
 
   const addBundle = () => {
+    const bid = `bundle-${coffee.slug}-${Date.now()}`;
     addToCart({ slug: coffee.slug, variant: safeWeight.toUpperCase() as "G250" | "G500" | "G1000",
-      grind, name: coffee.name, meta: `${weightLabel} · ${grind}`, priceShown: unit });
+      grind, name: coffee.name, meta: `${weightLabel} · ${grind}`, priceShown: unit, bundleId: bid });
     bundle.forEach((t: Tool) => addToCart({
-      slug: t.slug, variant: "PIECE", grind: "", name: t.name, meta: "",
-      priceShown: Math.max(0, (t.price ?? 0) - BUNDLE_OFF),
+      slug: t.slug, variant: "PIECE", grind: "", name: t.name, meta: "حزمة",
+      priceShown: Math.max(0, (t.price ?? 0) - BUNDLE_OFF), bundleId: bid,
     }));
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2600);
@@ -244,6 +245,11 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         </div>
       )}
       <div className="flex flex-wrap gap-2 border-t border-line pt-3">
+        {coffee.roast && (
+          <span className="rounded-[8px] bg-bg-alt px-3 py-2 text-[12.5px]">
+            <span className="text-muted">التحميص</span> <span className="font-semibold">{coffee.roast}</span>
+          </span>
+        )}
         {meters.map(([k, v]) => (
           <span key={k} className="rounded-[8px] bg-bg-alt px-3 py-2 text-[12.5px]">
             <span className="text-muted">{k}</span> <span className="font-semibold">{level(v)}</span>
@@ -335,6 +341,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
         <div className="flex items-start justify-between gap-3.5">
           <div className="flex min-w-0 flex-col gap-1.5">
             <h1 className="font-[Amiri,serif] text-[34px] font-bold leading-[1.1]">{coffee.name}</h1>
+            {coffee.latin && <p className="font-num text-[10.5px] tracking-[0.22em] text-muted">{coffee.latin.toUpperCase()}</p>}
             <p className="text-[13px] text-muted">
               {[coffee.country, coffee.region, coffee.roast].filter(Boolean).join(" · ")}
             </p>
@@ -569,6 +576,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             className="mt-3.5 flex min-h-[50px] w-full items-center justify-center rounded-[10px] bg-olive text-[15px] font-semibold text-olive-text transition-all hover:brightness-110 active:scale-[0.98]">
             أضف الحزمة للسلة
           </button>
+          <p className="mt-2 text-center text-[11.5px] text-muted">تُضاف وتُحذف كحزمة واحدة</p>
         </section>
       )}
 
@@ -621,8 +629,9 @@ function whyPick(c: Coffee): string[] {
   if (c.notes?.length) out.push(`نكهاتها ${c.notes.join(" و")} — كوب واضح لا يحتاج سكّراً.`);
   if (c.process) out.push(`معالجة ${c.process}${/مغسول/.test(c.process) ? " تعطي نظافة وحموضة مشرقة" : " تعطي حلاوة وقواماً أثقل"}.`);
   if (c.altitude) out.push(`نمت على ارتفاع ${c.altitude} — النضج البطيء يركّز النكهة.`);
-  if (out.length < 3) out.push("محدّدة المصدر ومحمّصة بدفعات صغيرة — لا خلطات مجهولة.");
-  return out.slice(0, 3);
+  out.push("تناسب الإسبريسو والتقطير ومشروبات الحليب — باردة كانت أو ساخنة.");
+  if (out.length < 4) out.push("محدّدة المصدر ومحمّصة بدفعات صغيرة — لا خلطات مجهولة.");
+  return out.slice(0, 4);
 }
 
 /** تحويل الأرقام العربية إلى لاتينية للوضوح */
