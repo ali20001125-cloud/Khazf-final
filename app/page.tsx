@@ -5,8 +5,8 @@ import ExitCapture from "@/components/ExitCapture";
 import CoffeeFinder from "@/components/CoffeeFinder";
 import { useMotion } from "@/lib/motion";
 import {
-  CropsFirst, BoxStrip, ShopByCategory, OffersBlock, WhyKhazf, HelpLast,
-} from "@/components/scenes/home6";
+  Hero, Crops, BoxSection, PickPath, Reviews, Gear, Offers, Why, FinderCta,
+} from "@/components/scenes/home7";
 
 export default function Home() {
   const scope = useMotion();
@@ -16,17 +16,19 @@ export default function Home() {
       <WelcomeSheet />
       <ExitCapture />
 
-      <CropsFirst />
-      <BoxStrip />
-      <ShopByCategory />
-      <OffersBlock />
-      <WhyKhazf />
+      <Hero />
+      <Crops />
+      <BoxSection />
+      <PickPath />
+      <Reviews />
+      <Gear />
+      <Offers />
+      <Why />
 
-      <HelpLast>
-        <div id="finder"><CoffeeFinder /></div>
-      </HelpLast>
+      <FinderCta>
+        <CoffeeFinder />
+      </FinderCta>
 
-      {/* شريط الطمأنة */}
       <div className="mt-12 border-y border-line bg-bg-alt">
         <div className="mx-auto grid max-w-5xl grid-cols-3 divide-x divide-line rtl:divide-x-reverse">
           {[["١–٢ يوم", "توصيل لكل العراق"], ["٣٪ نقاط", "تعود إليك"], ["دفع عند الاستلام", "بلا مخاطرة"]].map(([t, d]) => (
