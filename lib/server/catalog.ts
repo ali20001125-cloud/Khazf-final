@@ -98,6 +98,13 @@ function coffeeFromRow(
         ? bagsLeft
         : undefined,
     farm: p.farm ?? "",
+    badge: p.badge ?? null,
+    harvest: p.harvest ?? null,
+    storyTitle: p.storyTitle ?? null,
+    compareHint: p.compareHint ?? null,
+    roastPhilosophy: p.roastPhilosophy ?? null,
+    steps: p.steps ?? [],
+    sensory: p.sensory ?? [],
     story: p.story ?? "",
   };
 }

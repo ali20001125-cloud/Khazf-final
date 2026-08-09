@@ -90,7 +90,13 @@ export const products = pgTable(
     flavorAcidity: smallint("flavor_acidity"),   // ملف النكهة ١–٥
     flavorSweetness: smallint("flavor_sweetness"),
     flavorBody: smallint("flavor_body"),
-    farm: text("farm"),   // يكتبها المالك إن أراد — لا بيانات مخترعة
+    farm: text("farm"),
+  harvest: text("harvest"),
+  storyTitle: text("story_title"),
+  compareHint: text("compare_hint"),
+  roastPhilosophy: text("roast_philosophy"),
+  steps: jsonb("steps").$type<{ title: string; body: string }[]>().notNull().default([]),
+  sensory: jsonb("sensory").$type<{ k: string; v: string }[]>().notNull().default([]),   // يكتبها المالك إن أراد — لا بيانات مخترعة
     story: text("story"), // كذلك
 
     /* — الأسعار: كلها يدوية يكتبها المالك (ممنوع أي حساب آلي) — */

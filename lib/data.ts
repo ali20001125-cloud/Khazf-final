@@ -30,6 +30,13 @@ export interface Coffee {
   stockLow?: number;
   soldOut?: boolean;
   bagsLeft?: number;   // الأكياس المتاحة
+  badge?: string | null;
+  harvest?: string | null;
+  storyTitle?: string | null;
+  compareHint?: string | null;
+  roastPhilosophy?: string | null;
+  steps: { title: string; body: string }[];
+  sensory: { k: string; v: string }[];
   farm: string;
   story: string;
 }
