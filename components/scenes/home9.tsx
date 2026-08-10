@@ -154,12 +154,49 @@ export function Crops() {
             </Link>
           ))}
 
-          {/* بطاقة عرض المزيد */}
+          {/* بطاقة عرض المزيد — أربعة نماذج للاختيار */}
+          {/* نموذج ١: زيتوني كامل */}
           <Link href="/products/?cat=coffee"
             className="group flex w-[74%] shrink-0 snap-start flex-col items-center justify-center bg-olive p-6 text-center text-olive-text transition-all hover:brightness-110 md:w-auto">
-            <span className="font-[Amiri,serif] text-[28px] font-bold">عرض المزيد</span>
+            <span className="font-num text-[10px] tracking-[0.2em] opacity-60">١</span>
+            <span className="mt-3 font-[Amiri,serif] text-[28px] font-bold">عرض المزيد</span>
             <span className="mt-2.5 text-[12.5px] opacity-80">كل المحاصيل والأدوات</span>
             <span className="mt-5 text-[20px] text-gold transition-transform group-hover:-translate-x-2">←</span>
+          </Link>
+
+          {/* نموذج ٢: فارغ بإطار — الأهدأ */}
+          <Link href="/products/?cat=coffee"
+            className="group flex w-[74%] shrink-0 snap-start flex-col items-center justify-center border-2 border-dashed border-line bg-bg p-6 text-center transition-colors hover:border-clay hover:bg-card md:w-auto">
+            <span className="font-num text-[10px] tracking-[0.2em] text-muted">٢</span>
+            <span className="mt-3 font-[Amiri,serif] text-[26px] font-bold">تصفّح الكل</span>
+            <span className="font-num mt-2 text-[12.5px] text-muted">٤ محاصيل · ١٤ منتجاً</span>
+            <span className="mt-5 text-[19px] text-accent transition-transform group-hover:-translate-x-2">←</span>
+          </Link>
+
+          {/* نموذج ٣: بطاقة منتج بلا صورة — تشبه أخواتها */}
+          <Link href="/products/?cat=coffee"
+            className="group flex w-[74%] shrink-0 snap-start flex-col bg-bg transition-colors hover:bg-card md:w-auto">
+            <div className="flex aspect-square items-center justify-center bg-bg-alt">
+              <span className="font-num text-[52px] font-bold text-line">+</span>
+            </div>
+            <div className="p-4">
+              <span className="font-num block text-[10px] tracking-[0.2em] text-muted">٣</span>
+              <p className="mt-2 font-[Amiri,serif] text-[22px] font-bold">كل المحاصيل</p>
+              <p className="mt-2 text-[12px] text-muted">والأدوات والأكواب</p>
+              <p className="mt-4 flex items-center gap-1.5 border-t border-line pt-3.5 text-[12px] font-bold text-accent">
+                تصفّح المتجر <span className="transition-transform group-hover:-translate-x-1">←</span>
+              </p>
+            </div>
+          </Link>
+
+          {/* نموذج ٤: سطر عمودي مضغوط */}
+          <Link href="/products/?cat=coffee"
+            className="group flex w-[26%] shrink-0 snap-start items-center justify-center bg-ink p-4 text-center text-bg transition-all hover:brightness-125 md:w-auto md:min-h-[120px]">
+            <span className="flex flex-col items-center gap-3">
+              <span className="font-num text-[10px] opacity-50">٤</span>
+              <span className="text-[19px] transition-transform group-hover:-translate-x-1.5">←</span>
+              <span className="text-[13px] font-bold [writing-mode:vertical-rl] md:[writing-mode:horizontal-tb]">الكل</span>
+            </span>
           </Link>
         </div>
         {list.length > 2 && <p className="mt-3 text-[11.5px] text-muted md:hidden">اسحب لاكتشاف الباقي ←</p>}

@@ -251,11 +251,23 @@ export default function Header() {
             </button>
           </div>
 
+          {/* حسابي — وصول سريع */}
+          <Link href="/account/" onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-3.5 border-b border-line bg-bg-alt px-5 py-4 transition-colors hover:bg-card">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-olive text-olive-text">
+              <User size={18} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-bold">حسابي</span>
+              <span className="mt-0.5 block text-[11.5px] text-muted">الطلبات · النقاط · المفضلة</span>
+            </span>
+            <span className="text-[15px] text-muted">←</span>
+          </Link>
+
           <div className="flex-1 overflow-y-auto p-4">
             {/* أقسام المتجر — كل قسم يفتح على أصنافه */}
             {shopSections.length > 0 && (
               <div className="mb-2">
-                <div className="mx-4 my-2 border-t border-line" />
                 <ul className="space-y-0.5 text-[14.5px]">
                   {shopSections.map((sec) => {
                     const isOpen = openSection === sec.label;
