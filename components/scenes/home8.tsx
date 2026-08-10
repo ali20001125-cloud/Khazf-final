@@ -99,36 +99,44 @@ export function Crops() {
       <div className="no-scrollbar -mx-5 mt-5 flex snap-x snap-mandatory gap-3.5 overflow-x-auto px-5 pb-2 md:mx-0 md:grid md:grid-cols-2 md:px-0">
         {list.map((c, i) => (
           <Link key={c.slug} href={`/product/?c=${c.slug}`}
-            className="w-[78%] shrink-0 snap-start rounded-[18px] border border-line bg-card p-5 transition-all hover:border-clay/50 active:scale-[0.99] md:w-auto">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10.5px] font-semibold tracking-wide text-muted">
-                  {[c.country, c.process].filter(Boolean).join(" · ")}
-                </p>
-                <h3 className="mt-1.5 font-[Amiri,serif] text-[24px] font-bold leading-tight">{c.name}</h3>
-              </div>
+            className="w-[76%] shrink-0 snap-start overflow-hidden rounded-[18px] border border-line bg-card transition-all hover:border-clay/50 active:scale-[0.99] md:w-auto">
+            <div className="relative aspect-[4/3] bg-bg-alt">
+              {c.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex h-full items-center justify-center font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
+              )}
               {i === 0 && (
-                <span className="shrink-0 rounded-full bg-gold/20 px-2.5 py-1 text-[10px] font-bold text-gold-text">
+                <span className="absolute end-3 top-3 rounded-full bg-bg/92 px-2.5 py-1 text-[10px] font-bold text-accent backdrop-blur-sm">
                   الأكثر مبيعاً
                 </span>
               )}
             </div>
 
-            {c.notes?.length > 0 && (
-              <p className="mt-3 text-[13px] leading-relaxed" style={{ color: c.accent }}>
-                {c.notes.join(" · ")}
+            <div className="p-4">
+              <p className="text-[10.5px] font-semibold tracking-wide text-muted">
+                {[c.country, c.process].filter(Boolean).join(" · ")}
               </p>
-            )}
-
-            <div className="mt-5 flex items-baseline justify-between border-t border-line pt-4">
-              <span className="font-num text-[17px] font-bold">{formatIQD(c.prices.g250)}</span>
-              <span className="flex items-center gap-1 text-[12.5px] font-bold text-accent">
-                اعرف أكثر <ArrowLeft size={13} />
-              </span>
+              <h3 className="mt-1.5 font-[Amiri,serif] text-[22px] font-bold leading-tight">{c.name}</h3>
+              {c.notes?.length > 0 && (
+                <p className="mt-2 text-[12.5px] leading-relaxed" style={{ color: c.accent }}>
+                  {c.notes.join(" · ")}
+                </p>
+              )}
+              <div className="mt-4 flex items-baseline justify-between border-t border-line pt-3.5">
+                <span className="font-num text-[16px] font-bold">{formatIQD(c.prices.g250)}</span>
+                <span className="flex items-center gap-1 text-[12px] font-bold text-accent">
+                  اعرف أكثر <ArrowLeft size={12} />
+                </span>
+              </div>
             </div>
           </Link>
         ))}
       </div>
+      {list.length > 2 && (
+        <p className="mt-1 text-[11.5px] text-muted md:hidden">اسحب لاكتشاف الباقي ←</p>
+      )}
     </section>
   );
 }
@@ -167,21 +175,24 @@ export function BuildBox() {
 export function Gear() {
   const { activePlaces } = useCatalog();
   const cards = [
-    { href: "/products/?cat=drip", Icon: Beaker, t: "الأدوات", d: "فلاتر وسيرفرات وأدوات التحضير", place: "drip_tools" },
-    { href: "/products/?cat=cups", Icon: CupSoda, t: "الأكواب", d: "قطع مختارة للقهوة اليومية", place: "cups" },
-    { href: "/box/", Icon: Gift, t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null },
+    { href: "/products/?cat=drip", Icon: Beaker, n: "01 · BREW", t: "الأدوات", d: "فلاتر وسيرفرات وأدوات التحضير", place: "drip_tools" },
+    { href: "/products/?cat=cups", Icon: CupSoda, n: "02 · SERVE", t: "الأكواب", d: "قطع مختارة للقهوة اليومية", place: "cups" },
+    { href: "/box/", Icon: Gift, n: "03 · GIFT", t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null },
   ].filter((c) => !c.place || activePlaces.includes(c.place));
   if (cards.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-lg px-5 pt-12 md:max-w-4xl md:px-8">
-      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[16px] border border-line bg-line md:grid-cols-3">
-        {cards.map(({ href, Icon, t, d }) => (
+      <h2 className="font-[Amiri,serif] text-[26px] font-bold md:text-[32px]">أكمِل تجربتك</h2>
+      <p className="mt-1.5 text-[12.5px] text-muted">بعد القهوة — كل ما تحتاجه للتحضير والتقديم</p>
+      <div className="mt-5 grid grid-cols-1 gap-px overflow-hidden rounded-[16px] border border-line bg-line md:grid-cols-3">
+        {cards.map(({ href, Icon, n, t, d }) => (
           <Link key={t} href={href}
             className="flex items-center gap-4 bg-bg p-5 transition-colors hover:bg-card">
             <Icon size={19} className="shrink-0 text-clay" />
             <span className="min-w-0 flex-1">
-              <span className="block text-[14.5px] font-bold">{t}</span>
+              <span className="font-num block text-[9.5px] tracking-[0.2em] text-muted">{n}</span>
+              <span className="mt-1 block text-[14.5px] font-bold">{t}</span>
               <span className="mt-0.5 block text-[11.5px] text-muted">{d}</span>
             </span>
             <ArrowLeft size={14} className="shrink-0 text-muted" />
@@ -220,7 +231,28 @@ export function Reviews() {
   );
 }
 
-/* ═══ ٧) مساعد الاختيار ═══ */
+/* ═══ ٧) لماذا خزف ═══ */
+export function Why() {
+  return (
+    <section className="mx-auto max-w-lg px-5 pt-12 md:max-w-4xl md:px-8">
+      <h2 className="font-[Amiri,serif] text-[26px] font-bold md:text-[32px]">لماذا خزف</h2>
+      <div className="mt-5 flex flex-col gap-3 md:grid md:grid-cols-3">
+        {[
+          ["تحميص بدفعات صغيرة", "نحمّص كميات متكرّرة بدل تخزين كميات كبيرة على الرف"],
+          ["مصادر محدّدة", "محاصيل نعرف مصدرها ومعالجتها — بلا خيارات مجهولة"],
+          ["الدفع عند الاستلام", "افحص طلبك أمام المندوب قبل أن تدفع"],
+        ].map(([t, d]) => (
+          <div key={t} className="border-t border-line pt-4">
+            <p className="text-[13.5px] font-bold">{t}</p>
+            <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{d}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ═══ ٨) مساعد الاختيار ═══ */
 export function Assistant({ children }: { children?: React.ReactNode }) {
   return (
     <section id="finder" className="mx-auto max-w-lg px-5 pt-12 md:max-w-4xl md:px-8">

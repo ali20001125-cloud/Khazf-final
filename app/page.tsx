@@ -4,7 +4,7 @@ import WelcomeSheet from "@/components/WelcomeSheet";
 import ExitCapture from "@/components/ExitCapture";
 import CoffeeFinder from "@/components/CoffeeFinder";
 import { useMotion } from "@/lib/motion";
-import { Hero, TrustBar, Crops, BuildBox, Gear, Reviews, Assistant } from "@/components/scenes/home8";
+import { Hero, TrustBar, Crops, BuildBox, Gear, Reviews, Why, Assistant } from "@/components/scenes/home8";
 
 export default function Home() {
   const scope = useMotion();
@@ -18,6 +18,7 @@ export default function Home() {
       <BuildBox />
       <Gear />
       <Reviews />
+      <Why />
       <Assistant><CoffeeFinder /></Assistant>
     </div>
   );
