@@ -40,6 +40,10 @@ export async function POST(req: Request) {
   if (existing) {
     // التحام بحساب قائم (نقاطه القديمة تبقى) — نكمل الحقول الناقصة
     const newEmail = (email || user?.email || "").trim();
+    // ترحيب لمن ربط حساباً لأول مرة (كان زبوناً بلا حساب)
+    if (newEmail && !existing.authUserId && authUserId) {
+      emailWelcome({ email: newEmail, name: name || existing.name || gName }).catch(() => {});
+    }
     await db.update(s.customers).set({
       authUserId: authUserId ?? existing.authUserId,
       email: newEmail || existing.email,   // الإيميل الأحدث يُحدّث الحساب
