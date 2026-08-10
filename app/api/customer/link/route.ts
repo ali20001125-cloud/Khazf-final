@@ -1,3 +1,4 @@
+import { emailWelcome } from "@/lib/server/email";
 /**
  * ربط حساب Google برقم هاتف — بإثبات ملكية:
  * الهاتف + رقم أي طلب سابق له (لا يعرفه غير صاحبه)
@@ -30,6 +31,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "حسابك مربوط برقم آخر" }, { status: 409 });
 
   await db.update(s.customers).set({ authUserId: user.id }).where(eq(s.customers.phone, ph));
+  // ترحيب عند ربط الحساب لأول مرة
+  {
+    const [c] = await db.select().from(s.customers).where(eq(s.customers.phone, ph));
+    const em = (c?.email || user.email || "").trim();
+    if (em) emailWelcome({ email: em, name: c?.name || "صديق خزف" }).catch(() => {});
+  }
   await setCustomerCookie(ph);
   return NextResponse.json({ ok: true });
 }

@@ -8,6 +8,7 @@
  * وإلا: لا حاجة لأي شيء — الرقم والربط يكتملان عند أول طلب.
  */
 import { NextResponse } from "next/server";
+import { emailWelcome } from "@/lib/server/email";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { setCustomerCookie } from "@/lib/server/customer-session";
@@ -23,8 +24,11 @@ export async function POST(req: Request) {
   // هل للإيميل حساب زبون موجود (سبق أن طلب بنفس الإيميل)؟
   const [existing] = await db.select().from(s.customers).where(eq(s.customers.email, email));
   if (existing) {
-    if (authUserId && !existing.authUserId)
+    if (authUserId && !existing.authUserId) {
       await db.update(s.customers).set({ authUserId }).where(eq(s.customers.phone, existing.phone));
+      // ترحيب عند ربط الحساب لأول مرة
+      emailWelcome({ email, name: existing.name || "صديق خزف" }).catch(() => {});
+    }
     await setCustomerCookie(existing.phone);
   }
   return NextResponse.json({ ok: true, hasProfile: !!existing });
