@@ -92,8 +92,14 @@ export function Crops() {
   const config = useSiteConfig();
   const list = coffees.filter((c) => !c.soldOut);
   if (list.length === 0) return null;
-  const shown = list.slice(0, config.homeCropsCount ?? 10);
-  const bestSlug = (config.homeBestsellerSlug || shown[0]?.slug || "").trim().toLowerCase();
+  const bestSlug = (config.homeBestsellerSlug || "").trim().toLowerCase();
+  /* الأكثر مبيعاً يتصدّر الشريط */
+  const ordered = bestSlug
+    ? [...list].sort((a, b) =>
+        (b.slug.toLowerCase() === bestSlug ? 1 : 0) - (a.slug.toLowerCase() === bestSlug ? 1 : 0))
+    : list;
+  const shown = ordered.slice(0, config.homeCropsCount ?? 10);
+  const badgeSlug = bestSlug || shown[0]?.slug?.toLowerCase() || "";
 
   return (
     <section className="border-b border-line">
@@ -121,7 +127,7 @@ export function Crops() {
                     <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
                   </span>
                 )}
-                {c.slug.toLowerCase() === bestSlug && (
+                {c.slug.toLowerCase() === badgeSlug && (
                   <span className="absolute end-0 top-0 bg-ink px-2.5 py-1.5 text-[10px] font-bold text-bg">
                     الأكثر مبيعاً
                   </span>
