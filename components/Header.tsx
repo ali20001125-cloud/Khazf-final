@@ -37,21 +37,20 @@ export default function Header() {
   /* أقسام المتجر بأصنافها الفرعية — تُشتقّ من المنتجات الفعلية */
   const subsOf = (cat: string) =>
     [...new Set(allTools.filter((t) => t.cats.includes(cat as never) && t.type).map((t) => t.type))];
+  /* الترتيب: المتجر · القهوة · الأدوات · الأكواب · بناء البوكس */
   const shopSections: { label: string; href: string; subs: string[] }[] = [
-    ...(activePlaces.includes("cups")
-      ? [{ label: "الأكواب والتقديم", href: "/products/?cat=cups", subs: subsOf("أكواب") }] : []),
+    { label: "المتجر", href: "/products/?cat=all", subs: [] },
+    { label: "القهوة", href: "/products/?cat=coffee", subs: [] },
     ...(activePlaces.includes("drip_tools")
       ? [{ label: "أدوات التقطير", href: "/products/?cat=drip", subs: subsOf("تقطير") }] : []),
     ...(activePlaces.includes("espresso_tools")
       ? [{ label: "أدوات الإسبريسو", href: "/products/?cat=espresso", subs: subsOf("إسبريسو") }] : []),
+    ...(activePlaces.includes("cups")
+      ? [{ label: "الأكواب والتقديم", href: "/products/?cat=cups", subs: subsOf("أكواب") }] : []),
+    { label: "بناء البوكس", href: "/box/", subs: [] },
   ];
 
   const menuGroups: { label: string; href: string }[][] = [
-  [
-    { label: "المتجر", href: "/products/?cat=all" },
-    { label: "القهوة", href: "/products/?cat=coffee" },
-    { label: "بناء البوكس", href: "/box/" },
-  ],
   [
     { label: "الوصفات", href: "/recipes/" },
     { label: "المدونة", href: "/journal/" },
@@ -273,15 +272,20 @@ export default function Header() {
                     const isOpen = openSection === sec.label;
                     return (
                       <li key={sec.label}>
-                        <button
-                          onClick={() => setOpenSection(isOpen ? null : sec.label)}
-                          className="flex w-full items-center justify-between rounded-[4px] px-4 py-3 text-start font-semibold transition-colors hover:bg-bg-alt">
-                          {sec.label}
-                          {sec.subs.length > 0 && (
+                        {sec.subs.length === 0 ? (
+                          <Link href={sec.href} onClick={() => setMenuOpen(false)}
+                            className="block rounded-[4px] px-4 py-3 font-semibold transition-colors hover:bg-bg-alt">
+                            {sec.label}
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => setOpenSection(isOpen ? null : sec.label)}
+                            className="flex w-full items-center justify-between rounded-[4px] px-4 py-3 text-start font-semibold transition-colors hover:bg-bg-alt">
+                            {sec.label}
                             <ChevronDown size={16}
                               className={`text-muted transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
-                          )}
-                        </button>
+                          </button>
+                        )}
                         {isOpen && sec.subs.length > 0 && (
                           <ul className="mb-1 ms-4 space-y-0.5 border-s border-line ps-3">
                             <li>

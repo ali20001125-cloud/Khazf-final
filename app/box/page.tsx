@@ -34,24 +34,6 @@ function BoxIntro() {
       <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
         اختر محاصيلك — كل كيس تضيفه يكبّر مكافأتك، حتى كيس مجاني بالسادس.
       </p>
-      {/* الخطوات مطوية — لمن يريد التفاصيل */}
-      <details className="mt-4 border-y border-line">
-        <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-[13px] font-bold">
-          كيف يعمل الصندوق؟
-          <span className="text-[16px] font-normal text-muted">+</span>
-        </summary>
-        <div className="space-y-3 pb-4">
-          {steps.map((st) => (
-            <div key={st.n} className="flex gap-3">
-              <span className="font-num flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-olive text-[13px] font-bold text-olive-text">{st.n}</span>
-              <div>
-                <p className="text-[13.5px] font-bold">{st.h}</p>
-                <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted">{st.p}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>
     </div>
   );
 }
@@ -236,18 +218,6 @@ export default function BoxPage() {
           </div>
         </div>
 
-        {/* بوكس جاهز — لمن لا يريد الاختيار */}
-        {count === 0 && (
-          <button onClick={fillReady}
-            className="reveal mt-7 flex w-full items-center justify-between gap-3 rounded-[5px] border border-gold/35 bg-gold/8 p-5 text-start transition-all active:scale-[0.99]">
-            <div>
-              <p className="text-[13.5px] font-bold">لا تعرف أيّها تختار؟</p>
-              <p className="mt-0.5 text-[11.5px] text-muted">نجهّز لك صندوقاً متنوّعاً من ٤ أكياس بخصم ٢٠٪</p>
-            </div>
-            <span className="btn btn-clay shrink-0 !px-5 !py-2.5 text-[12.5px]">جهّزه لي</span>
-          </button>
-        )}
-
         {/* شريط التوصيل المجاني */}
         {count > 0 && config.freeDeliveryThreshold > 0 && (() => {
           const remaining = config.freeDeliveryThreshold - total;
@@ -331,7 +301,20 @@ export default function BoxPage() {
           })}
         </div>
 
-        {/* الهدية — ظاهرة دائماً (تحفيز)، معطّلة حتى الوصول لـ٦ أكياس */}
+        {/* بوكس جاهز — لمن لا يريد الاختيار */}
+        {count === 0 && (
+          <button onClick={fillReady}
+            className="reveal mt-7 flex w-full items-center justify-between gap-3 rounded-[5px] border border-gold/35 bg-gold/8 p-5 text-start transition-all active:scale-[0.99]">
+            <div>
+              <p className="text-[13.5px] font-bold">لا تعرف أيّها تختار؟</p>
+              <p className="mt-0.5 text-[11.5px] text-muted">نجهّز لك صندوقاً متنوّعاً من ٤ أكياس بخصم ٢٠٪</p>
+            </div>
+            <span className="btn btn-clay shrink-0 !px-5 !py-2.5 text-[12.5px]">جهّزه لي</span>
+          </button>
+        )}
+
+
+        {/* الهدية — ظاهرة دائماً (تحفيز)، تُفتح من ٣ أكياس */}
         <div className={`mt-10 rounded-[6px] border p-6 text-center transition-all ${
           count >= 3 ? "border-gold/50 bg-gold/10" : "border-line bg-card"
         }`}>
