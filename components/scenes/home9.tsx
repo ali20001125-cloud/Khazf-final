@@ -10,25 +10,9 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useSiteConfig } from "@/lib/store";
 import { formatIQD } from "@/lib/data";
 
-/* نجمة ثمانية — من زخرفة الشعار */
-function Star8({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.2">
-      <path d="M12 2l2.6 6.8L21.4 6l-2.8 6.8 6.8 2.6-6.8 2.6L21.4 22l-6.8-2.8L12 26" transform="scale(.86) translate(2 -1)" />
-      <rect x="5" y="5" width="14" height="14" transform="rotate(45 12 12)" />
-      <rect x="5" y="5" width="14" height="14" />
-    </svg>
-  );
-}
-
-/* عنوان قسم بعلامة */
-function Eyebrow({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <Star8 className="h-3.5 w-3.5 text-clay" />
-      <span className="text-[10.5px] font-bold tracking-[0.22em] text-muted">{label}</span>
-    </div>
-  );
+/* خطّ قصير يسبق العنوان — بديل هادئ للعلامات */
+function Rule() {
+  return <span className="block h-px w-9 bg-clay" />;
 }
 
 /* ═══ ١) البطل ═══ */
@@ -40,16 +24,16 @@ export function Hero() {
 
   return (
     <section className="border-b border-line">
-      <div className="mx-auto max-w-4xl px-5 pb-11 pt-10 md:px-8 md:pb-16 md:pt-16">
-        <Eyebrow label="KHAZF · BAGHDAD" />
-        <h1 className="mt-6 font-[Amiri,serif] text-[38px] font-bold leading-[1.22] md:text-[58px]">
+      <div className="mx-auto max-w-4xl px-5 pb-8 pt-8 md:px-8 md:pb-12 md:pt-14">
+        <Rule />
+        <h1 className="khz-in mt-5 font-[Amiri,serif] text-[36px] font-bold leading-[1.22] md:text-[58px]">
           قهوتك،<br />من أول رشفة
         </h1>
-        <p className="mt-5 max-w-md text-[14px] leading-[2] text-muted md:text-[15px]">
+        <p className="khz-in khz-in-1 mt-4 max-w-md text-[13.5px] leading-[1.95] text-muted md:text-[15px]">
           محاصيل محدّدة المصدر، نحمّصها بدفعات صغيرة وتصلك بابك خلال يوم إلى يومين.
         </p>
 
-        <div className="mt-8 flex flex-wrap gap-px bg-line">
+        <div className="khz-in khz-in-2 mt-6 flex flex-wrap gap-px bg-line">
           <Link href="/products/?cat=coffee"
             className="flex min-h-[52px] flex-1 items-center justify-center bg-olive px-7 text-[14.5px] font-bold text-olive-text transition-all hover:brightness-110 active:scale-[0.99]"
             style={{ borderRadius: 4 }}>
@@ -63,7 +47,7 @@ export function Hero() {
         </div>
 
         {avg && (
-          <p className="mt-6 flex items-center gap-2 text-[12px] text-muted">
+          <p className="mt-5 flex items-center gap-2 text-[12px] text-muted">
             <span className="font-num font-bold text-ink">{avg}</span>
             <span className="text-gold">★★★★★</span>
             <span>من {total} تقييم</span>
@@ -79,16 +63,14 @@ export function TrustBar() {
   const config = useSiteConfig();
   return (
     <section className="border-b border-line bg-bg-alt">
-      <div className="mx-auto grid max-w-4xl grid-cols-2 gap-px bg-line md:grid-cols-4">
+      <div className="mx-auto grid max-w-4xl grid-cols-3 gap-px bg-line">
         {[
-          ["١–٢ يوم", "توصيل لكل العراق"],
-          ["عند الاستلام", "افحص قبل أن تدفع"],
-          [`${config.cashbackPct ?? 3}٪ نقاط`, "تعود خصماً بطلبك القادم"],
-          ["دفعات صغيرة", "لا تخزين على الرف"],
-        ].map(([t, d]) => (
-          <div key={t} className="bg-bg-alt px-4 py-5">
-            <p className="text-[12.5px] font-bold">{t}</p>
-            <p className="mt-1 text-[10.5px] leading-snug text-muted">{d}</p>
+          "توصيل ١–٢ يوم",
+          "الدفع عند الاستلام",
+          `${config.cashbackPct ?? 3}٪ نقاط ولاء`,
+        ].map((t) => (
+          <div key={t} className="bg-bg-alt px-3 py-3.5 text-center">
+            <p className="text-[11.5px] font-semibold leading-tight">{t}</p>
           </div>
         ))}
       </div>
@@ -107,8 +89,8 @@ export function Crops() {
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <Eyebrow label="THE CROPS" />
-            <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">المحاصيل</h2>
+            <Rule />
+        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">المحاصيل</h2>
           </div>
           <Link href="/products/?cat=coffee" className="shrink-0 text-[12.5px] font-bold text-accent">
             الكل ←
@@ -118,14 +100,14 @@ export function Crops() {
         <div className="no-scrollbar -mx-5 mt-7 flex snap-x snap-mandatory gap-px overflow-x-auto bg-line px-5 md:mx-0 md:grid md:grid-cols-3 md:px-0">
           {list.map((c, i) => (
             <Link key={c.slug} href={`/product/?c=${c.slug}`}
-              className="w-[74%] shrink-0 snap-start bg-bg transition-colors hover:bg-card md:w-auto">
-              <div className="relative aspect-square bg-bg-alt">
+              className="group w-[74%] shrink-0 snap-start bg-bg transition-colors hover:bg-card md:w-auto">
+              <div className="relative aspect-square overflow-hidden bg-bg-alt">
                 {c.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
+                  <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
                 ) : (
                   <span className="flex h-full items-center justify-center">
-                    <Star8 className="h-10 w-10 text-line" />
+                    <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
                   </span>
                 )}
                 {i === 0 && (
@@ -145,9 +127,13 @@ export function Crops() {
                     {c.notes.join(" · ")}
                   </p>
                 )}
-                <p className="font-num mt-4 border-t border-line pt-3.5 text-[15px] font-bold">
-                  {formatIQD(c.prices.g250)}
-                </p>
+                <div className="mt-4 flex items-center justify-between border-t border-line pt-3.5">
+                  <span className="font-num text-[15px] font-bold">{formatIQD(c.prices.g250)}</span>
+                  <span className="flex items-center gap-1 text-[12px] font-bold text-accent">
+                    اكتشف المحصول
+                    <span className="transition-transform group-hover:-translate-x-1">←</span>
+                  </span>
+                </div>
               </div>
             </Link>
           ))}
@@ -160,13 +146,12 @@ export function Crops() {
 
 /* ═══ ٤) ابنِ بوكسك ═══ */
 export function BuildBox() {
+  const { coffees } = useCatalog();
+  const shots = coffees.filter((c) => c.image).slice(0, 3);
   return (
     <section className="border-b border-line bg-olive text-olive-text">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <div className="flex items-center gap-2.5">
-          <Star8 className="h-3.5 w-3.5 text-gold" />
-          <span className="text-[10.5px] font-bold tracking-[0.22em] opacity-65">BUILD YOUR BOX</span>
-        </div>
+        <span className="block h-px w-9 bg-gold" />
 
         <h2 className="mt-5 font-[Amiri,serif] text-[30px] font-bold leading-[1.3] md:text-[42px]">
           اختَر أكثر.<br />وفّر أكثر.
@@ -184,11 +169,24 @@ export function BuildBox() {
           ))}
         </div>
 
-        <Link href="/box/"
-          className="mt-7 inline-flex min-h-[52px] items-center bg-gold px-8 text-[14.5px] font-bold text-olive transition-all hover:brightness-105 active:scale-[0.99]"
-          style={{ borderRadius: 4 }}>
-          ابدأ بناء البوكس ←
-        </Link>
+        <div className="mt-7 flex flex-wrap items-center gap-6">
+          <Link href="/box/"
+            className="inline-flex min-h-[52px] items-center bg-gold px-8 text-[14.5px] font-bold text-olive transition-all hover:brightness-105 active:scale-[0.99]"
+            style={{ borderRadius: 4 }}>
+            ابدأ بناء البوكس ←
+          </Link>
+
+          {shots.length > 0 && (
+            <div className="flex -space-x-3 rtl:space-x-reverse">
+              {shots.map((c) => (
+                <div key={c.slug} className="h-14 w-14 overflow-hidden border-2 border-olive bg-bg-alt" style={{ borderRadius: 4 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.image!} alt="" className="h-full w-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -196,29 +194,36 @@ export function BuildBox() {
 
 /* ═══ ٥) أكمِل تجربتك ═══ */
 export function Gear() {
-  const { activePlaces } = useCatalog();
+  const { activePlaces, tools, coffees } = useCatalog();
+  const pick = (cat: string) => tools.find((t) => t.cats.includes(cat as never) && t.images?.[0])?.images?.[0] ?? null;
   const cards = [
-    { href: "/products/?cat=drip", t: "الأدوات", d: "فلاتر وسيرفرات وأقماع", place: "drip_tools" },
-    { href: "/products/?cat=cups", t: "الأكواب", d: "قطع مختارة للتقديم", place: "cups" },
-    { href: "/box/", t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null },
+    { href: "/products/?cat=drip", t: "الأدوات", d: "فلاتر وسيرفرات وأقماع", place: "drip_tools", img: pick("تقطير") },
+    { href: "/products/?cat=cups", t: "الأكواب", d: "قطع مختارة للتقديم", place: "cups", img: pick("أكواب") },
+    { href: "/box/", t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null, img: coffees.find((c) => c.image)?.image ?? null },
   ].filter((c) => !c.place || activePlaces.includes(c.place));
   if (cards.length === 0) return null;
 
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Eyebrow label="BEYOND THE BEAN" />
-        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
+        <Rule />
+        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
 
         <div className="mt-7 grid grid-cols-1 gap-px bg-line md:grid-cols-3">
-          {cards.map(({ href, t, d }) => (
-            <Link key={t} href={href} className="group bg-bg px-5 py-6 transition-colors hover:bg-card">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[16px] font-bold">{t}</p>
-                  <p className="mt-1.5 text-[12px] text-muted">{d}</p>
-                </div>
-                <span className="text-[15px] text-muted transition-transform group-hover:-translate-x-1">←</span>
+          {cards.map(({ href, t, d, img }) => (
+            <Link key={t} href={href} className="group flex items-center gap-4 bg-bg p-4 transition-colors hover:bg-card">
+              <div className="h-[72px] w-[72px] shrink-0 overflow-hidden bg-bg-alt" style={{ borderRadius: 4 }}>
+                {img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={img} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]" />
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-bold">{t}</p>
+                <p className="mt-1 text-[11.5px] leading-snug text-muted">{d}</p>
+                <span className="mt-2 flex items-center gap-1 text-[11.5px] font-bold text-accent">
+                  تصفّح <span className="transition-transform group-hover:-translate-x-1">←</span>
+                </span>
               </div>
             </Link>
           ))}
@@ -233,8 +238,8 @@ export function Why() {
   return (
     <section className="border-b border-line bg-bg-alt">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Eyebrow label="OUR PROMISE" />
-        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">لماذا خزف</h2>
+        <Rule />
+        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">لماذا خزف</h2>
 
         <div className="mt-7 grid grid-cols-1 gap-px bg-line md:grid-cols-3">
           {[
@@ -255,20 +260,44 @@ export function Why() {
 
 /* ═══ ٧) التقييمات ═══ */
 export function Reviews() {
-  const { coffees } = useCatalog();
+  const { coffees, brandReviews } = useCatalog();
   const rated = coffees.filter((c) => c.reviewsCount > 0);
   const total = rated.reduce((t, c) => t + c.reviewsCount, 0);
-  if (total < 3) return null;
-  const avg = (rated.reduce((t, c) => t + c.rating * c.reviewsCount, 0) / total).toFixed(1);
+  const avg = total > 0 ? (rated.reduce((t, c) => t + c.rating * c.reviewsCount, 0) / total).toFixed(1) : null;
+  const quotes = brandReviews ?? [];
+  if (total < 3 && quotes.length === 0) return null;
 
   return (
     <section className="border-b border-line">
-      <div className="mx-auto flex max-w-4xl items-center gap-6 px-5 py-10 md:px-8">
-        <p className="font-num text-[40px] font-bold leading-none">{avg}</p>
-        <div className="border-s border-line ps-6">
-          <p className="text-[15px] text-gold">★★★★★</p>
-          <p className="font-num mt-1.5 text-[12px] text-muted">من {total} تقييم لعملائنا</p>
-        </div>
+      <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
+        <Rule />
+        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">آراء عملائنا</h2>
+
+        {avg && total >= 3 && (
+          <div className="mt-6 flex items-center gap-5">
+            <p className="font-num text-[38px] font-bold leading-none">{avg}</p>
+            <div className="border-s border-line ps-5">
+              <p className="text-[14px] text-gold">★★★★★</p>
+              <p className="font-num mt-1 text-[12px] text-muted">من {total} تقييم</p>
+            </div>
+          </div>
+        )}
+
+        {quotes.length > 0 && (
+          <div className="mt-7 grid grid-cols-1 gap-px bg-line md:grid-cols-2">
+            {quotes.slice(0, 4).map((q: { quote: string; author: string; context: string; rating: number }, i: number) => (
+              <div key={i} className="bg-bg px-5 py-6">
+                <p className="text-[13px] text-gold">{"★".repeat(q.rating)}</p>
+                <p className="mt-2.5 text-[14px] leading-[1.9]">«{q.quote}»</p>
+                {(q.author || q.context) && (
+                  <p className="mt-3 text-[11.5px] text-muted">
+                    {[q.author, q.context].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -279,8 +308,8 @@ export function Assistant({ children }: { children?: React.ReactNode }) {
   return (
     <section id="finder">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Eyebrow label="NOT SURE?" />
-        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">
+        <Rule />
+        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">
           ما تعرف شنو تختار؟
         </h2>
         <p className="mt-3 max-w-md text-[13.5px] leading-[1.95] text-muted">

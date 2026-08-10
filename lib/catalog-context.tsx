@@ -14,6 +14,7 @@ export interface CatalogValue {
   banners: PromoBanner[];
   toolsEnabled: boolean;
   activePlaces: string[]; // slugs المفعّلة
+  brandReviews?: { quote: string; author: string; context: string; rating: number }[];
 }
 
 const Ctx = createContext<CatalogValue | null>(null);

@@ -555,3 +555,15 @@ export const dailyDigests = pgTable("daily_digests", {
   digestDate: text("digest_date").notNull().unique(),
   sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/* آراء البراند — تُكتب من اللوحة وتُعرض بالرئيسية */
+export const brandReviews = pgTable("brand_reviews", {
+  id: serial("id").primaryKey(),
+  quote: text("quote").notNull(),
+  author: text("author"),
+  context: text("context"),
+  rating: smallint("rating").notNull().default(5),
+  sort: smallint("sort").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

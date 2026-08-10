@@ -37,7 +37,10 @@ export interface PromoBanner {
   promoLink: string | null;
 }
 
+export type BrandReview = { quote: string; author: string; context: string; rating: number };
+
 export interface CatalogData {
+  brandReviews?: BrandReview[];
   coffees: Coffee[];
   tools: Tool[];
   places: CatalogPlace[];
@@ -236,7 +239,14 @@ async function buildCatalog(): Promise<CatalogData> {
   }
 
   const now = new Date();
+  const brandReviewRows = await db.select().from(s.brandReviews)
+    .where(eq(s.brandReviews.active, true)).orderBy(asc(s.brandReviews.sort))
+    .catch(() => []);
+
   return {
+    brandReviews: brandReviewRows.map((r) => ({
+      quote: r.quote, author: r.author ?? "", context: r.context ?? "", rating: r.rating,
+    })),
     coffees,
     tools,
     places: placesRows.map((p) => ({ slug: p.slug, name: p.name })),

@@ -251,3 +251,20 @@ tr.row-tap .row-link {
   margin: -14px -16px;
   padding: 14px 16px;
 }
+
+
+/* ── حركات محسوبة: دخول هادئ عند الظهور فقط ── */
+@keyframes khz-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.khz-in {
+  animation: khz-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.khz-in-1 { animation-delay: 0.05s; }
+.khz-in-2 { animation-delay: 0.12s; }
+.khz-in-3 { animation-delay: 0.19s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .khz-in { animation: none; }
+}
