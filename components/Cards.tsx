@@ -108,11 +108,20 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
             />
           )}
         </div>
-        {coffee.isNew && <Badge label="جديد" />}
+        {coffee.isBest && !coffee.soldOut
+          ? <span className="absolute end-0 top-0 z-[2] bg-ink px-2.5 py-1.5 text-[10px] font-bold text-bg">الأكثر مبيعاً</span>
+          : coffee.isNew && <Badge label="جديد" />}
         <div className="relative z-[2]"><FavBtn id={`c:${coffee.slug}`} /></div>
       </div>
       <div className="block p-4">
-        <p className="text-[11px] text-muted">{coffee.country}</p>
+        <div className="flex items-center gap-1.5">
+          {coffee.tag && (
+            <span className="bg-clay/12 px-1.5 py-0.5 text-[10px] font-bold text-clay" style={{ borderRadius: 3 }}>
+              {coffee.tag}
+            </span>
+          )}
+          <span className="text-[11px] text-muted">{coffee.country}</span>
+        </div>
         <h3 className="mt-0.5 text-lg font-bold">{coffee.name}</h3>
         {coffee.reviewsCount > 0 && (
           <div className="mt-1 flex items-center gap-2">

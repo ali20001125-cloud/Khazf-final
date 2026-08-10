@@ -187,7 +187,7 @@ async function buildCatalog(): Promise<CatalogData> {
   const cupsActive = placesRows.some((p) => p.slug === "cups");
   const dripActive = placesRows.some((p) => p.slug === "drip_tools");
 
-  const rows = await db.select().from(s.products).where(eq(s.products.active, true));
+  const rows = await db.select().from(s.products).where(eq(s.products.active, true)).orderBy(asc(s.products.sortOrder), asc(s.products.id));
   if (rows.length === 0) return { coffees: [], tools: [], places: [], boxGiftNames: [], boxGifts: [], boxGiftPicks: 1, banners: [] };
 
   const ids = rows.map((r) => r.id);

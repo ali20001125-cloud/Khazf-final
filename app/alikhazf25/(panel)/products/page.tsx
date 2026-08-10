@@ -2,6 +2,7 @@ import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/server/db";
 import { PageTitle, Card, Th, Td, money } from "@/components/admin/ui";
+import CropOrder from "@/components/admin/CropOrder";
 import { toggleProduct } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +12,8 @@ export default async function CoffeePage() {
     SELECT p.*, COALESCE(SUM(b.qty_remaining),0)::int AS stock
     FROM products p LEFT JOIN inventory_batches b ON b.product_id = p.id
     WHERE p.type = 'COFFEE'
-    GROUP BY p.id ORDER BY p.created_at`);
-  type Row = { id: number; name: string; badge: string | null;
+    GROUP BY p.id ORDER BY p.sort_order, p.id`);
+  type Row = { id: number; name: string; slug: string; badge: string | null; tag: string | null;
     active: boolean; price_g250: number | null; stock_threshold: number; stock: number };
   const products = rows.rows as unknown as Row[];
 
@@ -20,6 +21,13 @@ export default async function CoffeePage() {
     <div>
       <PageTitle title="القهوة" sub="المحاصيل · الأسعار يدوية · الرصيد محسوب من الوجبات"
         action={<Link href="/alikhazf25/products/new/" className="rounded-[12px] bg-olive px-5 py-2.5 text-[13px] font-bold text-olive-text">+ محصول جديد</Link>} />
+      {/* ترتيب المحاصيل بالسحب */}
+      <Card className="mb-5 p-5">
+        <p className="mb-1 text-[14px] font-bold">ترتيب المحاصيل</p>
+        <p className="mb-4 text-[12px] text-muted">اسحب لتغيير ترتيب ظهورها في الرئيسية والمتجر</p>
+        <CropOrder rows={products.map((p) => ({ id: p.id, name: p.name, slug: p.slug, tag: p.tag, active: p.active }))} />
+      </Card>
+
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="border-b border-line">

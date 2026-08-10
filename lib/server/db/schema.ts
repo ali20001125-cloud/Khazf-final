@@ -82,7 +82,9 @@ export const products = pgTable(
     process: text("process"),
     roast: text("roast"),
   roastedOn: date("roasted_on"),
-  roastDisplay: text("roast_display").notNull().default("relative"),   // تاريخ التحميص (يُعرض ٣٠ يوماً ثم يختفي)
+  roastDisplay: text("roast_display").notNull().default("relative"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  tag: text("tag"),   // تاريخ التحميص (يُعرض ٣٠ يوماً ثم يختفي)
   announce: boolean("announce").notNull().default(false),  // أعلنه لقائمة البريد
   brewMethods: text("brew_methods").array(),
   brew: jsonb("brew"),   // نِسب التحضير الخاصة: [{name, nums}]

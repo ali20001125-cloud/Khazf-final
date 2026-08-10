@@ -177,3 +177,25 @@ export async function toggleProduct(f: FormData) {
   revalidatePath("/alikhazf25/products");
   invalidateCatalog(); invalidateSettings(); revalidatePath("/");
 }
+
+/** ترتيب المحاصيل بالسحب — يُطبَّق على الرئيسية والمتجر */
+export async function reorderProducts(order: number[]) {
+  await Promise.all(
+    order.map((id, i) =>
+      db.update(s.products).set({ sortOrder: i + 1 }).where(eq(s.products.id, id))
+    )
+  );
+  invalidateCatalog();
+  revalidatePath("/");
+  revalidatePath("/alikhazf25/products");
+}
+
+/** الوسم القصير (فاكهي · كلاسيكي…) */
+export async function setProductTag(f: FormData) {
+  const id = Number(f.get("id") ?? 0);
+  const tag = String(f.get("tag") ?? "").trim() || null;
+  if (id > 0) await db.update(s.products).set({ tag }).where(eq(s.products.id, id));
+  invalidateCatalog();
+  revalidatePath("/");
+  revalidatePath("/alikhazf25/products");
+}

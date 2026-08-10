@@ -90,7 +90,7 @@ export function Crops() {
   const { coffees } = useCatalog();
   const { addToCart, showToast } = useStore();
   const config = useSiteConfig();
-  const list = coffees.filter((c) => !c.soldOut);
+  const list = coffees;
   if (list.length === 0) return null;
   const bestSlug = (config.homeBestsellerSlug || "").trim().toLowerCase();
   /* الأكثر مبيعاً يتصدّر الشريط */
@@ -127,17 +127,29 @@ export function Crops() {
                     <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
                   </span>
                 )}
-                {c.slug.toLowerCase() === badgeSlug && (
+                {c.slug.toLowerCase() === badgeSlug && !c.soldOut && (
                   <span className="absolute end-0 top-0 bg-ink px-2.5 py-1.5 text-[10px] font-bold text-bg">
                     الأكثر مبيعاً
+                  </span>
+                )}
+                {c.soldOut && (
+                  <span className="absolute end-0 top-0 bg-accent px-2.5 py-1.5 text-[10px] font-bold text-white">
+                    نفد مؤقتاً
                   </span>
                 )}
               </div>
 
               <div className="p-4">
-                <p className="text-[10px] font-semibold tracking-[0.14em] text-muted">
-                  {[c.country, c.process].filter(Boolean).join(" · ").toUpperCase()}
-                </p>
+                <div className="flex items-center gap-2">
+                  {c.tag && (
+                    <span className="bg-clay/12 px-2 py-0.5 text-[10.5px] font-bold text-clay" style={{ borderRadius: 3 }}>
+                      {c.tag}
+                    </span>
+                  )}
+                  <span className="text-[10px] font-semibold tracking-[0.14em] text-muted">
+                    {[c.country, c.process].filter(Boolean).join(" · ").toUpperCase()}
+                  </span>
+                </div>
                 <h3 className="mt-2 font-[Amiri,serif] text-[22px] font-bold leading-tight">{c.name}</h3>
                 {c.notes?.length > 0 && (
                   <p className="mt-2 text-[12px] leading-relaxed" style={{ color: c.accent }}>
@@ -147,16 +159,18 @@ export function Crops() {
                 <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3.5">
                   <span className="font-num text-[15px] font-bold">{formatIQD(c.prices.g250)}</span>
                   <button
+                    disabled={c.soldOut}
                     onClick={(e) => {
                       e.preventDefault();
+                      if (c.soldOut) return;
                       addToCart({ slug: c.slug, variant: "G250", grind: "حبوب كاملة",
                         name: c.name, meta: "٢٥٠غ · حبوب كاملة", priceShown: c.prices.g250 });
                       showToast(`أُضيف ${c.name}`);
                     }}
                     aria-label={`أضف ${c.name}`}
-                    className="flex h-9 items-center gap-1.5 bg-olive px-4 text-[12.5px] font-bold text-olive-text transition-all hover:brightness-110 active:scale-95"
+                    className="flex h-9 items-center gap-1.5 bg-olive px-4 text-[12.5px] font-bold text-olive-text transition-all hover:brightness-110 active:scale-95 disabled:opacity-40"
                     style={{ borderRadius: 4 }}>
-                    أضف +
+                    {c.soldOut ? "نفد" : "أضف +"}
                   </button>
                 </div>
               </div>

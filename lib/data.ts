@@ -2,7 +2,10 @@
 
 export interface Coffee {
   roastedOn?: string | null;
-  roastDisplay?: string;   // تاريخ التحميص (يُعرض ٣٠ يوماً)
+  roastDisplay?: string;
+  sortOrder?: number;
+  tag?: string | null;
+  isBest?: boolean;   // تاريخ التحميص (يُعرض ٣٠ يوماً)
   flavorAcidity?: number | null;   // ملامح النكهة ١–٥ (تُستخدم بأداة الترشيح)
   flavorSweetness?: number | null;
   flavorBody?: number | null;
