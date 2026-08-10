@@ -98,7 +98,7 @@ export default function CartPage() {
      تضمن أن ما يراه الزبون في السلة (خصم الرحلة، التوصيل المجاني، الهدية، الكاش)
      هو نفسه في الدفع، بلا مفاجآت. */
   const [preview, setPreview] = useState<{
-    itemsSubtotal: number; boxDiscount: number; couponDiscount: number;
+    itemsSubtotal: number; boxDiscount: number; boxCapReached?: boolean; couponDiscount: number;
     journeyDiscount: number; journeyPct: number; giftName: string | null;
     pointsAvailable: number; pointsUsedDinars: number; pointsRemaining: number;
     deliveryCharged: number; freeDelivery: boolean; total: number;
@@ -257,10 +257,17 @@ export default function CartPage() {
           })}
 
           {/* عناصر مفردة (خارج البوكس والحزم) */}
-          {cart.filter((i) => i.boxGroup == null && !i.bundleId).map((i) => (
-            <div key={i.key} className="flex items-center gap-4 rounded-[5px] border border-line bg-card p-4">
+          {cart.filter((i) => i.boxGroup == null && !i.bundleId).map((i) => {
+            const prod = [...coffees, ...tools].find((p) => p.slug === i.slug);
+            const out = !!prod?.soldOut;
+            return (
+            <div key={i.key} className={`flex items-center gap-4 rounded-[5px] border p-4 ${
+              out ? "border-accent/40 bg-accent/5 opacity-70" : "border-line bg-card"}`}>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold">{i.name}</p>
+                <p className="truncate font-bold">
+                  {i.name}
+                  {out && <span className="ms-2 text-[11px] font-bold text-accent">نفد — لن يُحتسب</span>}
+                </p>
                 {i.meta && <p className="mt-0.5 text-[12px] text-muted">{i.meta}</p>}
                 <p className="font-num mt-1 text-[13px] font-semibold">{formatIQD(i.priceShown)}</p>
               </div>
@@ -281,7 +288,8 @@ export default function CartPage() {
               </div>
               <button onClick={() => removeFromCart(i.key)} aria-label="احذف" className="text-muted transition-colors hover:text-accent"><Trash2 size={17} /></button>
             </div>
-          ))}
+            );
+          })}
 
           {/* البوكس — بطاقة واحدة مجمّعة */}
           {(() => {
@@ -371,6 +379,12 @@ export default function CartPage() {
         </div>
 
         <div className="mt-4"><PaperCupsGift variant="card" /></div>
+
+        {preview?.boxCapReached && (
+          <p className="mt-3 border border-gold/35 bg-gold/8 px-4 py-3 text-[12.5px] font-semibold text-gold-text" style={{ borderRadius: 4 }}>
+            خصمك بلغ الحدّ الأعلى — <span className="font-num">{formatIQD(config.boxDiscountCap ?? 20000)}</span>
+          </p>
+        )}
 
         {/* الملخص */}
         <aside className="h-fit space-y-4 rounded-[6px] border border-line bg-card p-6 lg:sticky lg:top-28">

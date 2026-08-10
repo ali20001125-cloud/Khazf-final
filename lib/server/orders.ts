@@ -117,33 +117,22 @@ export async function createOrder(input: CheckoutInput) {
     const grossSubtotal = lines.reduce((t, l) => t + l.lineTotal, 0);
 
     /* ── ٢) البوكس: عدّ الأكياس وتطبيق المستويات (من الإعدادات) ── */
-    const boxLines = lines.filter((l) => l.boxGroup != null && l.isCoffee && l.variant === "G250");
+    // خصم الكمية على كل أكياس ٢٥٠غ — داخل الصندوق أو خارجه
+    const boxLines = lines.filter((l) => l.isCoffee && l.variant === "G250");
     const bags = boxLines.reduce((t, l) => t + l.qty, 0);
     const tiers = (settings.boxTiers ?? []) as { bags: number; rewardType: string; value?: number }[];
     const boxCap = settings?.boxDiscountCap ?? 0;
 
-    /* كل صندوق يُحسب على حدة — والسقف يُطبّق على كلٍّ منفرداً */
-    const boxGroups = new Map<number, { qty: number; total: number }>();
-    for (const l of boxLines) {
-      const key = l.boxGroup as number;
-      const g = boxGroups.get(key) ?? { qty: 0, total: 0 };
-      g.qty += l.qty; g.total += l.lineTotal;
-      boxGroups.set(key, g);
-    }
-
-    let boxPct = 0, freeDeliveryBox = false, giftEligible = false, quantityDiscount = 0;
-    for (const g of boxGroups.values()) {
-      let pct = 0;
-      for (const t of tiers)
-        if (g.qty >= t.bags) {
-          if (t.rewardType === "PERCENT") pct = Math.max(pct, t.value ?? 0);
-          if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
-          if (t.rewardType === "GIFT") giftEligible = true;
-        }
-      boxPct = Math.max(boxPct, pct);
-      const raw = Math.round((g.total * pct) / 100);
-      quantityDiscount += boxCap > 0 ? Math.min(raw, boxCap) : raw;
-    }
+    const boxSubtotal = boxLines.reduce((t, l) => t + l.lineTotal, 0);
+    let boxPct = 0, freeDeliveryBox = false, giftEligible = false;
+    for (const t of tiers)
+      if (bags >= t.bags) {
+        if (t.rewardType === "PERCENT") boxPct = Math.max(boxPct, t.value ?? 0);
+        if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
+        if (t.rewardType === "GIFT") giftEligible = true;
+      }
+    const rawBoxDiscount = Math.round((boxSubtotal * boxPct) / 100);
+    const quantityDiscount = boxCap > 0 ? Math.min(rawBoxDiscount, boxCap) : rawBoxDiscount;
     const itemsSubtotal = grossSubtotal - quantityDiscount;
 
     /* هدية البوكس (٦+): يختارها الزبون من هدايا اللوحة */

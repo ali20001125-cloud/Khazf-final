@@ -172,25 +172,20 @@ export default function BoxPage() {
       </div>
       <div className="mx-auto max-w-3xl px-4 md:px-6">
         {/* التقدّم — يلتصق بأعلى الشاشة مباشرة عند التمرير (بلا فراغ) */}
-        <div className="sticky top-0 z-20 -mx-4 border-b border-line bg-bg-alt/97 px-4 pb-3 pt-3 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.15)] backdrop-blur">
+        <div className="sticky top-0 z-20 -mx-4 border-b border-line bg-bg/96 px-4 pb-2.5 pt-2.5 backdrop-blur">
           <div className="text-center">
           {/* شريط التقدّم + عدّاد صغير مدمج */}
-          <div className="mb-2 flex items-center justify-center gap-2">
+          <div className="mb-2.5 flex items-center justify-center gap-2">
             <span className={`font-num text-[18px] font-bold ${count > 0 ? "text-accent" : "text-muted"}`}>{count}</span>
             <span className="text-[12px] text-muted">{count === 1 ? "كيس" : "أكياس"}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-bg-alt">
-            <i
-              className="block h-full rounded-full bg-accent transition-all duration-500"
-              style={{ width: `${Math.min(count / 6, 1) * 100}%` }}
-            />
-          </div>
+
           {/* المستويات كصفّ واحد */}
-          <div className="mt-4 flex gap-px overflow-hidden rounded-[4px] bg-line">
+          <div className="flex gap-px overflow-hidden rounded-[4px] bg-line">
             {tiers.map((t, i) => {
               const on = count >= i + 2;
               return (
-                <div key={t.n} className={`flex-1 px-2 py-3 text-center transition-colors ${
+                <div key={t.n} className={`flex-1 px-2 py-2.5 text-center transition-colors ${
                   on ? (t.gold ? "bg-gold text-olive" : "bg-olive text-olive-text") : "bg-card text-muted"
                 }`}>
                   <p className="font-num text-[14px] font-bold">{t.n}</p>
@@ -202,7 +197,7 @@ export default function BoxPage() {
 
           {/* سطر واحد: التوفير أو المكسب التالي */}
           {savings > 0 ? (
-            <p className="mt-3 text-[13px] font-bold text-ok">
+            <p className="mt-2.5 text-[12.5px] font-bold text-ok">
               وفّرت <span className="font-num">{formatIQD(savings)}</span> حتى الآن
               {nextGain && nextGain.extraSaving > 0 && (
                 <span className="font-normal text-muted">
@@ -213,10 +208,16 @@ export default function BoxPage() {
               )}
             </p>
           ) : (
-            <p className="mt-3 text-[12.5px] font-semibold text-muted">{hintFor(count)}</p>
+            <p className="mt-2.5 text-[12px] font-semibold text-muted">{hintFor(count)}</p>
           )}
           </div>
         </div>
+
+        {savings >= CAP && (
+          <p className="mt-3 border border-gold/35 bg-gold/8 px-4 py-2.5 text-[12.5px] font-semibold text-gold-text" style={{ borderRadius: 4 }}>
+            خصمك بلغ الحدّ الأعلى — <span className="font-num">{formatIQD(CAP)}</span>
+          </p>
+        )}
 
         {/* شريط التوصيل المجاني */}
         {count > 0 && config.freeDeliveryThreshold > 0 && (() => {
@@ -430,11 +431,10 @@ export default function BoxPage() {
           </div>
           <button
             onClick={order}
-            disabled={count === 0}
-            className="btn btn-olive magnetic !px-8 !py-3.5 text-sm active:scale-[0.97] disabled:opacity-40"
-            data-strength="16"
+            disabled={count < 2}
+            className="btn btn-olive !px-7 !py-3 text-[13.5px] active:scale-[0.97] disabled:opacity-40"
           >
-            أضف البوكس للسلة
+            {count < 2 ? "أضِف كيسين على الأقل" : "أضف للسلة"}
           </button>
         </div>
       </div>

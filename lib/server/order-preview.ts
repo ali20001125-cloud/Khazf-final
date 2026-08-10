@@ -17,6 +17,7 @@ export type PreviewResult = {
   itemsSubtotal: number;   // بعد خصم كمية البوكس
   grossSubtotal: number;   // قبل أي خصم
   boxDiscount: number;     // خصم أكياس البوكس
+  boxCapReached?: boolean; // بلغ الخصم سقفه
   journeyDiscount: number; // خصم الرحلة (مقرّب لأعلى ٢٥٠)
   journeyPct: number;      // النسبة المعروضة للزبون (مثل ١٠)
   couponDiscount: number;
@@ -67,31 +68,23 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
       : (it.variant === "PIECE" ? (p.salePrice ?? priceOf(p, it.variant)) : priceOf(p, it.variant)) ?? 0;
     const lineTotal = unit * it.qty;
     grossSubtotal += lineTotal;
-    if (it.boxGroup != null && it.variant === "G250") boxLines.push({ qty: it.qty, total: lineTotal, group: it.boxGroup });
+    // خصم الكمية يشمل كل أكياس ٢٥٠غ — داخل الصندوق أو خارجه (الكيلو مستثنى)
+    if (it.variant === "G250") boxLines.push({ qty: it.qty, total: lineTotal, group: 0 });
   }
 
   // ٢) خصم أكياس البوكس — كل صندوق يُحسب وحده والسقف يُطبّق عليه منفرداً
   const tiers = (settings?.boxTiers ?? []) as { bags: number; rewardType: string; value?: number }[];
   const boxCap = settings?.boxDiscountCap ?? 0;
-  const groups = new Map<number, { qty: number; total: number }>();
-  for (const l of boxLines) {
-    const g = groups.get(l.group) ?? { qty: 0, total: 0 };
-    g.qty += l.qty; g.total += l.total;
-    groups.set(l.group, g);
-  }
-
-  let boxDiscount = 0, freeDeliveryBox = false, boxPct = 0;
   const bags = boxLines.reduce((t, l) => t + l.qty, 0);
-  for (const g of groups.values()) {
-    let pct = 0;
-    for (const t of tiers) if (g.qty >= t.bags) {
-      if (t.rewardType === "PERCENT") pct = Math.max(pct, t.value ?? 0);
-      if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
-    }
-    boxPct = Math.max(boxPct, pct);
-    const raw = Math.round((g.total * pct) / 100);
-    boxDiscount += boxCap > 0 ? Math.min(raw, boxCap) : raw;
+  const boxSubtotal = boxLines.reduce((t, l) => t + l.total, 0);
+  let boxPct = 0, freeDeliveryBox = false;
+  for (const t of tiers) if (bags >= t.bags) {
+    if (t.rewardType === "PERCENT") boxPct = Math.max(boxPct, t.value ?? 0);
+    if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
   }
+  const rawBoxDiscount = Math.round((boxSubtotal * boxPct) / 100);
+  const boxDiscount = boxCap > 0 ? Math.min(rawBoxDiscount, boxCap) : rawBoxDiscount;
+  const capReached = boxCap > 0 && rawBoxDiscount > boxCap;
   const itemsSubtotal = grossSubtotal - boxDiscount;
 
   // ٣) كوبون
@@ -155,7 +148,7 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
   const total = roundUp250(afterDiscounts - pointsUsedDinars + deliveryCharged);
 
   return {
-    itemsSubtotal, grossSubtotal, boxDiscount, journeyDiscount, journeyPct,
+    itemsSubtotal, grossSubtotal, boxDiscount, boxCapReached: capReached, journeyDiscount, journeyPct,
     couponDiscount, pointsAvailable, pointsUsedDinars, pointsRemaining,
     deliveryCharged, freeDelivery, total, giftName,
   };
