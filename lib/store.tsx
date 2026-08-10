@@ -230,8 +230,9 @@ export function useStore() {
 }
 
 /* حساب معاينة البوكس بالعميل — نفس مصدر الحقيقة (boxTiers من الإعدادات) */
-export function boxPreview(cart: CartItem[], tiers: BoxTier[]) {
-  const boxLines = cart.filter((i) => i.boxGroup != null && i.variant === "G250");
+export function boxPreview(cart: CartItem[], tiers: BoxTier[], cap = 0) {
+  // كل أكياس ٢٥٠غ تدخل الحساب — داخل الصندوق أو خارجه
+  const boxLines = cart.filter((i) => i.variant === "G250");
   const bags = boxLines.reduce((t, i) => t + i.qty, 0);
   const subtotal = boxLines.reduce((t, i) => t + i.priceShown * i.qty, 0);
   let pct = 0, freeDelivery = false, gift = false;
@@ -242,11 +243,12 @@ export function boxPreview(cart: CartItem[], tiers: BoxTier[]) {
       if (t.rewardType === "GIFT") gift = true;
     }
   const rawDiscount = Math.round((subtotal * pct) / 100);
-  // الإجمالي بعد الخصم يتقرّب لأعلى ٢٥٠ (رقم يُدفع بالورق) — الزبون يبقى وافّراً
-  const afterRaw = Math.max(0, subtotal - rawDiscount);
+  // السقف يُطبّق قبل التقريب
+  const capped = cap > 0 ? Math.min(rawDiscount, cap) : rawDiscount;
+  const afterRaw = Math.max(0, subtotal - capped);
   const afterRounded = Math.ceil(afterRaw / 250) * 250;
-  const discount = subtotal - afterRounded;
-  return { bags, discount: Math.max(0, discount), pct, freeDelivery, gift };
+  const discount = Math.max(0, subtotal - afterRounded);
+  return { bags, discount, pct, freeDelivery, gift, capReached: cap > 0 && rawDiscount > cap };
 }
 
 export function GlobalToast() {

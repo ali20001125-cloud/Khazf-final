@@ -65,7 +65,7 @@ export default function CartPage() {
   }, [cart, me]);
 
   const subtotal = useMemo(() => cart.reduce((t, i) => t + i.priceShown * i.qty, 0), [cart]);
-  const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
+  const box = useMemo(() => boxPreview(cart, config.boxTiers, config.boxDiscountCap ?? 20000), [cart, config.boxTiers, config.boxDiscountCap]);
 
   /* فرصة البوكس: أكياس قهوة عادية (٢٥٠غ) خارج البوكس — نحسب كم يوفّر لو حوّلها */
   const boxChance = useMemo(() => {
@@ -380,7 +380,7 @@ export default function CartPage() {
 
         <div className="mt-4"><PaperCupsGift variant="card" /></div>
 
-        {preview?.boxCapReached && (
+        {(preview?.boxCapReached || box.capReached) && (
           <p className="mt-3 border border-gold/35 bg-gold/8 px-4 py-3 text-[12.5px] font-semibold text-gold-text" style={{ borderRadius: 4 }}>
             خصمك بلغ الحدّ الأعلى — <span className="font-num">{formatIQD(config.boxDiscountCap ?? 20000)}</span>
           </p>

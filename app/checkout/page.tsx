@@ -112,7 +112,7 @@ export default function CheckoutPage() {
     }, 1500);
     return () => clearTimeout(t);
   }, [cart, form.phone, form.name, subtotal, done]);
-  const box = useMemo(() => boxPreview(cart, config.boxTiers), [cart, config.boxTiers]);
+  const box = useMemo(() => boxPreview(cart, config.boxTiers, config.boxDiscountCap ?? 20000), [cart, config.boxTiers, config.boxDiscountCap]);
   const freeDelivery = box.freeDelivery || coupon?.type === "FREE_DELIVERY";
   const deliveryFee = freeDelivery ? 0 : config.deliveryPrice;
   const estTotal = Math.ceil(Math.max(0, subtotal - box.discount + deliveryFee) / 250) * 250;

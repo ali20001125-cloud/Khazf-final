@@ -480,6 +480,8 @@ function SignedOutView() {
       const { supabaseBrowser } = await import("@/lib/supabase-browser");
       const sb = supabaseBrowser();
       const { data, error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: "email" });
+      // ينشئ العميل ويرسل الترحيب فوراً
+      if (!error) fetch("/api/customer/welcome/", { method: "POST" }).catch(() => {});
       if (error) { setErr("الرمز غير صحيح أو منتهٍ — أعد الإرسال"); setBusy(false); return; }
       // نُسجّل حساب الإيميل (بلا رقم بعد — يُربط عند أول طلب)
       await fetch("/api/customer/register-email/", {

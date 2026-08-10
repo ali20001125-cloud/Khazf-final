@@ -197,6 +197,7 @@ export const inventoryMovements = pgTable(
 export const customers = pgTable("customers", {
   phone: text("phone").primaryKey(), // 07XXXXXXXXX
   authUserId: text("auth_user_id").unique(), // يُربط عند OTP (الدفعة ٢)
+  welcomedAt: timestamp("welcomed_at", { withTimezone: true }),
   name: text("name").notNull(),
   governorate: text("governorate").notNull(),
   address: text("address").notNull(),

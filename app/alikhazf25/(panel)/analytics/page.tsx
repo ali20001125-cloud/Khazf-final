@@ -129,10 +129,11 @@ export default async function AnalyticsPage() {
 
   /* هويات الاختبار — تُستثنى من كل الأرقام */
   const NOT_TEST_EMAIL = sql`lower(email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')`;
+  const NOT_TEST_EMAIL_L = sql`lower(l.email) NOT IN (SELECT lower(value) FROM test_identities WHERE kind='email')`;
 
   // ── قائمة البريد (من ترك بريده بلا شراء) ──
   let leads = { total: 0, guide: 0, restock: 0, week: 0, converted: 0 };
-  let leadRows: { email: string; source: string; product_slug: string | null; notified: boolean; created_at: string }[] = [];
+  let leadRows: { email: string; source: string; product_slug: string | null; notified: boolean; created_at: string; ordered?: boolean }[] = [];
   try {
     leads = (await db.execute(sql`
       SELECT COUNT(*)::int AS total,
@@ -142,8 +143,9 @@ export default async function AnalyticsPage() {
         COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM customers c WHERE lower(c.email) = lower(email_leads.email)))::int AS converted
       FROM email_leads WHERE ${NOT_TEST_EMAIL}`)).rows[0] as unknown as typeof leads;
     leadRows = (await db.execute(sql`
-      SELECT email, source, product_slug, notified, created_at::text
-      FROM email_leads WHERE ${NOT_TEST_EMAIL} ORDER BY created_at DESC LIMIT 200`)).rows as unknown as typeof leadRows;
+      SELECT l.email, l.source, l.product_slug, l.notified, l.created_at::text,
+        EXISTS (SELECT 1 FROM orders o WHERE lower(o.email) = lower(l.email) AND o.is_test = false) AS ordered
+      FROM email_leads l WHERE ${NOT_TEST_EMAIL_L} ORDER BY l.created_at DESC LIMIT 200`)).rows as unknown as typeof leadRows;
   } catch { /* الجدول قد لا يكون منشأً */ }
 
   // ── سجل الإيميلات (مراقبة حد ١٠٠/يوم) ──
@@ -354,7 +356,7 @@ export default async function AnalyticsPage() {
               <div className="mt-3 max-h-64 overflow-y-auto">
                 <table className="w-full min-w-[520px]">
                   <thead className="border-b border-line">
-                    <tr><Th>البريد</Th><Th>المصدر</Th><Th>الحالة</Th><Th>التاريخ</Th></tr>
+                    <tr><Th>البريد</Th><Th>الحالة</Th><Th>المصدر</Th><Th>الحالة</Th><Th>التاريخ</Th></tr>
                   </thead>
                   <tbody className="divide-y divide-line">
                     {leadRows.map((l, i) => (
