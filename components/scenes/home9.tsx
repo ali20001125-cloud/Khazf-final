@@ -102,7 +102,7 @@ export function Crops() {
         </div>
 
         <div className="no-scrollbar -mx-5 mt-7 flex snap-x snap-mandatory gap-px overflow-x-auto bg-line px-5 md:mx-0 md:grid md:grid-cols-3 md:px-0">
-          {list.map((c, i) => (
+          {list.slice(0, 7).map((c, i) => (
             <Link key={c.slug} href={`/product/?c=${c.slug}`}
               className="group w-[74%] shrink-0 snap-start bg-bg transition-colors hover:bg-card md:w-auto">
               <div className="relative aspect-square overflow-hidden bg-bg-alt">
@@ -141,6 +141,14 @@ export function Crops() {
               </div>
             </Link>
           ))}
+
+          {/* بطاقة عرض المزيد */}
+          <Link href="/products/?cat=coffee"
+            className="group flex w-[74%] shrink-0 snap-start flex-col items-center justify-center bg-bg-alt p-6 text-center transition-colors hover:bg-card md:w-auto">
+            <span className="font-[Amiri,serif] text-[24px] font-bold">عرض المزيد</span>
+            <span className="mt-2 text-[12px] text-muted">كل المحاصيل والأدوات</span>
+            <span className="mt-4 text-[18px] text-accent transition-transform group-hover:-translate-x-1.5">←</span>
+          </Link>
         </div>
         {list.length > 2 && <p className="mt-3 text-[11.5px] text-muted md:hidden">اسحب لاكتشاف الباقي ←</p>}
       </div>
@@ -160,7 +168,7 @@ export function BuildBox() {
         <h2 className="mt-5 font-[Amiri,serif] text-[30px] font-bold leading-[1.3] md:text-[42px]">
           اختَر أكثر.<br />وفّر أكثر.
         </h2>
-        <p className="mt-4 max-w-md text-[13.5px] leading-[1.95] opacity-80">
+        <p className="mt-5 max-w-lg text-[15px] leading-[2.05] opacity-85 md:text-[16.5px]">
           اجمع أكياسك في صندوق واحد وشاهد التوفير قبل أن تضيفه للسلة.
         </p>
 
@@ -200,97 +208,35 @@ export function BuildBox() {
 function useSections() {
   const { activePlaces } = useCatalog();
   return [
-    { href: "/products/?cat=drip", t: "الأدوات", d: "فلاتر وسيرفرات وأقماع للتحضير", place: "drip_tools", n: "01" },
-    { href: "/products/?cat=cups", t: "الأكواب", d: "قطع مختارة للقهوة اليومية", place: "cups", n: "02" },
-    { href: "/box/", t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null, n: "03" },
-  ].filter((c) => !c.place || activePlaces.includes(c.place));
+    { href: "/products/?cat=drip", t: "أدوات التقطير", d: "أقماع وفلاتر وسيرفرات وغلايات", place: "drip_tools" },
+    { href: "/products/?cat=espresso", t: "أدوات الإسبريسو", d: "تامبر وموزّعات وحلقات", place: "espresso_tools" },
+    { href: "/products/?cat=cups", t: "الأكواب والتقديم", d: "سيراميك وزجاج وأطقم", place: "cups" },
+  ].filter((c) => activePlaces.includes(c.place))
+   .map((c, i) => ({ ...c, n: String(i + 1).padStart(2, "0") }));
 }
 
 /* نموذج ١ — قائمة أفقية بخطوط */
-export function GearA() {
+export function Gear() {
   const cards = useSections();
   if (cards.length === 0) return null;
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <p className="mb-6 text-[11px] font-bold text-accent">نموذج ١ — قائمة أفقية</p>
         <Eyebrow label="BEYOND THE BEAN" />
         <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
 
         <div className="mt-7 border-t border-line">
           {cards.map((c) => (
             <Link key={c.t} href={c.href}
-              className="group flex items-center justify-between gap-5 border-b border-line py-6 transition-colors hover:bg-card">
-              <div className="flex min-w-0 items-baseline gap-4">
-                <span className="font-num shrink-0 text-[11px] text-muted">{c.n}</span>
-                <span className="font-[Amiri,serif] text-[26px] font-bold leading-none md:text-[32px]">{c.t}</span>
+              className="group relative flex min-h-[104px] items-center justify-between gap-5 border-b border-line px-1 py-5 transition-colors hover:bg-olive/6 active:bg-olive/10">
+              {/* خط زيتوني يظهر عند المرور */}
+              <span className="absolute inset-y-0 end-0 w-[3px] scale-y-0 bg-olive transition-transform duration-300 group-hover:scale-y-100" />
+              <div className="min-w-0">
+                <span className="font-num block text-[10.5px] tracking-wide text-muted">{c.n}</span>
+                <span className="mt-1 block font-[Amiri,serif] text-[25px] font-bold leading-tight md:text-[30px]">{c.t}</span>
+                <span className="mt-1 block text-[12px] text-muted">{c.d}</span>
               </div>
-              <div className="flex shrink-0 items-center gap-4">
-                <span className="hidden text-[12px] text-muted sm:block">{c.d}</span>
-                <span className="text-[17px] text-accent transition-transform group-hover:-translate-x-1.5">←</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* نموذج ٢ — بلاطات لونية */
-export function GearB() {
-  const cards = useSections();
-  if (cards.length === 0) return null;
-  const tones = [
-    { bg: "var(--olive)", fg: "var(--olive-text)" },
-    { bg: "var(--clay)", fg: "#fff" },
-    { bg: "var(--bg-alt)", fg: "var(--ink)" },
-  ];
-  return (
-    <section className="border-b border-line">
-      <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <p className="mb-6 text-[11px] font-bold text-accent">نموذج ٢ — بلاطات لونية</p>
-        <Eyebrow label="BEYOND THE BEAN" />
-        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
-
-        <div className="mt-7 grid grid-cols-1 gap-px bg-line sm:grid-cols-3">
-          {cards.map((c, i) => (
-            <Link key={c.t} href={c.href}
-              className="group flex min-h-[160px] flex-col justify-between p-6 transition-all hover:brightness-105"
-              style={{ background: tones[i % 3].bg, color: tones[i % 3].fg }}>
-              <span className="font-num text-[11px] opacity-55">{c.n}</span>
-              <div>
-                <p className="font-[Amiri,serif] text-[28px] font-bold leading-none">{c.t}</p>
-                <p className="mt-2.5 text-[11.5px] leading-relaxed opacity-75">{c.d}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* نموذج ٣ — شريط مضغوط */
-export function GearC() {
-  const cards = useSections();
-  if (cards.length === 0) return null;
-  return (
-    <section className="border-b border-line">
-      <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <p className="mb-6 text-[11px] font-bold text-accent">نموذج ٣ — شريط مضغوط</p>
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <Eyebrow label="BEYOND THE BEAN" />
-            <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
-          </div>
-        </div>
-
-        <div className="mt-7 flex gap-px overflow-hidden border border-ink bg-ink" style={{ borderRadius: 4 }}>
-          {cards.map((c) => (
-            <Link key={c.t} href={c.href}
-              className="flex flex-1 items-center justify-center bg-bg px-3 py-5 text-center transition-colors hover:bg-bg-alt">
-              <span className="font-[Amiri,serif] text-[19px] font-bold md:text-[23px]">{c.t}</span>
+              <span className="shrink-0 text-[18px] text-accent transition-transform duration-300 group-hover:-translate-x-1.5">←</span>
             </Link>
           ))}
         </div>
@@ -378,7 +324,7 @@ export function Assistant({ children }: { children?: React.ReactNode }) {
         <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">
           ما تعرف شنو تختار؟
         </h2>
-        <p className="mt-3 max-w-md text-[13.5px] leading-[1.95] text-muted">
+        <p className="mt-4 max-w-lg text-[15px] leading-[2.05] text-ink/72 md:text-[16px]">
           اختر ذوقك ونساعدك توصل للمحصول الأقرب لك.
         </p>
         <div className="mt-6">{children}</div>
