@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { PageTitle, Card, Field, inputCls, SubmitBtn } from "@/components/admin/ui";
 import { savePublicSettings, saveInternalSettings, addAdmin, togglePlace } from "./actions";
@@ -13,6 +13,10 @@ export default async function SettingsPage() {
   const [internal] = await db.select().from(s.settingsInternal).where(eq(s.settingsInternal.id, 1));
   const admins = await db.select().from(s.admins).orderBy(asc(s.admins.id));
   const places = await db.select().from(s.places).orderBy(asc(s.places.sort));
+  const coffeeList = await db.select({ slug: s.products.slug, name: s.products.name })
+    .from(s.products)
+    .where(and(eq(s.products.type, "COFFEE"), eq(s.products.active, true)))
+    .orderBy(asc(s.products.id));
   const tiers = (pub.boxTiers as BoxTier[]).concat(
     Array.from({ length: Math.max(0, 4 - (pub.boxTiers as BoxTier[]).length) }, () => ({ bags: 0, rewardType: "PERCENT" as const, value: 0 }))
   );
@@ -30,11 +34,14 @@ export default async function SettingsPage() {
           <Field label="عتبة التوصيل المجاني" hint="٠ = معطّل · الطلب فوق هذا المبلغ توصيله مجاني">
             <input name="freeDeliveryThreshold" defaultValue={pub.freeDeliveryThreshold ?? 0} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
-          <Field label="عدد المحاصيل بالرئيسية" hint="كم منتجاً يظهر في شريط المحاصيل">
+          <Field label="عدد المحاصيل بالرئيسية" hint={`كم منتجاً يظهر — عندك ${coffeeList.length} محاصيل فعّالة`}>
             <input name="homeCropsCount" defaultValue={pub.homeCropsCount ?? 10} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
-          <Field label="المحصول الأكثر مبيعاً" hint="الـslug — يظهر بشارة 'الأكثر مبيعاً' · فارغ = الأول">
-            <input name="homeBestsellerSlug" defaultValue={pub.homeBestsellerSlug ?? ""} className={inputCls} dir="ltr" />
+          <Field label="المحصول الأكثر مبيعاً" hint="يظهر بشارة 'الأكثر مبيعاً' بالرئيسية">
+            <select name="homeBestsellerSlug" defaultValue={pub.homeBestsellerSlug ?? ""} className={inputCls}>
+              <option value="">الأول تلقائياً</option>
+              {coffeeList.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+            </select>
           </Field>
           <Field label="سقف خصم البوكس" hint="أقصى خصم بالدينار مهما زاد عدد الأكياس — ٠ = بلا سقف">
             <input name="boxDiscountCap" defaultValue={pub.boxDiscountCap ?? 20000} className={`${inputCls} font-num`} dir="ltr" />

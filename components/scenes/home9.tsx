@@ -93,7 +93,7 @@ export function Crops() {
   const list = coffees.filter((c) => !c.soldOut);
   if (list.length === 0) return null;
   const shown = list.slice(0, config.homeCropsCount ?? 10);
-  const bestSlug = config.homeBestsellerSlug || shown[0]?.slug;
+  const bestSlug = (config.homeBestsellerSlug || shown[0]?.slug || "").trim().toLowerCase();
 
   return (
     <section className="border-b border-line">
@@ -121,7 +121,7 @@ export function Crops() {
                     <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
                   </span>
                 )}
-                {c.slug === bestSlug && (
+                {c.slug.toLowerCase() === bestSlug && (
                   <span className="absolute end-0 top-0 bg-ink px-2.5 py-1.5 text-[10px] font-bold text-bg">
                     الأكثر مبيعاً
                   </span>

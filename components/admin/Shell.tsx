@@ -6,20 +6,39 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, ExternalLink, LogOut } from "lucide-react";
 
-const nav = [
-  { href: "/alikhazf25/", label: "لوحة القيادة" },
-  { href: "/alikhazf25/orders/", label: "الطلبات", badge: "pending" as const },
-  { href: "/alikhazf25/analytics/", label: "التحليلات" },
-  { href: "/alikhazf25/products/", label: "القهوة" },
-  { href: "/alikhazf25/tools/", label: "الأدوات" },
-  { href: "/alikhazf25/inventory/", label: "المخزون والوجبات", badge: "lowStock" as const },
-  { href: "/alikhazf25/customers/", label: "العملاء" },
-  { href: "/alikhazf25/coupons/", label: "أكواد الخصم" },
-  { href: "/alikhazf25/loyalty/", label: "الولاء والرحلة" },
-  { href: "/alikhazf25/reviews/", label: "التقييمات", badge: "pendingReviews" as const },
-  { href: "/alikhazf25/brand-reviews/", label: "آراء البراند" },
-  { href: "/alikhazf25/banners/", label: "البنرات" },
-  { href: "/alikhazf25/settings/", label: "الإعدادات" },
+/* مجموعات مرتّبة حسب الاستخدام اليومي */
+const navGroups: { title: string; items: { href: string; label: string; badge?: "pending" | "lowStock" | "pendingReviews" }[] }[] = [
+  {
+    title: "يومي",
+    items: [
+      { href: "/alikhazf25/", label: "لوحة القيادة" },
+      { href: "/alikhazf25/orders/", label: "الطلبات", badge: "pending" },
+      { href: "/alikhazf25/analytics/", label: "التحليلات" },
+    ],
+  },
+  {
+    title: "المنتجات",
+    items: [
+      { href: "/alikhazf25/products/", label: "القهوة" },
+      { href: "/alikhazf25/tools/", label: "الأدوات والأكواب" },
+      { href: "/alikhazf25/inventory/", label: "المخزون والوجبات", badge: "lowStock" },
+    ],
+  },
+  {
+    title: "العملاء والتسويق",
+    items: [
+      { href: "/alikhazf25/customers/", label: "العملاء" },
+      { href: "/alikhazf25/reviews/", label: "التقييمات", badge: "pendingReviews" },
+      { href: "/alikhazf25/brand-reviews/", label: "آراء البراند" },
+      { href: "/alikhazf25/coupons/", label: "أكواد الخصم" },
+      { href: "/alikhazf25/loyalty/", label: "الولاء والرحلة" },
+      { href: "/alikhazf25/banners/", label: "البنرات" },
+    ],
+  },
+  {
+    title: "الإعداد",
+    items: [{ href: "/alikhazf25/settings/", label: "الإعدادات" }],
+  },
 ];
 
 type Stats = { pending: number; pendingReviews: number; lowStock: number };
@@ -96,12 +115,15 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   const List = () => (
     <nav className="space-y-0.5 text-[13.5px]">
-      {nav.map((n) => {
+      {navGroups.map((g) => (
+        <div key={g.title} className="mb-4">
+          <p className="mb-1.5 px-4 text-[10px] font-bold tracking-wide text-muted/70">{g.title}</p>
+          {g.items.map((n) => {
         const active = n.href === "/alikhazf25/" ? pathname === "/alikhazf25" || pathname === "/alikhazf25/" : pathname.startsWith(n.href.slice(0, -1));
         const b = n.badge ? stats[n.badge] : 0;
         return (
           <Link key={n.href} href={n.href}
-            className={`flex items-center justify-between rounded-[10px] px-4 py-2.5 font-semibold transition-colors ${
+            className={`flex items-center justify-between rounded-[4px] px-4 py-2.5 font-semibold transition-colors ${
               active ? "bg-olive text-olive-text" : "text-muted hover:bg-bg-alt hover:text-ink"
             }`}>
             {n.label}
@@ -110,7 +132,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             )}
           </Link>
         );
-      })}
+          })}
+        </div>
+      ))}
     </nav>
   );
 
