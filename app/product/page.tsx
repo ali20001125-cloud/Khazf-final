@@ -791,9 +791,10 @@ function ToolView({ tool }: { tool: Tool }) {
   /* المعرض: صورة الخيار المختار أولاً، ثم بقية الصور */
   const gallery = (() => {
     const base = (tool.images ?? []) as string[];
-    const vImg = picked?.image;
-    if (!vImg) return base;
-    return [vImg, ...base.filter((x) => x !== vImg)];
+    const variantImgs = variants.map((v) => v.image).filter(Boolean) as string[];
+    // صورة الخيار المختار أولاً، ثم صور بقية الخيارات، ثم صور المنتج — بلا تكرار
+    const all = [picked?.image, ...variantImgs, ...base].filter(Boolean) as string[];
+    return Array.from(new Set(all));
   })();
   const stock = picked?.stock ?? (variants.length > 0 ? variants.reduce((t, v) => t + (v.stock ?? 0), 0) : 99);
   const maxQty = Math.max(1, Math.min(stock || 99, 99));
