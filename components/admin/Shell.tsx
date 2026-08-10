@@ -17,6 +17,7 @@ const nav = [
   { href: "/alikhazf25/coupons/", label: "أكواد الخصم" },
   { href: "/alikhazf25/loyalty/", label: "الولاء والرحلة" },
   { href: "/alikhazf25/reviews/", label: "التقييمات", badge: "pendingReviews" as const },
+  { href: "/alikhazf25/brand-reviews/", label: "آراء البراند" },
   { href: "/alikhazf25/banners/", label: "البنرات" },
   { href: "/alikhazf25/settings/", label: "الإعدادات" },
 ];

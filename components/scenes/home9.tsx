@@ -10,9 +10,13 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useSiteConfig } from "@/lib/store";
 import { formatIQD } from "@/lib/data";
 
-/* خطّ قصير يسبق العنوان — بديل هادئ للعلامات */
-function Rule() {
-  return <span className="block h-px w-9 bg-clay" />;
+/* عنوان علوي إنجليزي — بلا رموز */
+function Eyebrow({ label, light = false }: { label: string; light?: boolean }) {
+  return (
+    <span className={`font-num block text-[10px] font-bold tracking-[0.28em] ${light ? "text-gold" : "text-clay"}`}>
+      {label}
+    </span>
+  );
 }
 
 /* ═══ ١) البطل ═══ */
@@ -25,7 +29,7 @@ export function Hero() {
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 pb-8 pt-8 md:px-8 md:pb-12 md:pt-14">
-        <Rule />
+        <Eyebrow label="KHAZF · BAGHDAD" />
         <h1 className="khz-in mt-5 font-[Amiri,serif] text-[36px] font-bold leading-[1.22] md:text-[58px]">
           قهوتك،<br />من أول رشفة
         </h1>
@@ -89,8 +93,8 @@ export function Crops() {
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <Rule />
-        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">المحاصيل</h2>
+            <Eyebrow label="THE CROPS" />
+            <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">المحاصيل</h2>
           </div>
           <Link href="/products/?cat=coffee" className="shrink-0 text-[12.5px] font-bold text-accent">
             الكل ←
@@ -151,7 +155,7 @@ export function BuildBox() {
   return (
     <section className="border-b border-line bg-olive text-olive-text">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <span className="block h-px w-9 bg-gold" />
+        <Eyebrow label="BUILD YOUR BOX" light />
 
         <h2 className="mt-5 font-[Amiri,serif] text-[30px] font-bold leading-[1.3] md:text-[42px]">
           اختَر أكثر.<br />وفّر أكثر.
@@ -194,37 +198,34 @@ export function BuildBox() {
 
 /* ═══ ٥) أكمِل تجربتك ═══ */
 export function Gear() {
-  const { activePlaces, tools, coffees } = useCatalog();
-  const pick = (cat: string) => tools.find((t) => t.cats.includes(cat as never) && t.images?.[0])?.images?.[0] ?? null;
+  const { activePlaces } = useCatalog();
   const cards = [
-    { href: "/products/?cat=drip", t: "الأدوات", d: "فلاتر وسيرفرات وأقماع", place: "drip_tools", img: pick("تقطير") },
-    { href: "/products/?cat=cups", t: "الأكواب", d: "قطع مختارة للتقديم", place: "cups", img: pick("أكواب") },
-    { href: "/box/", t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null, img: coffees.find((c) => c.image)?.image ?? null },
+    { href: "/products/?cat=drip", t: "الأدوات", d: "فلاتر وسيرفرات وأقماع للتحضير", place: "drip_tools", n: "01" },
+    { href: "/products/?cat=cups", t: "الأكواب", d: "قطع مختارة للقهوة اليومية", place: "cups", n: "02" },
+    { href: "/box/", t: "الهدايا", d: "صندوق جاهز يصلح هديّة", place: null, n: "03" },
   ].filter((c) => !c.place || activePlaces.includes(c.place));
   if (cards.length === 0) return null;
 
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Rule />
-        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
+        <Eyebrow label="BEYOND THE BEAN" />
+        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
 
         <div className="mt-7 grid grid-cols-1 gap-px bg-line md:grid-cols-3">
-          {cards.map(({ href, t, d, img }) => (
-            <Link key={t} href={href} className="group flex items-center gap-4 bg-bg p-4 transition-colors hover:bg-card">
-              <div className="h-[72px] w-[72px] shrink-0 overflow-hidden bg-bg-alt" style={{ borderRadius: 4 }}>
-                {img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={img} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]" />
-                ) : null}
+          {cards.map(({ href, t, d, n }) => (
+            <Link key={t} href={href}
+              className="group relative flex min-h-[150px] flex-col justify-between overflow-hidden bg-bg p-6 transition-colors hover:bg-card">
+              <span className="font-num absolute -top-3 start-3 text-[64px] font-bold leading-none text-line/70 transition-colors group-hover:text-clay/15">
+                {n}
+              </span>
+              <div className="relative">
+                <p className="font-[Amiri,serif] text-[24px] font-bold leading-tight">{t}</p>
+                <p className="mt-2 text-[12px] leading-relaxed text-muted">{d}</p>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-bold">{t}</p>
-                <p className="mt-1 text-[11.5px] leading-snug text-muted">{d}</p>
-                <span className="mt-2 flex items-center gap-1 text-[11.5px] font-bold text-accent">
-                  تصفّح <span className="transition-transform group-hover:-translate-x-1">←</span>
-                </span>
-              </div>
+              <span className="relative mt-5 flex items-center gap-1.5 text-[12.5px] font-bold text-accent">
+                تصفّح <span className="transition-transform group-hover:-translate-x-1.5">←</span>
+              </span>
             </Link>
           ))}
         </div>
@@ -238,8 +239,8 @@ export function Why() {
   return (
     <section className="border-b border-line bg-bg-alt">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Rule />
-        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">لماذا خزف</h2>
+        <Eyebrow label="OUR PROMISE" />
+        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">لماذا خزف</h2>
 
         <div className="mt-7 grid grid-cols-1 gap-px bg-line md:grid-cols-3">
           {[
@@ -270,8 +271,8 @@ export function Reviews() {
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Rule />
-        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">آراء عملائنا</h2>
+        <Eyebrow label="REVIEWS" />
+        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">آراء عملائنا</h2>
 
         {avg && total >= 3 && (
           <div className="mt-6 flex items-center gap-5">
@@ -308,8 +309,8 @@ export function Assistant({ children }: { children?: React.ReactNode }) {
   return (
     <section id="finder">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Rule />
-        <h2 className="mt-4 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">
+        <Eyebrow label="NOT SURE?" />
+        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">
           ما تعرف شنو تختار؟
         </h2>
         <p className="mt-3 max-w-md text-[13.5px] leading-[1.95] text-muted">
