@@ -13,6 +13,8 @@ export interface SiteConfig {
   cashbackPct: number;
   boxTiers: BoxTier[];
   boxDiscountCap: number;
+  homeCropsCount: number;
+  homeBestsellerSlug: string | null;
   topBarMessages: string[];
   instagram: string | null;
   logoUrl: string | null;

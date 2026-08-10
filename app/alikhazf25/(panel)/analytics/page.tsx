@@ -83,6 +83,26 @@ export default async function AnalyticsPage() {
       FROM s`)).rows[0] as unknown as typeof funnel;
   } catch { /* تجاهل */ }
 
+  /* ── مسار الشراء اليومي ── */
+  let funnelDay = { visitors: 0, viewed_product: 0, viewed_cart: 0, started_checkout: 0, orders: 0 };
+  try {
+    funnelDay = (await db.execute(sql`
+      WITH s AS (
+        SELECT session_id,
+          BOOL_OR(path LIKE '/product%') AS saw_product,
+          BOOL_OR(path LIKE '/cart%')    AS saw_cart,
+          BOOL_OR(path LIKE '/checkout%') AS saw_checkout
+        FROM page_views WHERE created_at >= now() - interval '24 hours'
+        GROUP BY session_id
+      )
+      SELECT COUNT(*)::int AS visitors,
+        COUNT(*) FILTER (WHERE saw_product)::int  AS viewed_product,
+        COUNT(*) FILTER (WHERE saw_cart)::int     AS viewed_cart,
+        COUNT(*) FILTER (WHERE saw_checkout)::int AS started_checkout,
+        (SELECT COUNT(*) FROM orders WHERE is_test = false AND created_at >= now() - interval '24 hours' AND status <> 'CANCELLED')::int AS orders
+      FROM s`)).rows[0] as unknown as typeof funnelDay;
+  } catch { /* تجاهل */ }
+
   /* ── إحصاءات المحافظات ── */
   let govs: { governorate: string; orders: number; revenue: number; avg_order: number }[] = [];
   try {
@@ -204,6 +224,33 @@ export default async function AnalyticsPage() {
           )}
         </Card>
       </div>
+
+      {/* مسار الشراء اليومي */}
+      {funnelDay.visitors > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 text-[15px] font-bold">
+            مسار اليوم <span className="text-[12px] font-normal text-muted">— آخر ٢٤ ساعة</span>
+          </h2>
+          <Card className="p-5">
+            <div className="grid grid-cols-5 gap-2 text-center">
+              {([["زائر", funnelDay.visitors], ["منتج", funnelDay.viewed_product],
+                 ["سلة", funnelDay.viewed_cart], ["دفع", funnelDay.started_checkout],
+                 ["طلب", funnelDay.orders]] as const).map(([l, v], i) => (
+                <div key={l}>
+                  <p className={`font-num text-[19px] font-bold ${i === 4 ? "text-ok" : ""}`}>{v}</p>
+                  <p className="mt-0.5 text-[10.5px] text-muted">{l}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 border-t border-line pt-3 text-center text-[11.5px] text-muted">
+              التحويل اليوم:{" "}
+              <span className="font-num font-bold text-ink">
+                {funnelDay.visitors > 0 ? ((funnelDay.orders / funnelDay.visitors) * 100).toFixed(1) : "0"}٪
+              </span>
+            </p>
+          </Card>
+        </div>
+      )}
 
       {/* مسار الشراء */}
       {funnel.visitors > 0 && (

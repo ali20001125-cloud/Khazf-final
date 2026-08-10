@@ -30,6 +30,12 @@ export default async function SettingsPage() {
           <Field label="عتبة التوصيل المجاني" hint="٠ = معطّل · الطلب فوق هذا المبلغ توصيله مجاني">
             <input name="freeDeliveryThreshold" defaultValue={pub.freeDeliveryThreshold ?? 0} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
+          <Field label="عدد المحاصيل بالرئيسية" hint="كم منتجاً يظهر في شريط المحاصيل">
+            <input name="homeCropsCount" defaultValue={pub.homeCropsCount ?? 10} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
+          <Field label="المحصول الأكثر مبيعاً" hint="الـslug — يظهر بشارة 'الأكثر مبيعاً' · فارغ = الأول">
+            <input name="homeBestsellerSlug" defaultValue={pub.homeBestsellerSlug ?? ""} className={inputCls} dir="ltr" />
+          </Field>
           <Field label="سقف خصم البوكس" hint="أقصى خصم بالدينار مهما زاد عدد الأكياس — ٠ = بلا سقف">
             <input name="boxDiscountCap" defaultValue={pub.boxDiscountCap ?? 20000} className={`${inputCls} font-num`} dir="ltr" />
           </Field>

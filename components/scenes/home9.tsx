@@ -89,8 +89,11 @@ export function TrustBar() {
 export function Crops() {
   const { coffees } = useCatalog();
   const { addToCart, showToast } = useStore();
+  const config = useSiteConfig();
   const list = coffees.filter((c) => !c.soldOut);
   if (list.length === 0) return null;
+  const shown = list.slice(0, config.homeCropsCount ?? 10);
+  const bestSlug = config.homeBestsellerSlug || shown[0]?.slug;
 
   return (
     <section className="border-b border-line">
@@ -106,7 +109,7 @@ export function Crops() {
         </div>
 
         <div className="no-scrollbar -mx-5 mt-7 flex snap-x snap-mandatory gap-px overflow-x-auto bg-line px-5 md:mx-0 md:grid md:grid-cols-3 md:px-0">
-          {list.slice(0, 7).map((c, i) => (
+          {shown.map((c, i) => (
             <Link key={c.slug} href={`/product/?c=${c.slug}`}
               className="group w-[74%] shrink-0 snap-start bg-bg transition-colors hover:bg-card md:w-auto">
               <div className="relative aspect-square overflow-hidden bg-bg-alt">
@@ -118,7 +121,7 @@ export function Crops() {
                     <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
                   </span>
                 )}
-                {i === 0 && (
+                {c.slug === bestSlug && (
                   <span className="absolute end-0 top-0 bg-ink px-2.5 py-1.5 text-[10px] font-bold text-bg">
                     الأكثر مبيعاً
                   </span>

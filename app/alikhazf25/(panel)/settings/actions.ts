@@ -25,6 +25,8 @@ export async function savePublicSettings(f: FormData) {
     deliveryCustomerPrice: n(f, "deliveryCustomerPrice", 3000),
     freeDeliveryThreshold: n(f, "freeDeliveryThreshold", 0),
     boxDiscountCap: n(f, "boxDiscountCap", 20000),
+    homeCropsCount: n(f, "homeCropsCount", 10),
+    homeBestsellerSlug: (f.get("homeBestsellerSlug") as string)?.trim() || null,
     cashbackPct: n(f, "cashbackPct", 3),
     freeDeliveryFirstOrder: f.get("freeDeliveryFirstOrder") === "on",
     freeDeliveryFirstMin: n(f, "freeDeliveryFirstMin", 15000),

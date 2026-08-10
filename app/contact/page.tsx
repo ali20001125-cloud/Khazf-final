@@ -10,6 +10,11 @@ const inputCls =
 export default function ContactPage() {
   const scope = useMotion();
   const [sent, setSent] = useState(false);
+  const [name, setName] = useState("");
+  const [contact, setContact] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   return (
     <div ref={scope} className="mx-auto max-w-xl px-4 pb-24 pt-32 md:px-6">
@@ -28,13 +33,34 @@ export default function ContactPage() {
         </div>
       ) : (
         <form
-          onSubmit={(e) => { e.preventDefault(); setSent(true); }}
-          className="reveal mt-8 space-y-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (busy) return;
+            setBusy(true); setErr(null);
+            try {
+              const r = await fetch("/api/contact/", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, contact, message }),
+              });
+              if (!r.ok) throw new Error();
+              setSent(true);
+            } catch {
+              setErr("تعذّر الإرسال — راسلنا على إنستغرام أو واتساب");
+            } finally { setBusy(false); }
+          }}
+          className="mt-8 space-y-3"
         >
-          <input required placeholder="الاسم" className={inputCls} />
-          <input required type="tel" dir="ltr" placeholder="07XX XXX XXXX" className={`${inputCls} text-end`} />
-          <textarea required rows={5} placeholder="رسالتك…" className={inputCls} />
-          <button type="submit" className="btn btn-olive w-full !py-4 text-[15px] active:scale-[0.98]">أرسل</button>
+          <input required value={name} onChange={(e) => setName(e.target.value)}
+            placeholder="الاسم" className={inputCls} />
+          <input required type="tel" dir="ltr" value={contact} onChange={(e) => setContact(e.target.value)}
+            placeholder="07XX XXX XXXX" className={`${inputCls} text-end`} />
+          <textarea required rows={5} value={message} onChange={(e) => setMessage(e.target.value)}
+            placeholder="رسالتك…" className={inputCls} />
+          {err && <p className="text-[12.5px] font-bold text-accent">{err}</p>}
+          <button type="submit" disabled={busy}
+            className="btn btn-olive w-full !py-4 text-[15px] active:scale-[0.98] disabled:opacity-50">
+            {busy ? "جارٍ الإرسال…" : "أرسل"}
+          </button>
         </form>
       )}
 

@@ -51,7 +51,7 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
     v === "G500" ? p.priceG500 : v === "G1000" ? p.priceG1000 : v === "PIECE" ? p.pricePiece : p.priceG250;
 
   let grossSubtotal = 0;
-  const boxLines: { qty: number; total: number }[] = [];
+  const boxLines: { qty: number; total: number; group: number }[] = [];
   const wantedVIds = [...new Set(input.items.map((i) => i.variantId).filter((x): x is number => !!x))];
   const vRows = wantedVIds.length > 0
     ? await db.select().from(s.productVariants).where(
@@ -67,22 +67,31 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
       : (it.variant === "PIECE" ? (p.salePrice ?? priceOf(p, it.variant)) : priceOf(p, it.variant)) ?? 0;
     const lineTotal = unit * it.qty;
     grossSubtotal += lineTotal;
-    if (it.boxGroup != null && it.variant === "G250") boxLines.push({ qty: it.qty, total: lineTotal });
+    if (it.boxGroup != null && it.variant === "G250") boxLines.push({ qty: it.qty, total: lineTotal, group: it.boxGroup });
   }
 
-  // ٢) خصم أكياس البوكس
-  const bags = boxLines.reduce((t, l) => t + l.qty, 0);
-  const boxSubtotal = boxLines.reduce((t, l) => t + l.total, 0);
+  // ٢) خصم أكياس البوكس — كل صندوق يُحسب وحده والسقف يُطبّق عليه منفرداً
   const tiers = (settings?.boxTiers ?? []) as { bags: number; rewardType: string; value?: number }[];
-  let boxPct = 0, freeDeliveryBox = false;
-  for (const t of tiers) if (bags >= t.bags) {
-    if (t.rewardType === "PERCENT") boxPct = Math.max(boxPct, t.value ?? 0);
-    if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
-  }
-  const rawBoxDiscount = Math.round((boxSubtotal * boxPct) / 100);
-  // سقف خصم البوكس
   const boxCap = settings?.boxDiscountCap ?? 0;
-  const boxDiscount = boxCap > 0 ? Math.min(rawBoxDiscount, boxCap) : rawBoxDiscount;
+  const groups = new Map<number, { qty: number; total: number }>();
+  for (const l of boxLines) {
+    const g = groups.get(l.group) ?? { qty: 0, total: 0 };
+    g.qty += l.qty; g.total += l.total;
+    groups.set(l.group, g);
+  }
+
+  let boxDiscount = 0, freeDeliveryBox = false, boxPct = 0;
+  const bags = boxLines.reduce((t, l) => t + l.qty, 0);
+  for (const g of groups.values()) {
+    let pct = 0;
+    for (const t of tiers) if (g.qty >= t.bags) {
+      if (t.rewardType === "PERCENT") pct = Math.max(pct, t.value ?? 0);
+      if (t.rewardType === "FREE_DELIVERY") freeDeliveryBox = true;
+    }
+    boxPct = Math.max(boxPct, pct);
+    const raw = Math.round((g.total * pct) / 100);
+    boxDiscount += boxCap > 0 ? Math.min(raw, boxCap) : raw;
+  }
   const itemsSubtotal = grossSubtotal - boxDiscount;
 
   // ٣) كوبون
