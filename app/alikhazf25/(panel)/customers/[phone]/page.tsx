@@ -17,7 +17,7 @@ export default async function CustomerDetail({ params }: { params: Promise<{ pho
 
   return (
     <div>
-      <PageTitle title={c.name} sub={c.phone} />
+      <PageTitle title={c.name} sub={c.phone.startsWith("auth:") ? "—" : c.phone} />
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           <Card className="overflow-x-auto">
@@ -64,7 +64,7 @@ export default async function CustomerDetail({ params }: { params: Promise<{ pho
             <p className="font-num mt-1 text-[12px] text-muted">الرحلة: {c.journeyActive ? `${c.journeyOrders}/6` : "متوقفة"}
               {c.loyaltyExpiresAt && ` · تنتهي ${dateAr(c.loyaltyExpiresAt)}`}</p>
             <form action={toggleJourney} className="mt-3">
-              <input type="hidden" name="phone" value={c.phone} />
+              <input type="hidden" name="phone" value={c.phone.startsWith("auth:") ? "—" : c.phone} />
               <button className="text-[12px] font-bold text-accent">{c.journeyActive ? "إيقاف الرحلة" : "تفعيل الرحلة"}</button>
             </form>
           </Card>
@@ -72,7 +72,7 @@ export default async function CustomerDetail({ params }: { params: Promise<{ pho
           <Card className="p-5">
             <h2 className="mb-3 text-sm font-bold text-muted">نقاط يدوية ±</h2>
             <form action={manualPoints} className="space-y-3">
-              <input type="hidden" name="phone" value={c.phone} />
+              <input type="hidden" name="phone" value={c.phone.startsWith("auth:") ? "—" : c.phone} />
               <Field label="النقاط" hint="سالب للخصم"><input name="points" className={`${inputCls} font-num`} dir="ltr" /></Field>
               <Field label="السبب"><input name="note" className={inputCls} placeholder="تعويض / مكافأة" /></Field>
               <SubmitBtn>نفّذ</SubmitBtn>
@@ -82,7 +82,7 @@ export default async function CustomerDetail({ params }: { params: Promise<{ pho
           <Card className="p-5">
             <h2 className="mb-3 text-sm font-bold text-muted">ملاحظات داخلية</h2>
             <form action={saveNotes} className="space-y-3">
-              <input type="hidden" name="phone" value={c.phone} />
+              <input type="hidden" name="phone" value={c.phone.startsWith("auth:") ? "—" : c.phone} />
               <textarea name="notes" rows={4} defaultValue={c.adminNotes ?? ""} className={inputCls} placeholder="لا يراها الزبون" />
               <SubmitBtn>حفظ</SubmitBtn>
             </form>

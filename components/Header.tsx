@@ -59,7 +59,6 @@ export default function Header() {
     { label: "من نحن", href: "/about/" },
     { label: "تواصل معنا", href: "/contact/" },
   ],
-  [{ label: "حسابي", href: "/account/" }],
   ];
   const { coffees, tools } = useCatalog();
 

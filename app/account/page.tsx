@@ -110,7 +110,7 @@ function AccountInner() {
         <h1 className="text-[26px] font-bold tracking-tight">أهلاً، {me.name || "صديق خزف"}</h1>
         {(me.email || me.phone) && (
           <p className="font-num mt-1.5 text-[12.5px] text-muted" dir="ltr">
-            {[me.phone, me.email].filter(Boolean).join("  ·  ")}
+            {[me.phone?.startsWith("auth:") ? null : me.phone, me.email].filter(Boolean).join("  ·  ")}
           </p>
         )}
       </div>

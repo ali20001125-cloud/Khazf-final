@@ -86,10 +86,10 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((c) => (
-              <tr key={c.phone} className="row-tap hover:bg-bg-alt/50">
+              <tr key={c.phone.startsWith("auth:") ? "—" : c.phone} className="row-tap hover:bg-bg-alt/50">
                 <Td>
-                  <Link href={`/alikhazf25/customers/${c.phone}/`} className="row-link font-bold text-accent">{c.name}</Link>
-                  <p className="font-num text-[11px] text-muted" dir="ltr">{c.phone}</p>
+                  <Link href={`/alikhazf25/customers/${c.phone.startsWith("auth:") ? "—" : c.phone}/`} className="row-link font-bold text-accent">{c.name}</Link>
+                  <p className="font-num text-[11px] text-muted" dir="ltr">{c.phone.startsWith("auth:") ? "—" : c.phone}</p>
                 </Td>
                 <Td>{c.governorate}</Td>
                 <Td className="font-num">{c.orders_count}</Td>
