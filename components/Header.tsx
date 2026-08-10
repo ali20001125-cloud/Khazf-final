@@ -263,7 +263,7 @@ export default function Header() {
                       <li key={sec.label}>
                         <button
                           onClick={() => setOpenSection(isOpen ? null : sec.label)}
-                          className="flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-start font-semibold transition-colors hover:bg-bg-alt">
+                          className="flex w-full items-center justify-between rounded-[4px] px-4 py-3 text-start font-semibold transition-colors hover:bg-bg-alt">
                           {sec.label}
                           {sec.subs.length > 0 && (
                             <ChevronDown size={16}
@@ -274,7 +274,7 @@ export default function Header() {
                           <ul className="mb-1 ms-4 space-y-0.5 border-s border-line ps-3">
                             <li>
                               <Link href={sec.href} onClick={() => setMenuOpen(false)}
-                                className="block rounded-[10px] px-3 py-2 text-[13.5px] font-bold text-accent">
+                                className="block rounded-[4px] px-3 py-2 text-[13.5px] font-bold text-accent">
                                 عرض الكل
                               </Link>
                             </li>
@@ -282,7 +282,7 @@ export default function Header() {
                               <li key={sub}>
                                 <Link href={`${sec.href}&sub=${encodeURIComponent(sub)}`}
                                   onClick={() => setMenuOpen(false)}
-                                  className="block rounded-[10px] px-3 py-2 text-[13.5px] text-muted transition-colors hover:bg-bg-alt hover:text-ink">
+                                  className="block rounded-[4px] px-3 py-2 text-[13.5px] text-muted transition-colors hover:bg-bg-alt hover:text-ink">
                                   {sub}
                                 </Link>
                               </li>
@@ -305,7 +305,7 @@ export default function Header() {
                       <Link
                         href={l.href}
                         onClick={() => setMenuOpen(false)}
-                        className="block rounded-[12px] px-4 py-3 font-semibold transition-colors hover:bg-bg-alt"
+                        className="block rounded-[4px] px-4 py-3 font-semibold transition-colors hover:bg-bg-alt"
                       >
                         {l.label}
                       </Link>
@@ -358,12 +358,12 @@ export default function Header() {
           )}
 
           {q.trim().length > 0 && (
-            <div className="mt-5 max-h-[60vh] space-y-5 overflow-y-auto rounded-[18px] border border-line bg-card p-4">
+            <div className="mt-5 max-h-[60vh] space-y-5 overflow-y-auto rounded-[5px] border border-line bg-card p-4">
               {results.coffees.length > 0 && (
                 <div>
                   <p className="font-num mb-2 px-2 text-[10px] tracking-[0.3em] text-muted">COFFEE</p>
                   {results.coffees.map((c) => (
-                    <button key={c.slug} onClick={() => router.push(`/product/?c=${c.slug}`)} className="flex w-full items-center justify-between rounded-[12px] px-3 py-3 text-start transition-colors hover:bg-bg-alt">
+                    <button key={c.slug} onClick={() => router.push(`/product/?c=${c.slug}`)} className="flex w-full items-center justify-between rounded-[4px] px-3 py-3 text-start transition-colors hover:bg-bg-alt">
                       <span>
                         <span className="font-bold">{c.name}</span>
                         <span className="ms-2 text-[12px] text-muted">{c.country} · {c.notes.join(" · ")}</span>
@@ -377,7 +377,7 @@ export default function Header() {
                 <div>
                   <p className="font-num mb-2 px-2 text-[10px] tracking-[0.3em] text-muted">TOOLS</p>
                   {results.tools.map((t) => (
-                    <button key={t.slug} onClick={() => router.push(`/product/?t=${t.slug}`)} className="flex w-full items-center justify-between rounded-[12px] px-3 py-3 text-start transition-colors hover:bg-bg-alt">
+                    <button key={t.slug} onClick={() => router.push(`/product/?t=${t.slug}`)} className="flex w-full items-center justify-between rounded-[4px] px-3 py-3 text-start transition-colors hover:bg-bg-alt">
                       <span>
                         <span className="font-bold">{t.name}</span>
                         <span className="ms-2 text-[12px] text-muted">{t.type}</span>
@@ -390,7 +390,7 @@ export default function Header() {
               {results.coffees.length === 0 && results.tools.length === 0 && (
                 <p className="py-6 text-center text-sm text-muted">ما لكينا نتائج لـ «{q}»</p>
               )}
-              <Link href="/products/?cat=all" className="flex items-center justify-center gap-1.5 rounded-[12px] bg-bg-alt py-3 text-[13px] font-bold text-accent">
+              <Link href="/products/?cat=all" className="flex items-center justify-center gap-1.5 rounded-[4px] bg-bg-alt py-3 text-[13px] font-bold text-accent">
                 تصفّح المتجر كامل <ArrowLeft size={14} />
               </Link>
             </div>

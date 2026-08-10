@@ -91,7 +91,7 @@ function Badge({ label }: { label: string }) {
 export function CoffeeCard({ coffee }: { coffee: Coffee }) {
   const { addToCart } = useStore();
   return (
-    <div className="group relative overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
+    <div className="group relative overflow-hidden rounded-[5px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
       {/* رابط ممتد: الضغط بأي مكان من البطاقة يفتح المنتج */}
       <Link href={`/product/?c=${coffee.slug}`} aria-label={coffee.name}
         className="absolute inset-0 z-[1]" />
@@ -154,7 +154,7 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
 export function ToolCard({ tool }: { tool: Tool }) {
   const { addToCart, showToast } = useStore();
   return (
-    <div className="group relative overflow-hidden rounded-[18px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
+    <div className="group relative overflow-hidden rounded-[5px] border border-line bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5">
       {/* رابط ممتد: الضغط بأي مكان من البطاقة يفتح المنتج */}
       <Link href={`/product/?t=${tool.slug}`} aria-label={tool.name}
         className="absolute inset-0 z-[1]" />

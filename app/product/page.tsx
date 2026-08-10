@@ -26,6 +26,7 @@ import { gaViewItem, gaAddToCart } from "@/lib/ga";
 import { fmtDate } from "@/lib/datetime";
 import ProductJsonLd from "@/components/ProductJsonLd";
 import LeadCapture from "@/components/LeadCapture";
+import PaperCupsGift from "@/components/PaperCupsGift";
 import { infoSlides } from "@/components/InfoSlides";
 import BagArt from "@/components/BagArt";
 import { CoffeeCard, ToolCard, Stars, ToolVisual } from "@/components/Cards";
@@ -291,6 +292,9 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
       ))}
     </div>
   )});
+  if (coffee.reviewsCount > 0) sections.push({ key: "reviews", title: `التقييمات · ${coffee.reviewsCount}`, body: (
+    <div id="reviews"><ReviewsSection slug={coffee.slug} rating={coffee.rating} count={coffee.reviewsCount} /></div>
+  )});
 
 
   return (
@@ -477,6 +481,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
             </span>
           </div>
           <div className="flex justify-between"><span className="text-muted">الدفع</span><span className="font-medium">عند الاستلام</span></div>
+          <div className="pt-1"><PaperCupsGift /></div>
           <div className="flex justify-between"><span className="text-muted">نقاطك من هذا الطلب</span><span className="font-num font-medium text-ok">{n(cashback)} نقطة</span></div>
         </div>
       </div>
@@ -1035,6 +1040,7 @@ function ToolView({ tool }: { tool: Tool }) {
             </span>
           </div>
           <div className="flex justify-between"><span className="text-muted">الدفع</span><span className="font-medium">عند الاستلام</span></div>
+          <div className="pt-1"><PaperCupsGift /></div>
           <div className="flex justify-between"><span className="text-muted">نقاطك من هذا الطلب</span><span className="font-num font-medium text-ok">{n(cashback)} نقطة</span></div>
         </div>
       </div>

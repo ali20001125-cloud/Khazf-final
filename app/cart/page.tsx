@@ -9,6 +9,7 @@ import { useStore, useSiteConfig, boxPreview } from "@/lib/store";
 import { useCatalog } from "@/lib/catalog-context";
 import { useMotion } from "@/lib/motion";
 import { gaViewCart } from "@/lib/ga";
+import PaperCupsGift from "@/components/PaperCupsGift";
 
 type Me = { guest?: boolean; pointsBalance?: number; pointsValueDinars?: number; name?: string; email?: string | null; phone?: string | null };
 
@@ -183,7 +184,7 @@ export default function CartPage() {
       {/* فرصة البوكس — تحويل بضغطة أو دعوة لإضافة كيس */}
       {boxChance && (
         boxChance.saving > 0 ? (
-          <div className="mt-5 rounded-[16px] border border-gold/35 bg-gold/8 p-4">
+          <div className="mt-5 rounded-[5px] border border-gold/35 bg-gold/8 p-4">
             <p className="text-[13.5px] font-bold leading-snug">
               أكياسك الـ<span className="font-num">{boxChance.bags}</span> تصلح بوكس —
               وفّر <span className="font-num text-accent">{formatIQD(boxChance.saving)}</span>
@@ -195,7 +196,7 @@ export default function CartPage() {
             </button>
           </div>
         ) : boxChance.next ? (
-          <Link href="/box/" className="mt-5 flex items-center justify-between gap-3 rounded-[16px] border border-line bg-card p-4 active:scale-[0.99]">
+          <Link href="/box/" className="mt-5 flex items-center justify-between gap-3 rounded-[5px] border border-line bg-card p-4 active:scale-[0.99]">
             <p className="text-[13px] font-semibold leading-snug">
               أضِف <span className="font-num text-accent">{boxChance.next.bags - boxChance.bags}</span>
               {boxChance.next.bags - boxChance.bags === 1 ? " كيساً" : " أكياس"} وتبدأ خصومات البوكس
@@ -210,7 +211,7 @@ export default function CartPage() {
         const remaining = config.freeDeliveryThreshold - subtotal;
         const pct = Math.min(100, (subtotal / config.freeDeliveryThreshold) * 100);
         return (
-          <div className="mt-5 rounded-[16px] border border-line bg-card p-4">
+          <div className="mt-5 rounded-[5px] border border-line bg-card p-4">
             {remaining > 0 ? (
               <p className="text-[13px] font-semibold">
                 أضِف <span className="font-num text-accent">{formatIQD(remaining)}</span> وتحصل على <span className="text-ok">توصيل مجّاني</span>
@@ -234,7 +235,7 @@ export default function CartPage() {
             if (items.length === 0) return null;
             const sum = items.reduce((t, i) => t + i.priceShown * i.qty, 0);
             return (
-              <div key={bid} className="rounded-[18px] border border-gold/40 bg-gold/6 p-4">
+              <div key={bid} className="rounded-[5px] border border-gold/40 bg-gold/6 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-[13.5px] font-bold text-accent">حزمة خذها معاً</p>
@@ -257,7 +258,7 @@ export default function CartPage() {
 
           {/* عناصر مفردة (خارج البوكس والحزم) */}
           {cart.filter((i) => i.boxGroup == null && !i.bundleId).map((i) => (
-            <div key={i.key} className="flex items-center gap-4 rounded-[18px] border border-line bg-card p-4">
+            <div key={i.key} className="flex items-center gap-4 rounded-[5px] border border-line bg-card p-4">
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold">{i.name}</p>
                 {i.meta && <p className="mt-0.5 text-[12px] text-muted">{i.meta}</p>}
@@ -289,7 +290,7 @@ export default function CartPage() {
             const boxBags = boxItems.reduce((t, i) => t + i.qty, 0);
             const boxSubtotal = boxItems.reduce((t, i) => t + i.priceShown * i.qty, 0);
             return (
-              <div className="rounded-[18px] border border-gold/40 bg-gold/[0.06] p-4">
+              <div className="rounded-[5px] border border-gold/40 bg-gold/[0.06] p-4">
                 <div className="flex items-center justify-between">
                   <p className="flex items-center gap-2 font-bold">
                     <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-[11px] font-bold text-gold">البوكس الثلاثي</span>
@@ -332,14 +333,14 @@ export default function CartPage() {
             ];
             if (suggestions.length === 0) return null;
             return (
-              <div className="mt-6 rounded-[18px] border border-line bg-card p-5">
+              <div className="mt-6 rounded-[5px] border border-line bg-card p-5">
                 <p className="text-[14px] font-bold">أضِف إلى طلبك</p>
                 <p className="mt-0.5 text-[12px] text-muted">تقرّبك من التوصيل المجّاني</p>
                 <div className="mt-4 space-y-2.5">
                   {suggestions.map((it) => (
                     <div key={it.slug} className="flex items-center gap-3">
                       <Link href={`/product/?${it.isCoffee ? "c" : "t"}=${it.slug}`}
-                        className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[12px] bg-white">
+                        className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-white">
                         {it.img ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={it.img} alt={it.name} className="h-full w-full object-cover" />
@@ -369,13 +370,15 @@ export default function CartPage() {
           })()}
         </div>
 
+        <div className="mt-4"><PaperCupsGift variant="card" /></div>
+
         {/* الملخص */}
-        <aside className="h-fit space-y-4 rounded-[22px] border border-line bg-card p-6 lg:sticky lg:top-28">
+        <aside className="h-fit space-y-4 rounded-[6px] border border-line bg-card p-6 lg:sticky lg:top-28">
           {/* كود الخصم */}
           <div>
             <p className="mb-2 flex items-center gap-1.5 text-[13px] font-bold"><Ticket size={14} /> كود الخصم</p>
             {coupon ? (
-              <div className="flex items-center justify-between rounded-[12px] bg-ok/10 px-4 py-3 text-[13px] font-bold text-ok">
+              <div className="flex items-center justify-between rounded-[4px] bg-ok/10 px-4 py-3 text-[13px] font-bold text-ok">
                 <span className="font-num">{coupon.code}</span>
                 <button onClick={() => setCoupon(null)} className="text-muted hover:text-accent">إزالة</button>
               </div>
@@ -385,7 +388,7 @@ export default function CartPage() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="كود الخصم"
-                  className="font-num w-full rounded-[12px] border border-line bg-bg px-4 py-2.5 text-sm outline-none focus:border-accent"
+                  className="font-num w-full rounded-[4px] border border-line bg-bg px-4 py-2.5 text-sm outline-none focus:border-accent"
                 />
                 <button onClick={tryCoupon} disabled={checking} className="btn btn-ghost shrink-0 !px-4 !py-2.5 text-[13px] disabled:opacity-50">
                   {checking ? "…" : "تفعيل"}
@@ -397,7 +400,7 @@ export default function CartPage() {
           {/* الرصيد */}
           {!me.guest && (me.pointsBalance ?? 0) > 0 && (
             <div>
-              <label className="flex cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-bg p-3.5">
+              <label className="flex cursor-pointer items-center gap-3 rounded-[4px] border border-line bg-bg p-3.5">
                 <input type="checkbox" checked={useCashback} onChange={(e) => setUseCashback(e.target.checked)} className="h-4 w-4 accent-[#c9a961]" />
                 <Wallet size={16} className="text-gold" />
                 <span className="text-[13px] font-bold">
@@ -455,7 +458,7 @@ export default function CartPage() {
       </div>
 
       {box.gift && !boxGiftChoice && (
-        <Link href="/box/" className="mt-6 flex items-center justify-center gap-2 rounded-[16px] border border-gold/50 bg-gold/10 py-3.5 text-[13px] font-bold text-gold">
+        <Link href="/box/" className="mt-6 flex items-center justify-center gap-2 rounded-[5px] border border-gold/50 bg-gold/10 py-3.5 text-[13px] font-bold text-gold">
           <Gift size={15} /> وصلت لهدية البوكس — ارجع واختَرها
         </Link>
       )}

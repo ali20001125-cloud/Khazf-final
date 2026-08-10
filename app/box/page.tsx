@@ -10,7 +10,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { Gift as GiftIcon } from "lucide-react";
 import { useMotion, reduced } from "@/lib/motion";
 import { useStore, useSiteConfig } from "@/lib/store";
-import CompleteCart from "@/components/CompleteCart";
+import PaperCupsGift from "@/components/PaperCupsGift";
 import BagArt from "@/components/BagArt";
 
 const tiers = [
@@ -204,7 +204,7 @@ export default function BoxPage() {
             />
           </div>
           {/* المستويات كصفّ واحد */}
-          <div className="mt-4 flex gap-px overflow-hidden rounded-[12px] bg-line">
+          <div className="mt-4 flex gap-px overflow-hidden rounded-[4px] bg-line">
             {tiers.map((t, i) => {
               const on = count >= i + 2;
               return (
@@ -239,7 +239,7 @@ export default function BoxPage() {
         {/* بوكس جاهز — لمن لا يريد الاختيار */}
         {count === 0 && (
           <button onClick={fillReady}
-            className="reveal mt-7 flex w-full items-center justify-between gap-3 rounded-[16px] border border-gold/35 bg-gold/8 p-5 text-start transition-all active:scale-[0.99]">
+            className="reveal mt-7 flex w-full items-center justify-between gap-3 rounded-[5px] border border-gold/35 bg-gold/8 p-5 text-start transition-all active:scale-[0.99]">
             <div>
               <p className="text-[13.5px] font-bold">لا تعرف أيّها تختار؟</p>
               <p className="mt-0.5 text-[11.5px] text-muted">نجهّز لك صندوقاً متنوّعاً من ٤ أكياس بخصم ٢٠٪</p>
@@ -252,7 +252,7 @@ export default function BoxPage() {
         {count > 0 && config.freeDeliveryThreshold > 0 && (() => {
           const remaining = config.freeDeliveryThreshold - total;
           return remaining > 0 ? (
-            <div className="reveal mt-4 rounded-[14px] border border-line bg-card p-4">
+            <div className="reveal mt-4 rounded-[4px] border border-line bg-card p-4">
               <p className="text-[13px] font-semibold">
                 باقي لك <span className="font-num text-accent">{formatIQD(remaining)}</span> ويصير التوصيل مجانياً
               </p>
@@ -263,7 +263,7 @@ export default function BoxPage() {
               <p className="mt-2 text-[11.5px] text-muted">أضِف كوباً أو فلاتر لتبلغها</p>
             </div>
           ) : (
-            <p className="reveal mt-4 rounded-[14px] bg-ok/10 px-4 py-3 text-[13px] font-bold text-ok">
+            <p className="reveal mt-4 rounded-[4px] bg-ok/10 px-4 py-3 text-[13px] font-bold text-ok">
               توصيل مجاني ✓
             </p>
           );
@@ -276,13 +276,13 @@ export default function BoxPage() {
             return (
               <div
                 key={c.slug}
-                className={`flex items-center gap-4 rounded-[18px] border bg-card p-4 transition-colors ${
+                className={`flex items-center gap-4 rounded-[5px] border bg-card p-4 transition-colors ${
                   n > 0 ? "border-accent/50" : "border-line"
                 }`}
               >
                 <Link
                   href={`/product/?c=${c.slug}`}
-                  className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white"
+                  className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-white"
                 >
                   {c.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -332,7 +332,7 @@ export default function BoxPage() {
         </div>
 
         {/* الهدية — ظاهرة دائماً (تحفيز)، معطّلة حتى الوصول لـ٦ أكياس */}
-        <div className={`mt-10 rounded-[22px] border p-6 text-center transition-all ${
+        <div className={`mt-10 rounded-[6px] border p-6 text-center transition-all ${
           count >= 3 ? "border-gold/50 bg-gold/10" : "border-line bg-card"
         }`}>
           <Gift size={26} className={`mx-auto ${count >= 3 ? "text-gold" : "text-muted/50"}`} />
@@ -357,16 +357,16 @@ export default function BoxPage() {
                 key={g.key}
                 onClick={() => count >= 3 && setGift(g.key)}
                 disabled={count < 6}
-                className={`flex flex-col items-center gap-2 overflow-hidden rounded-[16px] border-2 p-3 transition-colors ${
+                className={`flex flex-col items-center gap-2 overflow-hidden rounded-[5px] border-2 p-3 transition-colors ${
                   picked ? "border-gold bg-gold/15" : "border-line bg-card"
                 } ${count >= 3 ? "hover:border-muted" : ""}`}
               >
                 {g.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={g.image} alt={g.name}
-                    className="aspect-square w-full rounded-[11px] bg-white object-contain" />
+                    className="aspect-square w-full rounded-[4px] bg-white object-contain" />
                 ) : (
-                  <span className="flex aspect-square w-full items-center justify-center rounded-[11px] bg-bg-alt">
+                  <span className="flex aspect-square w-full items-center justify-center rounded-[4px] bg-bg-alt">
                     <g.icon size={26} className={picked ? "text-gold" : "text-muted"} strokeWidth={1.8} />
                   </span>
                 )}
@@ -384,12 +384,13 @@ export default function BoxPage() {
         </div>
       </div>
 
-      {count > 0 && <div className="mx-auto max-w-3xl px-4 md:px-6"><CompleteCart subtotal={total} compact /></div>}
+
+      {count > 0 && <div className="mx-auto max-w-3xl px-4 pt-4 md:px-6"><PaperCupsGift variant="card" /></div>}
 
       {/* الملخّص الشفاف — قبل الإضافة بلا مفاجآت */}
       {count > 0 && (
         <div className="mx-auto mt-10 max-w-3xl px-4 md:px-6">
-          <div className="rounded-[18px] bg-bg-alt p-5">
+          <div className="rounded-[5px] bg-bg-alt p-5">
             <div className="flex justify-between py-1.5 text-[13px]">
               <span className="text-muted">{count} {count === 1 ? "كيس" : "أكياس"}</span>
               <span className="font-num">{formatIQD(subtotal)}</span>

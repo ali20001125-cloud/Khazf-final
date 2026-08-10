@@ -7,8 +7,9 @@
  */
 import Link from "next/link";
 import { useCatalog } from "@/lib/catalog-context";
-import { useSiteConfig } from "@/lib/store";
+import { useSiteConfig, useStore } from "@/lib/store";
 import { formatIQD } from "@/lib/data";
+import PaperCupsGift from "@/components/PaperCupsGift";
 
 /* عنوان علوي إنجليزي — بلا رموز */
 function Eyebrow({ label, light = false }: { label: string; light?: boolean }) {
@@ -50,8 +51,10 @@ export function Hero() {
           </Link>
         </div>
 
+        <div className="mt-6"><PaperCupsGift /></div>
+
         {avg && (
-          <p className="mt-5 flex items-center gap-2 text-[12px] text-muted">
+          <p className="mt-4 flex items-center gap-2 text-[12px] text-muted">
             <span className="font-num font-bold text-ink">{avg}</span>
             <span className="text-gold">★★★★★</span>
             <span>من {total} تقييم</span>
@@ -85,6 +88,7 @@ export function TrustBar() {
 /* ═══ ٣) المحاصيل ═══ */
 export function Crops() {
   const { coffees } = useCatalog();
+  const { addToCart, showToast } = useStore();
   const list = coffees.filter((c) => !c.soldOut);
   if (list.length === 0) return null;
 
@@ -131,12 +135,20 @@ export function Crops() {
                     {c.notes.join(" · ")}
                   </p>
                 )}
-                <div className="mt-4 flex items-center justify-between border-t border-line pt-3.5">
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3.5">
                   <span className="font-num text-[15px] font-bold">{formatIQD(c.prices.g250)}</span>
-                  <span className="flex items-center gap-1 text-[12px] font-bold text-accent">
-                    اكتشف المحصول
-                    <span className="transition-transform group-hover:-translate-x-1">←</span>
-                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      addToCart({ slug: c.slug, variant: "G250", grind: "حبوب كاملة",
+                        name: c.name, meta: "٢٥٠غ · حبوب كاملة", priceShown: c.prices.g250 });
+                      showToast(`أُضيف ${c.name}`);
+                    }}
+                    aria-label={`أضف ${c.name}`}
+                    className="flex h-9 items-center gap-1.5 bg-olive px-4 text-[12.5px] font-bold text-olive-text transition-all hover:brightness-110 active:scale-95"
+                    style={{ borderRadius: 4 }}>
+                    أضف +
+                  </button>
                 </div>
               </div>
             </Link>
@@ -144,10 +156,10 @@ export function Crops() {
 
           {/* بطاقة عرض المزيد */}
           <Link href="/products/?cat=coffee"
-            className="group flex w-[74%] shrink-0 snap-start flex-col items-center justify-center bg-bg-alt p-6 text-center transition-colors hover:bg-card md:w-auto">
-            <span className="font-[Amiri,serif] text-[24px] font-bold">عرض المزيد</span>
-            <span className="mt-2 text-[12px] text-muted">كل المحاصيل والأدوات</span>
-            <span className="mt-4 text-[18px] text-accent transition-transform group-hover:-translate-x-1.5">←</span>
+            className="group flex w-[74%] shrink-0 snap-start flex-col items-center justify-center bg-olive p-6 text-center text-olive-text transition-all hover:brightness-110 md:w-auto">
+            <span className="font-[Amiri,serif] text-[28px] font-bold">عرض المزيد</span>
+            <span className="mt-2.5 text-[12.5px] opacity-80">كل المحاصيل والأدوات</span>
+            <span className="mt-5 text-[20px] text-gold transition-transform group-hover:-translate-x-2">←</span>
           </Link>
         </div>
         {list.length > 2 && <p className="mt-3 text-[11.5px] text-muted md:hidden">اسحب لاكتشاف الباقي ←</p>}
@@ -181,7 +193,9 @@ export function BuildBox() {
           ))}
         </div>
 
-        <div className="mt-7 flex flex-wrap items-center gap-6">
+        <div className="mt-6"><PaperCupsGift variant="dark" /></div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-6">
           <Link href="/box/"
             className="inline-flex min-h-[52px] items-center bg-gold px-8 text-[14.5px] font-bold text-olive transition-all hover:brightness-105 active:scale-[0.99]"
             style={{ borderRadius: 4 }}>
@@ -208,8 +222,8 @@ export function BuildBox() {
 function useSections() {
   const { activePlaces } = useCatalog();
   return [
-    { href: "/products/?cat=drip", t: "أدوات التقطير", d: "أقماع وفلاتر وسيرفرات وغلايات", place: "drip_tools" },
-    { href: "/products/?cat=espresso", t: "أدوات الإسبريسو", d: "تامبر وموزّعات وحلقات", place: "espresso_tools" },
+    { href: "/products/?cat=drip", t: "أدوات التقطير", d: "أقماع وفلاتر وسيرفرات", place: "drip_tools" },
+    { href: "/products/?cat=espresso", t: "أدوات الإسبريسو", d: "تامبر وموزّعات وملحقات", place: "espresso_tools" },
     { href: "/products/?cat=cups", t: "الأكواب والتقديم", d: "سيراميك وزجاج وأطقم", place: "cups" },
   ].filter((c) => activePlaces.includes(c.place))
    .map((c, i) => ({ ...c, n: String(i + 1).padStart(2, "0") }));
@@ -222,21 +236,19 @@ export function Gear() {
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <Eyebrow label="BEYOND THE BEAN" />
-        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">أكمِل تجربتك</h2>
+        <Eyebrow label="SHOP BY CATEGORY" />
+        <h2 className="mt-3.5 font-[Amiri,serif] text-[28px] font-bold md:text-[36px]">تسوّق حسب القسم</h2>
 
         <div className="mt-7 border-t border-line">
           {cards.map((c) => (
             <Link key={c.t} href={c.href}
-              className="group relative flex min-h-[104px] items-center justify-between gap-5 border-b border-line px-1 py-5 transition-colors hover:bg-olive/6 active:bg-olive/10">
-              {/* خط زيتوني يظهر عند المرور */}
-              <span className="absolute inset-y-0 end-0 w-[3px] scale-y-0 bg-olive transition-transform duration-300 group-hover:scale-y-100" />
-              <div className="min-w-0">
-                <span className="font-num block text-[10.5px] tracking-wide text-muted">{c.n}</span>
-                <span className="mt-1 block font-[Amiri,serif] text-[25px] font-bold leading-tight md:text-[30px]">{c.t}</span>
+              className="group relative flex min-h-[100px] items-center gap-4 border-b border-line px-2 py-5 transition-colors hover:bg-ink/[0.035] active:bg-ink/[0.06]">
+              <span className="font-num shrink-0 self-start pt-1 text-[9.5px] text-muted/70">{c.n}</span>
+              <div className="min-w-0 flex-1">
+                <span className="block font-[Amiri,serif] text-[25px] font-bold leading-tight md:text-[30px]">{c.t}</span>
                 <span className="mt-1 block text-[12px] text-muted">{c.d}</span>
               </div>
-              <span className="shrink-0 text-[18px] text-accent transition-transform duration-300 group-hover:-translate-x-1.5">←</span>
+              <span className="shrink-0 self-center text-[18px] text-accent transition-transform duration-300 group-hover:-translate-x-1.5">←</span>
             </Link>
           ))}
         </div>

@@ -13,7 +13,7 @@ import { fbTrack } from "@/lib/fbpixel";
 import { useMotion } from "@/lib/motion";
 
 const inputCls =
-  "w-full rounded-[14px] border border-line bg-card px-4 py-3.5 text-sm outline-none transition-colors placeholder:text-muted focus:border-accent";
+  "w-full rounded-[4px] border border-line bg-card px-4 py-3.5 text-sm outline-none transition-colors placeholder:text-muted focus:border-accent";
 
 type Success = {
   orderNumber: string;
@@ -205,22 +205,22 @@ export default function CheckoutPage() {
         </div>
         <h1 className="reveal mt-6 text-3xl font-bold">تم استلام طلبك</h1>
         <p className="reveal font-num mt-3 text-lg font-bold text-accent">{done.orderNumber}</p>
-        <div className="reveal mt-6 space-y-3 rounded-[20px] border border-line bg-card p-6 text-start">
+        <div className="reveal mt-6 space-y-3 rounded-[6px] border border-line bg-card p-6 text-start">
           <div className="flex justify-between text-[14px]">
             <span className="text-muted">الإجمالي (دفع عند الاستلام)</span>
             <span className="font-num text-lg font-bold">{formatIQD(done.total)}</span>
           </div>
           <a href={`/invoice/?n=${done.orderNumber}&p=${encodeURIComponent(form.phone)}`} target="_blank"
-            className="flex items-center justify-center gap-2 rounded-[12px] bg-bg-alt px-4 py-3 text-[13px] font-bold">
+            className="flex items-center justify-center gap-2 rounded-[4px] bg-bg-alt px-4 py-3 text-[13px] font-bold">
             🧾 عرض / طباعة الفاتورة
           </a>
           {done.pointsEarned > 0 && (
-            <div className="flex items-center gap-2 rounded-[12px] bg-gold/10 px-4 py-3 text-[13px] font-bold text-gold">
+            <div className="flex items-center gap-2 rounded-[4px] bg-gold/10 px-4 py-3 text-[13px] font-bold text-gold">
               <Sparkles size={15} /> ربحت <span className="font-num">{formatIQD(done.pointsEarned)}</span> كاش باك — يُفعَّل فور توصيل طلبك
             </div>
           )}
           {done.nextRewardMessage && (
-            <div className="flex items-center gap-2 rounded-[12px] bg-olive/10 px-4 py-3 text-[13px] font-bold">
+            <div className="flex items-center gap-2 rounded-[4px] bg-olive/10 px-4 py-3 text-[13px] font-bold">
               <Gift size={15} className="text-accent" /> {done.nextRewardMessage}
             </div>
           )}
@@ -269,7 +269,7 @@ export default function CheckoutPage() {
                 <span className="pointer-events-none absolute -top-2 end-3 bg-bg px-2 text-[10.5px] font-bold text-accent">المحافظة *</span>
                 <select id="f-gov" required value={form.governorate}
                   onChange={(e) => setForm({ ...form, governorate: e.target.value })}
-                  className={`w-full appearance-none rounded-[14px] border-2 bg-card px-4 py-3.5 text-[14px] font-bold outline-none transition-colors ${
+                  className={`w-full appearance-none rounded-[4px] border-2 bg-card px-4 py-3.5 text-[14px] font-bold outline-none transition-colors ${
                     form.governorate ? "border-line" : "border-accent/50 text-muted"
                   }`}>
                   <option value="" disabled>المحافظة</option>
@@ -320,7 +320,7 @@ export default function CheckoutPage() {
 
           <section className="reveal">
             <h2 className="mb-4 text-lg font-bold">الدفع</h2>
-            <div className="flex items-center gap-3 rounded-[16px] border-2 border-olive bg-card p-4">
+            <div className="flex items-center gap-3 rounded-[5px] border-2 border-olive bg-card p-4">
               <HandCoins size={20} className="text-olive" />
               <div>
                 <p className="text-sm font-bold">كاش عند الاستلام</p>
@@ -332,7 +332,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* الملخص */}
-        <aside className="h-fit space-y-3 rounded-[22px] border border-line bg-card p-6 lg:sticky lg:top-28">
+        <aside className="h-fit space-y-3 rounded-[6px] border border-line bg-card p-6 lg:sticky lg:top-28">
           <h2 className="text-lg font-bold">طلبك</h2>
           <ul className="divide-y divide-line">
             {cart.map((i) => (
@@ -341,7 +341,7 @@ export default function CheckoutPage() {
                   <p className="truncate text-[13px] font-semibold">{i.name}</p>
                   {i.meta && <p className="mt-0.5 truncate text-[11px] text-muted">{i.meta}</p>}
                 </div>
-                <div className="flex shrink-0 items-center gap-2.5 rounded-[10px] border border-line px-2 py-1">
+                <div className="flex shrink-0 items-center gap-2.5 rounded-[4px] border border-line px-2 py-1">
                   <button onClick={() => setQty(i.key, i.qty - 1)} aria-label="أنقص"
                     className="flex h-6 w-6 items-center justify-center text-muted hover:text-ink">−</button>
                   <span className="font-num w-4 text-center text-[12.5px] font-bold">{i.qty}</span>
@@ -389,7 +389,7 @@ export default function CheckoutPage() {
           {/* الكاش باك — تفعيل/إلغاء من صفحة الدفع أيضاً */}
           {(preview?.pointsAvailable ?? 0) > 0 && (
             <div>
-              <label className="flex cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-bg p-3.5">
+              <label className="flex cursor-pointer items-center gap-3 rounded-[4px] border border-line bg-bg p-3.5">
                 <input type="checkbox" checked={useCashback}
                   onChange={(e) => setUseCashback(e.target.checked)}
                   className="h-4 w-4 accent-[#c9a961]" />
@@ -404,7 +404,7 @@ export default function CheckoutPage() {
               )}
             </div>
           )}
-          <p className="rounded-[12px] bg-bg-alt px-4 py-3 text-[11.5px] leading-relaxed text-muted">
+          <p className="rounded-[4px] bg-bg-alt px-4 py-3 text-[11.5px] leading-relaxed text-muted">
             الدفع عند الاستلام · جميع الخصومات مطبّقة أعلاه.
           </p>
           <button type="submit" disabled={sending}

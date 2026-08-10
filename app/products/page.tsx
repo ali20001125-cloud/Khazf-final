@@ -129,7 +129,7 @@ function ShopInner() {
         <input
           value={q} onChange={(e) => setQ(e.target.value)}
           placeholder="ابحث عن محصول أو أداة…"
-          className="w-full rounded-[14px] border border-line bg-bg-alt py-3 pe-11 ps-4 text-[13.5px] outline-none transition-colors focus:border-accent focus:bg-bg"
+          className="w-full rounded-[4px] border border-line bg-bg-alt py-3 pe-11 ps-4 text-[13.5px] outline-none transition-colors focus:border-accent focus:bg-bg"
         />
       </div>
 
