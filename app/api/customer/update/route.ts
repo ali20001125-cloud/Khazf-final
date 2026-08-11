@@ -55,11 +55,14 @@ export async function POST(req: Request) {
     // ننقل كل السجلّات المرتبطة للرقم الجديد (الطلبات، النقاط، الرحلة) بمعاملة واحدة.
     // ترتيب آمن مع الـFK: إدراج صف الزبون الجديد ← تحويل المراجع ← حذف القديم.
     await db.transaction(async (tx) => {
-      // الزبون: ننشئ صفاً جديداً بالرقم الجديد (نسخة كاملة من القديم) قبل نقل التبعيات.
-      // phone هو المفتاح الأساسي، فتغييره = صف جديد + تحويل المراجع + حذف القديم.
+      // authUserId فريد — نفكّه عن الصفّ القديم أولاً وإلا فشل الإدراج
+      if (me.authUserId)
+        await tx.update(s.customers).set({ authUserId: null }).where(eq(s.customers.phone, currentPhone));
+
       await tx.insert(s.customers).values({
         phone: newPhone,
         authUserId: me.authUserId,
+        welcomedAt: me.welcomedAt,
         name: name || me.name,
         governorate: governorate || me.governorate,
         address: address ?? me.address,

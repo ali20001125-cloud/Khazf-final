@@ -300,13 +300,13 @@ function AccountInner() {
 function EditProfile({ me, onClose }: { me: Me; onClose: () => void }) {
   const [name, setName] = useState(me.name ?? "");
   const [email, setEmail] = useState(me.email ?? "");
-  const [phone, setPhone] = useState(me.phone ?? "");
+  const [phone, setPhone] = useState(me.phone?.startsWith("auth:") ? "" : (me.phone ?? ""));
   const [gov, setGov] = useState(me.governorate ?? "");
   const [address, setAddress] = useState(me.address ?? "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState(false);
-  const phoneChanged = normalizeIqPhone(phone) !== me.phone;
+  const phoneChanged = !!normalizeIqPhone(phone) && normalizeIqPhone(phone) !== me.phone;
 
   const save = async () => {
     setErr("");
@@ -331,10 +331,10 @@ function EditProfile({ me, onClose }: { me: Me; onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm md:items-center" onClick={onClose}>
-      <div className="w-full max-w-md rounded-t-[28px] bg-cream p-6 md:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[8px] bg-cream p-6 md:rounded-[8px]" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-line md:hidden" />
         <h2 className="text-[19px] font-bold">تعديل بياناتي</h2>
-        <p className="mt-1 text-[12px] text-muted">حدّث معلوماتك — تُحفظ فوراً</p>
+        <p className="mt-1 text-[12px] text-muted">الاسم والهاتف والمحافظة تُملأ تلقائياً عند طلبك القادم</p>
 
         <div className="mt-5 space-y-3">
           <div>

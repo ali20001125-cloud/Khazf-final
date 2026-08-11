@@ -58,7 +58,7 @@ export default function CheckoutPage() {
       setForm((f) => ({
         ...f,
         name: f.name || me.name || "",
-        phone: f.phone || me.phone || "",
+        phone: f.phone || (me.phone?.startsWith("auth:") ? "" : me.phone) || "",
         email: f.email || me.email || "",
         governorate: f.governorate || me.governorate || "",
         address: f.address || me.address || "",
