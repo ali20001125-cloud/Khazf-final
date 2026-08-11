@@ -8,7 +8,7 @@
  */
 import Link from "next/link";
 import { useCatalog } from "@/lib/catalog-context";
-import { useSiteConfig, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { formatIQD } from "@/lib/data";
 import ProductJsonLd from "@/components/ProductJsonLd";
 
@@ -17,7 +17,6 @@ const FEATURED_SLUG: string = "dorado";
 export function FeaturedPick() {
   const { coffees } = useCatalog();
   const { addToCart, showToast } = useStore();
-  const config = useSiteConfig();
 
   const available = coffees.filter((c) => !c.soldOut && c.image);
   if (available.length === 0) return null;
@@ -113,10 +112,6 @@ export function FeaturedPick() {
                 التفاصيل ←
               </Link>
             </div>
-
-            <p className="mt-0.5 text-[11px] text-muted">
-              يصلك خلال يوم–يومين · الدفع عند الاستلام · {config.cashbackPct ?? 3}٪ نقاط ولاء
-            </p>
           </div>
         </div>
       </div>
