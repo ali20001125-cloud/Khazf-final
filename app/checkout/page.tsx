@@ -409,7 +409,12 @@ export default function CheckoutPage() {
           </p>
           <button type="submit" disabled={sending}
             className="btn btn-clay flex w-full items-center justify-center gap-2 !py-4 text-[15px] active:scale-[0.98] disabled:opacity-60">
-            {sending ? "جارٍ التثبيت…" : <>ثبّت الطلب <ArrowLeft size={16} /></>}
+            {sending ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                جارٍ تثبيت طلبك…
+              </span>
+            ) : <>ثبّت الطلب <ArrowLeft size={16} /></>}
           </button>
         </aside>
       </form>

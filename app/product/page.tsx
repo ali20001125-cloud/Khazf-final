@@ -84,7 +84,7 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [shot, setShot] = useState(0);
-  const [showBar, setShowBar] = useState(false);
+  const [showBar, setShowBar] = useState(true);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const buyRef = useRef<HTMLDivElement>(null);
 
@@ -129,7 +129,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
   useEffect(() => {
     const el = buyRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting && e.boundingClientRect.top < 0));
+    // يختفي حين تكون منطقة الشراء أمام العين، ويظهر فيما عدا ذلك
+    const obs = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting), { threshold: 0.35 });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
@@ -778,7 +779,7 @@ function ToolView({ tool }: { tool: Tool }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [shot, setShot] = useState(0);
-  const [showBar, setShowBar] = useState(false);
+  const [showBar, setShowBar] = useState(true);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [variantId, setVariantId] = useState<number | null>(null);
   const [hotspot, setHotspot] = useState<number | null>(null);
@@ -821,7 +822,8 @@ function ToolView({ tool }: { tool: Tool }) {
   useEffect(() => {
     const el = buyRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting && e.boundingClientRect.top < 0));
+    // يختفي حين تكون منطقة الشراء أمام العين، ويظهر فيما عدا ذلك
+    const obs = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting), { threshold: 0.35 });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
