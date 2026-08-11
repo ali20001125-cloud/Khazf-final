@@ -148,7 +148,7 @@ export function CoffeeCard({ coffee }: { coffee: Coffee }) {
               });
             }}
             aria-label={coffee.soldOut ? "نفذ مؤقتاً" : `أضف ${coffee.name}`}
-            className={`relative z-[2] flex h-9 items-center justify-center rounded-full text-olive-text transition-transform active:scale-90 ${
+            className={`relative z-[2] flex h-9 items-center justify-center rounded-full text-olive-text tap-fx transition-transform active:scale-90 ${
               coffee.soldOut ? "w-auto cursor-default bg-bg-alt px-3 text-[11px] font-bold !text-muted" : "w-9 bg-accent hover:scale-105"
             }`}
           >

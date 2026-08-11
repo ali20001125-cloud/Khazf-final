@@ -40,7 +40,7 @@ export function Hero() {
 
         <div className="khz-in khz-in-2 mt-6 flex flex-wrap gap-px bg-line">
           <Link href="/products/?cat=coffee"
-            className="flex min-h-[52px] flex-1 items-center justify-center bg-olive px-7 text-[14.5px] font-bold text-olive-text transition-all hover:brightness-110 active:scale-[0.99]"
+            className="flex min-h-[52px] flex-1 items-center justify-center bg-olive px-7 text-[14.5px] font-bold text-olive-text tap-fx transition-all hover:brightness-110 active:scale-[0.99]"
             style={{ borderRadius: 4 }}>
             تصفّح المحاصيل
           </Link>
@@ -117,7 +117,7 @@ export function Crops() {
         <div className="no-scrollbar -mx-5 mt-7 flex snap-x snap-mandatory gap-px overflow-x-auto bg-line px-5 md:mx-0 md:grid md:grid-cols-3 md:px-0">
           {shown.map((c, i) => (
             <Link key={c.slug} href={`/product/?c=${c.slug}`}
-              className="group w-[74%] shrink-0 snap-start bg-bg transition-colors hover:bg-card md:w-auto">
+              className="group w-[74%] shrink-0 snap-start bg-bg tap-fx transition-colors hover:bg-card md:w-auto">
               <div className="relative aspect-square overflow-hidden bg-bg-alt">
                 {c.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -168,7 +168,7 @@ export function Crops() {
                       showToast(`أُضيف ${c.name}`);
                     }}
                     aria-label={`أضف ${c.name}`}
-                    className="flex h-9 items-center gap-1.5 bg-olive px-4 text-[12.5px] font-bold text-olive-text transition-all hover:brightness-110 active:scale-95 disabled:opacity-40"
+                    className="flex h-9 items-center gap-1.5 bg-olive px-4 text-[12.5px] font-bold text-olive-text tap-fx transition-all hover:brightness-110 active:scale-95 disabled:opacity-40"
                     style={{ borderRadius: 4 }}>
                     {c.soldOut ? "نفد" : "أضف +"}
                   </button>

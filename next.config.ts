@@ -17,7 +17,12 @@ const nextConfig: NextConfig = {
     }];
   },
   trailingSlash: true,
-  images: { unoptimized: true },
+  images: {
+    unoptimized: true,   // هوستنجر بلا معالج صور — نبقيها كما هي
+  },
+  compress: true,
+  poweredByHeader: false,
+  experimental: { optimizePackageImports: ["lucide-react"] },
 };
 
 export default nextConfig;

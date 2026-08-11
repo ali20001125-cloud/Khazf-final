@@ -268,3 +268,18 @@ tr.row-tap .row-link {
 @media (prefers-reduced-motion: reduce) {
   .khz-in { animation: none; }
 }
+
+/* ── تفاعل ناعم على الهاتف ── */
+@media (hover: none) {
+  .tap-fx { transition: transform .12s ease, opacity .12s ease; }
+  .tap-fx:active { transform: scale(.97); opacity: .9; }
+}
+
+/* تسريع التمرير على iOS */
+.no-scrollbar { -webkit-overflow-scrolling: touch; }
+
+/* منع وميض الصور عند التحميل */
+img { background-color: var(--bg-alt); }
+
+/* استجابة أسرع للمس */
+button, a, [role="button"] { touch-action: manipulation; }
