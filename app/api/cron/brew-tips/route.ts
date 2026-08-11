@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     WHERE o.status = 'DELIVERED'
       AND o.email IS NOT NULL
       AND o.delivered_at <= now() - interval '2 days'
-      AND o.delivered_at > now() - interval '4 days'
+      AND o.delivered_at > now() - interval '30 days'   -- نافذة أوسع: لا تسقط الطلبات إن تعطّل الكرون يوماً
       AND NOT EXISTS (
         SELECT 1 FROM email_log l
         WHERE l.kind = 'brew_tips' AND lower(l.recipient) = lower(o.email)
