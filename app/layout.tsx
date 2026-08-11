@@ -7,6 +7,7 @@ import { StoreProvider, GlobalToast, type SiteConfig } from "@/lib/store";
 import { getSettings } from "@/lib/server/settings";
 import { getCatalog, type CatalogData } from "@/lib/server/catalog";
 import VisitTracker from "@/components/VisitTracker";
+import DeferredAnalytics from "@/components/DeferredAnalytics";
 import { CatalogProvider } from "@/lib/catalog-context";
 
 export const dynamic = "force-dynamic"; // متجر حي من القاعدة — لا تصيير مسبق
@@ -129,17 +130,13 @@ export default async function RootLayout({
           </Smooth>
         </StoreProvider>
         </CatalogProvider>
-        {/* Microsoft Clarity — خريطة حرارية وتسجيل جلسات (لا يعمل ببيئة الاختبار ولا للأجهزة المستثناة) */}
-        {process.env.NEXT_PUBLIC_CLARITY_ID && process.env.NEXT_PUBLIC_ENV !== "staging" && (
-          <script dangerouslySetInnerHTML={{ __html:
-            `if(!document.cookie.includes('khz_no_track=1')){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${process.env.NEXT_PUBLIC_CLARITY_ID}")}` }} />
-        )}
-        {analytics.ga && (
-          <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga}`} />
-            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${analytics.ga}',{send_page_view: !location.pathname.startsWith('/alikhazf25')});` }} />
-          </>
-        )}
+        {/* تتبّع مؤجَّل (GA · Meta Pixel · Clarity) — يُحمَّل بعد جاهزية الصفحة فلا يبطّئها */}
+        <DeferredAnalytics
+          ga={analytics.ga}
+          pixel={analytics.pixel}
+          clarityId={process.env.NEXT_PUBLIC_CLARITY_ID ?? null}
+          enabled={process.env.NEXT_PUBLIC_ENV !== "staging"}
+        />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([
           {
             "@context": "https://schema.org", "@type": "Store", name: "خزف",
@@ -163,9 +160,6 @@ export default async function RootLayout({
             publisher: { "@id": `${SITE}/#organization` },
           },
         ]) }} />
-        {analytics.pixel && (
-          <script dangerouslySetInnerHTML={{ __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${analytics.pixel}');fbq('track','PageView');` }} />
-        )}
       </body>
     </html>
   );
