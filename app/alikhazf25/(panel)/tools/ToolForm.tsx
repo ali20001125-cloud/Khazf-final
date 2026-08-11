@@ -18,6 +18,8 @@ export default function ToolForm({
   action: (f: FormData) => Promise<void>; submitLabel: string;
 }) {
   const toolSpecs = (p.toolSpecs as ToolSpecs | null) ?? null;
+  const hasVariants = variants.length > 0;
+  const variantStock = variants.reduce((t, v) => t + (Number(v.stock) || 0), 0);
 
   return (
     <form action={action} className="space-y-4">
@@ -30,7 +32,15 @@ export default function ToolForm({
         <Field label="سعر القطعة" hint="للمنتج بلا خيارات فقط — يُتجاهل إن أضفت ألواناً أو مقاسات"><input name="pricePiece" defaultValue={p.pricePiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="سعر العرض" hint="اختياري — يُعرض السعر الأصلي مشطوباً"><input name="salePrice" defaultValue={p.salePrice ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
         <Field label="تكلفة القطعة" hint="لحساب الربح — لا تظهر للزبون"><input name="costPiece" defaultValue={p.costPiece ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
-        <Field label="المخزون (قطعة)" hint="للمنتج بلا خيارات فقط — إن أضفت خيارات فالمخزون مجموعها"><input name="stockPieces" defaultValue={p.stockPieces ?? ""} className={`${inputCls} font-num`} dir="ltr" /></Field>
+        <Field
+          label="المخزون (قطعة)"
+          hint={hasVariants
+            ? `معطّل — المخزون يُحسب من الخيارات (${variantStock} قطعة)`
+            : "للمنتج بلا خيارات فقط"}>
+          <input name="stockPieces" defaultValue={hasVariants ? "" : (p.stockPieces ?? "")}
+            disabled={hasVariants} placeholder={hasVariants ? String(variantStock) : ""}
+            className={`${inputCls} font-num ${hasVariants ? "cursor-not-allowed bg-bg-alt text-muted" : ""}`} dir="ltr" />
+        </Field>
         <Field label="الصنف">
           <select name="subcategoryId" defaultValue={p.subcategoryId ?? ""} className={inputCls}>
             <option value="">اختر الصنف</option>

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { sql } from "drizzle-orm";
-import { db } from "@/lib/server/db";
+import { eq, sql } from "drizzle-orm";
+import { db, schema as s2 } from "@/lib/server/db";
 import { PageTitle, Card, Th, Td, money, dateAr } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
@@ -82,6 +82,29 @@ export default async function AnalyticsPage() {
         (SELECT COUNT(*) FROM orders WHERE is_test = false AND created_at >= now() - interval '30 days' AND status <> 'CANCELLED')::int AS orders
       FROM s`)).rows[0] as unknown as typeof funnel;
   } catch { /* تجاهل */ }
+
+  /* ── الربح الصافي بعد التغليف والتوصيل ── */
+  const [costs] = await db.select().from(s2.settingsInternal).where(eq(s2.settingsInternal.id, 1));
+  let netProfit = { gross: 0, bags: 0, orders: 0, delivery_collected: 0 };
+  try {
+    netProfit = (await db.execute(sql`
+      SELECT
+        COALESCE(SUM(o.product_profit),0)::int AS gross,
+        COALESCE((SELECT SUM(i.qty) FROM order_items i JOIN orders o2 ON o2.id=i.order_id
+                  JOIN products p ON p.id=i.product_id
+                  WHERE o2.is_test=false AND o2.status<>'CANCELLED' AND p.type='COFFEE'),0)::int AS bags,
+        COUNT(*)::int AS orders,
+        COALESCE(SUM(o.delivery_charged),0)::int AS delivery_collected
+      FROM orders o WHERE o.is_test=false AND o.status<>'CANCELLED'`)).rows[0] as unknown as typeof netProfit;
+  } catch { /* تجاهل */ }
+
+  const packBag = costs?.packagingCostPerBag ?? 2000;
+  const packOrder = costs?.packagingCostPerOrder ?? 500;
+  const delivReal = costs?.deliveryCostReal ?? 5000;
+  const realNet = netProfit.gross
+    - netProfit.bags * packBag
+    - netProfit.orders * packOrder
+    - (netProfit.orders * delivReal - netProfit.delivery_collected);
 
   /* ── مسار الشراء اليومي ── */
   let funnelDay = { visitors: 0, viewed_product: 0, viewed_cart: 0, started_checkout: 0, orders: 0 };
@@ -226,6 +249,26 @@ export default async function AnalyticsPage() {
           )}
         </Card>
       </div>
+
+      {/* الربح الصافي */}
+      {netProfit.orders > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 text-[15px] font-bold">الربح الحقيقي</h2>
+          <Card className="p-5">
+            <div className="flex flex-col gap-2 text-[13px]">
+              <div className="flex justify-between"><span className="text-muted">ربح المنتجات</span><span className="font-num font-semibold">{money(netProfit.gross)}</span></div>
+              <div className="flex justify-between text-accent"><span>تغليف الأكياس ({netProfit.bags} × {money(packBag)})</span><span className="font-num">−{money(netProfit.bags * packBag)}</span></div>
+              <div className="flex justify-between text-accent"><span>تغليف الطلبات ({netProfit.orders} × {money(packOrder)})</span><span className="font-num">−{money(netProfit.orders * packOrder)}</span></div>
+              <div className="flex justify-between text-accent"><span>فرق التوصيل</span><span className="font-num">−{money(netProfit.orders * delivReal - netProfit.delivery_collected)}</span></div>
+              <div className="mt-1 flex justify-between border-t border-line pt-2.5 text-[15px] font-bold">
+                <span>الصافي</span>
+                <span className={`font-num ${realNet >= 0 ? "text-ok" : "text-accent"}`}>{money(realNet)}</span>
+              </div>
+            </div>
+            <p className="mt-3 text-[11.5px] text-muted">التكاليف قابلة للتعديل من الإعدادات</p>
+          </Card>
+        </div>
+      )}
 
       {/* مسار الشراء اليومي */}
       {funnelDay.visitors > 0 && (

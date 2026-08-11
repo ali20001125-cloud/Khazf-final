@@ -49,6 +49,9 @@ export async function saveInternalSettings(f: FormData) {
   await requireAdmin();
   await flashSaved();
   await db.update(s.settingsInternal).set({
+    packagingCostPerBag: n(f, "packagingCostPerBag", 2000),
+    packagingCostPerOrder: n(f, "packagingCostPerOrder", 500),
+    deliveryCostReal: n(f, "deliveryCostReal", 5000),
     deliveryCostBasra: n(f, "deliveryCostBasra"),
     deliveryCostOther: n(f, "deliveryCostOther"),
     telegramBotToken: String(f.get("telegramBotToken") ?? "").trim() || null,

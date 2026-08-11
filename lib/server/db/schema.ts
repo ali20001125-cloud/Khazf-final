@@ -440,6 +440,9 @@ export const settings = pgTable("settings", {
 /** إعدادات داخلية (المالك فقط — لا يراها المتجر): تكاليف الشركة + الإشعارات */
 export const settingsInternal = pgTable("settings_internal", {
   id: integer("id").primaryKey().default(1),
+  packagingCostPerBag: integer("packaging_cost_per_bag").notNull().default(2000),
+  packagingCostPerOrder: integer("packaging_cost_per_order").notNull().default(500),
+  deliveryCostReal: integer("delivery_cost_real").notNull().default(5000),
   deliveryCostBasra: integer("delivery_cost_basra").notNull().default(0),
   deliveryCostOther: integer("delivery_cost_other").notNull().default(0),
   telegramBotToken: text("telegram_bot_token"),

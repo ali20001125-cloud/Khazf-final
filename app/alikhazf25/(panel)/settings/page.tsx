@@ -43,6 +43,15 @@ export default async function SettingsPage() {
               {coffeeList.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
             </select>
           </Field>
+          <Field label="تكلفة تغليف الكيس" hint="كيس + ملصق + توت باج — تُخصم من الربح">
+            <input name="packagingCostPerBag" defaultValue={internal?.packagingCostPerBag ?? 2000} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
+          <Field label="تكلفة تغليف الطلب" hint="صندوق + بطاقة + شريط لاصق">
+            <input name="packagingCostPerOrder" defaultValue={internal?.packagingCostPerOrder ?? 500} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
+          <Field label="تكلفة التوصيل الحقيقية" hint="ما تدفعه أنت للمندوب فعلاً">
+            <input name="deliveryCostReal" defaultValue={internal?.deliveryCostReal ?? 5000} className={`${inputCls} font-num`} dir="ltr" />
+          </Field>
           <Field label="سقف خصم البوكس" hint="أقصى خصم بالدينار مهما زاد عدد الأكياس — ٠ = بلا سقف">
             <input name="boxDiscountCap" defaultValue={pub.boxDiscountCap ?? 20000} className={`${inputCls} font-num`} dir="ltr" />
           </Field>
