@@ -1,11 +1,11 @@
 "use client";
 /**
- * محصولنا المختار — بقعة ضوء لمنتج واحد نريد دفعه للواجهة.
- * تتبع funnel البراند المكثّف: الاسم (الأضخم) → معلومات → trigger → نكهات → تقييم → شراء.
+ * اختيار خزف لك — بطاقة مدمجة لمنتج واحد ندفعه للواجهة (تحت الهيرو).
+ * خفيفة وفاتحة، لا تملأ الشاشة — صورة صغيرة + اسم + trigger + شراء مباشر.
  * تجريبية على staging — تُنقل لـ main بعد الرضا.
  *
  * لتثبيت منتج بعينه: ضع slug القهوة في FEATURED_SLUG.
- * فارغ = يختار تلقائياً الأقل تقييماً (أقرب تقدير للأقل مبيعاً) لدفعه للواجهة.
+ * فارغ = يختار تلقائياً الأقل تقييماً.
  */
 import Link from "next/link";
 import { useCatalog } from "@/lib/catalog-context";
@@ -13,7 +13,7 @@ import { useStore } from "@/lib/store";
 import { formatIQD } from "@/lib/data";
 import ProductJsonLd from "@/components/ProductJsonLd";
 
-const FEATURED_SLUG: string = "";
+const FEATURED_SLUG: string = "dorado";
 
 export function FeaturedPick() {
   const { coffees } = useCatalog();
@@ -28,11 +28,10 @@ export function FeaturedPick() {
   const pick = pinned ?? [...available].sort((a, b) => a.reviewsCount - b.reviewsCount)[0];
   if (!pick) return null;
 
-  const specs = [pick.country, pick.process, pick.altitude]
-    .filter(Boolean).join(" · ").toUpperCase();
+  const specs = [pick.country, pick.process].filter(Boolean).join(" · ").toUpperCase();
 
   return (
-    <section className="border-b border-line bg-ink text-bg" aria-labelledby="featured-pick-name">
+    <section className="border-b border-line bg-bg-alt" aria-labelledby="featured-pick-name">
       <ProductJsonLd
         name={pick.name}
         description={pick.desc || pick.notes?.join("، ")}
@@ -43,55 +42,48 @@ export function FeaturedPick() {
         rating={pick.reviewsCount > 0 ? pick.rating : undefined}
         reviewsCount={pick.reviewsCount || undefined}
       />
-      <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-16">
-        <span className="font-num block text-[10px] font-bold tracking-[0.28em] text-gold">
-          OUR PICK
+      <div className="mx-auto max-w-4xl px-5 py-7 md:px-8 md:py-8">
+        <span className="font-num block text-[10px] font-bold tracking-[0.26em] text-clay">
+          اختيار خزف لك
         </span>
-        <p className="mt-2 text-[12.5px] font-bold text-bg/70">محصولنا المختار لك</p>
 
-        <div className="mt-7 grid gap-px overflow-hidden bg-white/10 md:grid-cols-2" style={{ borderRadius: 4 }}>
-          {/* الصورة */}
+        <div className="mt-3.5 flex items-stretch gap-3.5 border border-line bg-bg p-3 md:gap-5 md:p-4" style={{ borderRadius: 6 }}>
+          {/* الصورة — صغيرة */}
           <Link
             href={`/product/?c=${pick.slug}`}
-            className="group relative block aspect-square overflow-hidden bg-black/20"
+            className="group relative block h-24 w-24 shrink-0 overflow-hidden bg-bg-alt md:h-32 md:w-32"
+            style={{ borderRadius: 4 }}
             aria-label={pick.name}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={pick.image!}
               alt={`${pick.name} — ${(pick.notes ?? []).slice(0, 3).join("، ")}`}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
             />
           </Link>
 
           {/* المعلومات */}
-          <div className="flex flex-col justify-center gap-4 bg-ink px-5 py-8 md:px-8 md:py-9">
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
             {specs && (
-              <p className="text-[10px] font-semibold tracking-[0.15em] text-bg/55">{specs}</p>
+              <p className="text-[9.5px] font-semibold tracking-[0.14em] text-muted">{specs}</p>
             )}
-            <h2 id="featured-pick-name" className="font-[Amiri,serif] text-[34px] font-bold leading-[1.08] md:text-[46px]">
+            <h2 id="featured-pick-name" className="font-[Amiri,serif] text-[22px] font-bold leading-tight md:text-[26px]">
               {pick.name}
             </h2>
 
             {pick.trigger && (
-              <p className="max-w-sm text-[14.5px] leading-[1.9] text-bg/85">{pick.trigger}</p>
+              <p className="line-clamp-2 text-[12.5px] leading-relaxed text-muted md:text-[13px]">{pick.trigger}</p>
             )}
 
             {pick.notes?.length > 0 && (
-              <p className="text-[12.5px] font-semibold" style={{ color: "#dcb488" }}>
-                {pick.notes.slice(0, 4).join(" · ")}
+              <p className="truncate text-[11.5px] font-semibold text-clay">
+                {pick.notes.slice(0, 3).join(" · ")}
               </p>
             )}
 
-            {pick.reviewsCount > 0 && (
-              <p className="flex items-center gap-2 text-[12px] text-bg/70">
-                <span className="font-num font-bold text-bg">{pick.rating.toFixed(1)}</span>
-                <span className="text-gold">★★★★★</span>
-                <span>من {pick.reviewsCount} تقييم</span>
-              </p>
-            )}
-
-            <div className="mt-2 flex items-stretch gap-px bg-white/10" style={{ borderRadius: 4 }}>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="font-num text-[15px] font-bold">{formatIQD(pick.prices.g250)}</span>
               <button
                 onClick={() => {
                   addToCart({
@@ -101,15 +93,14 @@ export function FeaturedPick() {
                   showToast(`أُضيف ${pick.name}`);
                 }}
                 aria-label={`أضف ${pick.name} للسلة`}
-                className="flex min-h-[52px] flex-1 items-center justify-center gap-2 bg-gold px-5 text-[14px] font-bold text-ink tap-fx transition-all hover:brightness-105 active:scale-[0.99]"
+                className="flex h-9 items-center gap-1.5 bg-olive px-4 text-[12.5px] font-bold text-olive-text tap-fx transition-all hover:brightness-110 active:scale-95"
                 style={{ borderRadius: 4 }}
               >
-                أضف — {formatIQD(pick.prices.g250)}
+                أضف +
               </button>
               <Link
                 href={`/product/?c=${pick.slug}`}
-                className="flex min-h-[52px] items-center justify-center border border-white/25 px-5 text-[13.5px] font-bold text-bg transition-colors hover:bg-white/5"
-                style={{ borderRadius: 4 }}
+                className="text-[12.5px] font-bold text-accent"
               >
                 التفاصيل ←
               </Link>
