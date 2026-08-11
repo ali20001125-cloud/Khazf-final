@@ -194,7 +194,8 @@ export async function createOrder(input: CheckoutInput) {
       if (lvl) {
         appliedLevel = lvl.level;
         journeyRewardType = lvl.rewardType;
-        if (lvl.rewardType === "PERCENT") { journeyPctValue = lvl.value; journeyDiscount = Math.ceil((itemsSubtotal * lvl.value) / 100 / 250) * 250; }
+        // خصم النسبة الحقيقي (مثل الكوبون) — التقريب لأعلى ٢٥٠ يتم على الإجمالي النهائي لصالح المتجر
+        if (lvl.rewardType === "PERCENT") { journeyPctValue = lvl.value; journeyDiscount = Math.round((itemsSubtotal * lvl.value) / 100); }
         else if (lvl.rewardType === "FIXED") journeyDiscount = Math.min(lvl.value, itemsSubtotal - couponDiscount);
         else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = true;
         else {

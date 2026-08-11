@@ -18,7 +18,7 @@ export type PreviewResult = {
   grossSubtotal: number;   // قبل أي خصم
   boxDiscount: number;     // خصم أكياس البوكس
   boxCapReached?: boolean; // بلغ الخصم سقفه
-  journeyDiscount: number; // خصم الرحلة (مقرّب لأعلى ٢٥٠)
+  journeyDiscount: number; // خصم الرحلة (النسبة الحقيقية — التقريب على الإجمالي)
   journeyPct: number;      // النسبة المعروضة للزبون (مثل ١٠)
   couponDiscount: number;
   pointsAvailable: number;      // رصيد النقاط بالدينار
@@ -113,9 +113,8 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
       if (lvl) {
         if (lvl.rewardType === "PERCENT") {
           journeyPct = lvl.value;
-          const raw = (itemsSubtotal * lvl.value) / 100;
-          // يُقرّب خصم الرحلة لأعلى ٢٥٠ (ربح بسيط للمتجر، الزبون يرى النسبة فقط)
-          journeyDiscount = Math.ceil(raw / 250) * 250;
+          // خصم النسبة الحقيقي (مثل الكوبون) — التقريب لأعلى ٢٥٠ يتم على الإجمالي النهائي لصالح المتجر
+          journeyDiscount = Math.round((itemsSubtotal * lvl.value) / 100);
         } else if (lvl.rewardType === "FIXED") journeyDiscount = Math.min(lvl.value, itemsSubtotal - couponDiscount);
         else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = true;
         else giftName = lvl.giftName ?? "هدية";
