@@ -5,6 +5,7 @@ import ExitCapture from "@/components/ExitCapture";
 import CoffeeFinder from "@/components/CoffeeFinder";
 import { useMotion } from "@/lib/motion";
 import { Hero, TrustBar, Crops, BuildBox, Gear, Why, Reviews, Assistant } from "@/components/scenes/home9";
+import { FeaturedPick } from "@/components/scenes/FeaturedPick";
 
 export default function Home() {
   const scope = useMotion();
@@ -13,6 +14,7 @@ export default function Home() {
       <WelcomeSheet />
       <ExitCapture />
       <Hero />
+      <FeaturedPick />
       <TrustBar />
       <Crops />
       <BuildBox />
