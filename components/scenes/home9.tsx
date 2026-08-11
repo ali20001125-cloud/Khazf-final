@@ -30,7 +30,7 @@ export function Hero() {
   return (
     <section className="border-b border-line">
       <div className="mx-auto max-w-4xl px-5 pb-8 pt-8 md:px-8 md:pb-12 md:pt-14">
-        <Eyebrow label="KHAZF · BAGHDAD" />
+        <Eyebrow label="KHAZF · IRAQ" />
         <h1 className="khz-in mt-5 font-[Amiri,serif] text-[36px] font-bold leading-[1.22] md:text-[58px]">
           قهوتك،<br />من أول رشفة
         </h1>

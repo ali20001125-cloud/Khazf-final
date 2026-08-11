@@ -72,7 +72,10 @@ export async function emailNewOrderAdmin(o: {
   deliveryCharged?: number; giftName?: string | null; profit?: number | null;
   isNewCustomer?: boolean; ordersCount?: number;
 }) {
-  const admin = process.env.ADMIN_EMAIL;
+  /* يصل بريد المتجر وبريدك الشخصي معاً */
+  const admins = [process.env.ADMIN_EMAIL, process.env.SMTP_USER]
+    .map((x) => x?.trim()).filter(Boolean) as string[];
+  const admin = [...new Set(admins.map((x) => x.toLowerCase()))].join(", ");
   if (!admin) return;
   const logo = await getLogo();
   const site = process.env.SITE_URL ?? "https://khazf.shop";
