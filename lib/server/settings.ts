@@ -3,7 +3,7 @@ import { db, schema as s } from "./db";
 import { eq } from "drizzle-orm";
 
 let _settingsCache: { data: unknown; at: number } | null = null;
-const SETTINGS_TTL = 120_000;
+const SETTINGS_TTL = 900_000;
 export function invalidateSettings() { _settingsCache = null; }
 
 export async function getSettings() {

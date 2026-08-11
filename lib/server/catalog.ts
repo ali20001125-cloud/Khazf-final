@@ -153,7 +153,7 @@ function toolFromRow(
 /* ── تخزين مؤقت في الذاكرة: يقلّل استعلامات القاعدة كثيراً ──
    المتجر لا يتغيّر كل ثانية، ودقيقتان تكفيان لظهور أي تعديل. */
 let _cache: { data: CatalogData; at: number } | null = null;
-const CATALOG_TTL = 120_000;
+const CATALOG_TTL = 900_000;  // ١٥ دقيقة — تُبطَل فوراً عند أي تعديل باللوحة
 
 export function invalidateCatalog() { _cache = null; }
 
