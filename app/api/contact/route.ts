@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { sendMail } from "@/lib/server/email";
 import { notifyTelegram } from "@/lib/server/telegram";
+import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
+    // نموذج التواصل يرسل بريداً وتيليجرام — نمنع الإغراق (٦ رسائل كل ٥ دقائق لكل IP)
+    if (!rateLimit(`contact:${clientIp(req)}`, 6, 300_000))
+      return NextResponse.json({ error: "محاولات كثيرة — انتظر قليلاً ثم أعد المحاولة" }, { status: 429 });
     const b = await req.json();
     const name = String(b.name ?? "").trim().slice(0, 80);
     const contact = String(b.contact ?? "").trim().slice(0, 120);

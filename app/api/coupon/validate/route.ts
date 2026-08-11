@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
+import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 
 /** فحص كود للعرض بالسلة — التحقق النهائي الملزم يتم داخل createOrder */
 export async function POST(req: Request) {
+  // منع تخمين الأكواد بالتكرار السريع (٣٠ محاولة كل دقيقة لكل IP)
+  if (!rateLimit(`coupon:${clientIp(req)}`, 30, 60_000))
+    return NextResponse.json({ error: "محاولات كثيرة — انتظر قليلاً" }, { status: 429 });
   const { code, phone } = (await req.json().catch(() => ({}))) as { code?: string; phone?: string };
   if (!code?.trim()) return NextResponse.json({ error: "أدخل الكود" }, { status: 400 });
   const c = (await db.select().from(s.coupons).where(eq(s.coupons.code, code.trim().toUpperCase())))[0];

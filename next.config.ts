@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "X-Frame-Options", value: "DENY" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        // فرض HTTPS لمدّة سنتين على النطاق وكل نطاقاته الفرعية
+        { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
       ],
     }];
   },

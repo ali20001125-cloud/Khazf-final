@@ -14,7 +14,14 @@ function rootMsg(e: unknown): string {
   return msg.slice(0, 250);
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // فحص داخلي يكشف تفاصيل بنية تحتية — محمي بنفس مفتاح الكرون.
+  // لو لم يُضبط CRON_SECRET نبقيه مفتوحاً (بيئة تطوير أوّلي).
+  if (process.env.CRON_SECRET) {
+    const key = new URL(req.url).searchParams.get("key");
+    if (key !== process.env.CRON_SECRET)
+      return NextResponse.json({ error: "غير مصرّح" }, { status: 401 });
+  }
   const url = process.env.KHAZF_DATABASE_URL ?? process.env.DATABASE_URL ?? "";
   const source = process.env.KHAZF_DATABASE_URL ? "KHAZF_DATABASE_URL" : "DATABASE_URL";
   const userPart = url.replace("postgresql://", "").split(":")[0] ?? "—";

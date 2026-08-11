@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { fmtDateTime } from "@/lib/datetime";
 import { formatIQD } from "@/lib/data";
+import PrintButton from "@/components/PrintButton";
 
 export const dynamic = "force-dynamic";
 
@@ -91,16 +92,7 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
         )}
         <p className="mt-6 text-center text-[11px] text-muted">شكراً لاختيارك خزف — قهوة مختصة، توصيل لكل العراق</p>
       </div>
-      <PrintBtn />
+      <PrintButton />
     </div>
-  );
-}
-
-function PrintBtn() {
-  return (
-    <form className="mt-4 text-center print:hidden">
-      <button formAction={async () => { "use server"; }} className="hidden" />
-      <a href="javascript:window.print()" className="btn btn-olive inline-block !px-8 !py-3 text-sm">اطبع / احفظ PDF</a>
-    </form>
   );
 }

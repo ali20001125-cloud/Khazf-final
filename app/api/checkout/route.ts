@@ -7,10 +7,15 @@ import { getSupabaseUser } from "@/lib/server/customer-identity";
 import { and, or, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { eq } from "drizzle-orm";
+import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  // حدّ سخيّ ضد الطلبات الوهمية المبرمَجة (٢٥ كل ٥ دقائق لكل IP) —
+  // لا يزعج الزبائن خلف CGNAT، ولدى createOrder حارس تكرار مستقل بالهاتف
+  if (!rateLimit(`checkout:${clientIp(req)}`, 25, 300_000))
+    return NextResponse.json({ error: "محاولات كثيرة — انتظر قليلاً ثم أعد المحاولة" }, { status: 429 });
   let body: CheckoutInput;
   try {
     body = await req.json();

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { emailBrewGuide } from "@/lib/server/email";
+import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,6 +10,9 @@ export const dynamic = "force-dynamic";
 /** تسجيل بريد زائر: دليل التحضير أو إشعار عودة منتج */
 export async function POST(req: Request) {
   try {
+    // تسجيل البريد قد يُطلق إيميلاً — نمنع الإغراق (١٠ كل دقيقة لكل IP)
+    if (!rateLimit(`lead:${clientIp(req)}`, 10, 60_000))
+      return NextResponse.json({ error: "محاولات كثيرة — انتظر قليلاً" }, { status: 429 });
     const b = await req.json();
     const email = String(b.email ?? "").trim().toLowerCase();
     const source = ["guide", "restock", "footer"].includes(String(b.source)) ? String(b.source) : "guide";

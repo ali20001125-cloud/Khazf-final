@@ -255,6 +255,10 @@ export async function createOrder(input: CheckoutInput) {
          OR (kind='phone' AND value = ${phone}) LIMIT 1`);
     const isTest = testRow.rows.length > 0;
 
+    /* قفل تسلسلي على مستوى المعاملة: يمنع طلبين متزامنين من قراءة نفس أعلى
+       رقم فيتصادمان — يُحرَّر تلقائياً عند commit/rollback */
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(742305)`);
+
     /* رقم داخلي متسلسل (للمالك) — يُحسب من الطلبات الفعلية لا من عدّاد،
        لأن عدّاد PostgreSQL يتقدّم حتى لو فشلت المحاولة فتظهر قفزات */
     const seqRow = await tx.execute(sql`SELECT COALESCE(MAX(seq_no), 0) + 1 AS n FROM orders WHERE is_test = false`);

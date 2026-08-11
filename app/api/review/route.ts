@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
+import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,8 @@ export async function GET(req: Request) {
 
 /** POST — يستقبل تقييمات المنتجات + التجربة دفعة واحدة */
 export async function POST(req: Request) {
+  if (!rateLimit(`review:${clientIp(req)}`, 15, 60_000))
+    return NextResponse.json({ error: "محاولات كثيرة — انتظر قليلاً" }, { status: 429 });
   const body = await req.json().catch(() => null);
   if (!body?.token) return NextResponse.json({ error: "رمز مفقود" }, { status: 400 });
 

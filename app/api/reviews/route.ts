@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getCustomerPhone } from "@/lib/server/customer-session";
+import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,8 @@ export async function GET(req: Request) {
 
 /** POST — يتطلب هوية زبون (طلب سابق)؛ يُنشر بعد موافقة الإدارة */
 export async function POST(req: Request) {
+  if (!rateLimit(`reviews:${clientIp(req)}`, 15, 60_000))
+    return NextResponse.json({ error: "محاولات كثيرة — انتظر قليلاً" }, { status: 429 });
   const phone = await getCustomerPhone();
   if (!phone)
     return NextResponse.json({ error: "التقييم متاح بعد أول طلب — حتى تبقى الآراء حقيقية" }, { status: 401 });
