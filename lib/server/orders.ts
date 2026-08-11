@@ -270,6 +270,16 @@ export async function createOrder(input: CheckoutInput) {
     const jump = 13 + Math.floor(Math.random() * 35);
     const orderNumber = isTest ? `TEST-${String(testCount).padStart(2, "0")}` : `KHZ-${lastInv + jump}`;
 
+    /* منع التكرار: نفس الهاتف والمبلغ خلال ٣ دقائق = ضغطة مكرّرة */
+    const dup = await tx.execute(sql`
+      SELECT order_number FROM orders
+      WHERE customer_phone = ${phone}
+        AND created_at >= now() - interval '3 minutes'
+        AND status <> 'CANCELLED'
+      ORDER BY created_at DESC LIMIT 1`);
+    if (dup.rows.length > 0)
+      throw new Error(`DUPLICATE:${(dup.rows[0] as { order_number: string }).order_number}`);
+
     /* دمج سجلّ التسجيل المؤقّت (auth:) مع الرقم الحقيقي — قبل أي شيء */
     if (input.authUserId) {
       const [ph] = await tx.select().from(s.customers)
