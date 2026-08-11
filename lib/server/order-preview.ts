@@ -4,6 +4,8 @@ import { and, eq, sql, sql as sqlRaw, asc } from "drizzle-orm";
 import { normalizeIqPhone } from "@/lib/phone";
 
 const roundUp250 = (n: number) => Math.ceil(Math.max(0, n) / 250) * 250;
+/** توصيل الولاء المجاني لا يُمنح إلا فوق هذا الحدّ — يطابق orders.ts */
+const JOURNEY_FREE_DELIVERY_MIN = 25000;
 
 export type PreviewInput = {
   items: { slug: string; variant: "G250" | "G500" | "G1000" | "PIECE"; qty: number; boxGroup?: number | null; variantId?: number | null }[];
@@ -116,7 +118,7 @@ export async function previewOrder(input: PreviewInput): Promise<PreviewResult> 
           // خصم النسبة الحقيقي (مثل الكوبون) — التقريب لأعلى ٢٥٠ يتم على الإجمالي النهائي لصالح المتجر
           journeyDiscount = Math.round((itemsSubtotal * lvl.value) / 100);
         } else if (lvl.rewardType === "FIXED") journeyDiscount = Math.min(lvl.value, itemsSubtotal - couponDiscount);
-        else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = true;
+        else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = itemsSubtotal >= JOURNEY_FREE_DELIVERY_MIN;
         else giftName = lvl.giftName ?? "هدية";
       }
     }

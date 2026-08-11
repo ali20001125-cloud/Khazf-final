@@ -1,6 +1,9 @@
-/** رفع صورة من الجهاز → Supabase Storage (يعمل بالإنتاج بعد ضبط المفاتيح) */
+/** رفع صورة من الجهاز → Supabase Storage (يعمل بالإنتاج بعد ضبط المفاتيح)
+ *  تُضغط الصورة وتُصغَّر تلقائياً (webp ≤1600px) — يخفّف حجمها كثيراً على الجوال.
+ *  الصور القديمة لا تتأثّر — الضغط للصور الجديدة فقط. */
 import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/server/admin-auth";
+import sharp from "sharp";
 
 export const runtime = "nodejs";
 const BUCKET = "khazf";
@@ -14,15 +17,33 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const file = form.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "لا ملف" }, { status: 400 });
-  if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: "الحد ٤ ميغا" }, { status: 400 });
+  // نسمح بأصل أكبر (١٠ ميغا) لأننا نضغطه — الناتج يصير صغيراً جداً
+  if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "الحد ١٠ ميغا" }, { status: 400 });
+
+  /* ضغط وتصغير — نتجاوزه للـSVG (شعارات متجهية) وعند أي خطأ نرفع الأصل كما هو */
+  const inputBuf = Buffer.from(await file.arrayBuffer());
+  let outBuf: Buffer | File = file;
+  let ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+  let contentType = file.type || "image/png";
+  const isSvg = contentType.includes("svg") || file.name.toLowerCase().endsWith(".svg");
+  if (!isSvg) {
+    try {
+      outBuf = await sharp(inputBuf)
+        .rotate()                                              // احترام اتجاه صور الجوال
+        .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+      ext = "webp";
+      contentType = "image/webp";
+    } catch { outBuf = inputBuf; }                             // صيغة لا يدعمها sharp — الأصل
+  }
 
   const { createClient } = await import("@supabase/supabase-js");
   const sb = createClient(url, key);
   await sb.storage.createBucket(BUCKET, { public: true }).catch(() => {});
-  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
   const path = `uploads/${Date.now()}.${ext}`;
-  const { error } = await sb.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || "image/png",
+  const { error } = await sb.storage.from(BUCKET).upload(path, outBuf, {
+    contentType,
     upsert: false,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -33,6 +33,8 @@ export type CheckoutInput = {
 
 const GRAMS: Record<string, number> = { G250: 250, G500: 500, G1000: 1000, PIECE: 0 };
 const roundUp250 = (n: number) => Math.ceil(Math.max(0, n) / 250) * 250;
+/** توصيل الولاء المجاني لا يُمنح إلا فوق هذا الحدّ — يمنع الطلبات الصغيرة الخاسرة */
+const JOURNEY_FREE_DELIVERY_MIN = 25000;
 
 export async function createOrder(input: CheckoutInput) {
   const phone = input.phone.trim();
@@ -197,7 +199,7 @@ export async function createOrder(input: CheckoutInput) {
         // خصم النسبة الحقيقي (مثل الكوبون) — التقريب لأعلى ٢٥٠ يتم على الإجمالي النهائي لصالح المتجر
         if (lvl.rewardType === "PERCENT") { journeyPctValue = lvl.value; journeyDiscount = Math.round((itemsSubtotal * lvl.value) / 100); }
         else if (lvl.rewardType === "FIXED") journeyDiscount = Math.min(lvl.value, itemsSubtotal - couponDiscount);
-        else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = true;
+        else if (lvl.rewardType === "FREE_DELIVERY") freeDeliveryJourney = itemsSubtotal >= JOURNEY_FREE_DELIVERY_MIN;
         else {
           journeyGiftName = lvl.giftName ?? "هدية";
           lines.push({
