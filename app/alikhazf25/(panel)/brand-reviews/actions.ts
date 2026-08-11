@@ -3,8 +3,10 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { invalidateCatalog } from "@/lib/server/catalog";
+import { requireAdmin } from "@/lib/server/admin-guard";
 
 export async function saveBrandReview(f: FormData) {
+  await requireAdmin();
   const id = Number(f.get("id") ?? 0);
   const data = {
     quote: String(f.get("quote") ?? "").trim(),
@@ -23,6 +25,7 @@ export async function saveBrandReview(f: FormData) {
 }
 
 export async function deleteBrandReview(f: FormData) {
+  await requireAdmin();
   const id = Number(f.get("id") ?? 0);
   if (id > 0) await db.delete(s.brandReviews).where(eq(s.brandReviews.id, id));
   invalidateCatalog();

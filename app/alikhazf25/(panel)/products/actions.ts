@@ -180,6 +180,7 @@ export async function toggleProduct(f: FormData) {
 
 /** ترتيب المحاصيل بالسحب — يُطبَّق على الرئيسية والمتجر */
 export async function reorderProducts(order: number[]) {
+  await requireAdmin();
   await Promise.all(
     order.map((id, i) =>
       db.update(s.products).set({ sortOrder: i + 1 }).where(eq(s.products.id, id))
@@ -192,6 +193,7 @@ export async function reorderProducts(order: number[]) {
 
 /** الوسم القصير (فاكهي · كلاسيكي…) */
 export async function setProductTag(f: FormData) {
+  await requireAdmin();
   const id = Number(f.get("id") ?? 0);
   const tag = String(f.get("tag") ?? "").trim() || null;
   if (id > 0) await db.update(s.products).set({ tag }).where(eq(s.products.id, id));
