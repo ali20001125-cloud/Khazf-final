@@ -21,6 +21,7 @@ export type CheckoutInput = {
   phone: string;
   email?: string | null;
   marketingOptIn?: boolean;
+  authUserId?: string | null;
   governorate: string;
   address: string;
   note?: string | null;
@@ -268,6 +269,26 @@ export async function createOrder(input: CheckoutInput) {
     const lastInv = (lastRow.rows[0] as { m: number }).m;
     const jump = 13 + Math.floor(Math.random() * 35);
     const orderNumber = isTest ? `TEST-${String(testCount).padStart(2, "0")}` : `KHZ-${lastInv + jump}`;
+
+    /* دمج سجلّ التسجيل المؤقّت (auth:) مع الرقم الحقيقي — قبل أي شيء */
+    if (input.authUserId) {
+      const [ph] = await tx.select().from(s.customers)
+        .where(and(eq(s.customers.authUserId, input.authUserId), sql`${s.customers.phone} LIKE 'auth:%'`));
+      if (ph && ph.phone !== phone) {
+        // نفكّ الارتباط عن المؤقّت ثم نحوّله للرقم الحقيقي
+        await tx.update(s.customers).set({ authUserId: null }).where(eq(s.customers.phone, ph.phone));
+        await tx.insert(s.customers)
+          .values({
+            phone, name: input.name, governorate: input.governorate, address: input.address,
+            email: input.email || ph.email, authUserId: input.authUserId, welcomedAt: ph.welcomedAt,
+          })
+          .onConflictDoUpdate({
+            target: s.customers.phone,
+            set: { authUserId: input.authUserId, welcomedAt: ph.welcomedAt },
+          });
+        await tx.delete(s.customers).where(eq(s.customers.phone, ph.phone));
+      }
+    }
 
     /* upsert الزبون + تقدّم الرحلة + تجديد الصلاحية */
     const validity = new Date(Date.now() + settings.loyaltyValidityDays * 86400_000);
