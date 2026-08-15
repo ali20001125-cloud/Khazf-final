@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     if (!b.sessionId || !b.path) return NextResponse.json({ ok: false });
     await db.insert(s.pageViews).values({
       sessionId: String(b.sessionId).slice(0, 60),
+      visitorId: b.visitorId ? String(b.visitorId).slice(0, 60) : null,
       path: String(b.path).slice(0, 200),
       referrer: b.referrer ? String(b.referrer).slice(0, 200) : null,
       device: b.device ? String(b.device).slice(0, 20) : null,
