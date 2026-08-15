@@ -39,6 +39,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   return (
     <div>
       <PageTitle title="الطلبات" sub="حالتان فقط: تأكيد ← توصيل · الإلغاء يرجّع كل شيء" />
+      <a href="/api/admin/export/?type=orders" download
+        className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-4 py-2 text-[12.5px] font-bold text-olive hover:bg-bg-alt">
+        ⬇ تصدير الطلبات (CSV)
+      </a>
 
       <div className="mb-3 flex items-center gap-3">
         <Link href="/alikhazf25/orders/"
