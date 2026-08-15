@@ -190,6 +190,15 @@ export default async function AnalyticsPage() {
   return (
     <div>
       <PageTitle title="التحليلات" sub="زوار الموقع والسلات المهجورة — لحظي من قاعدتك" />
+      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-[8px] border border-line bg-card p-3.5">
+        <span className="text-[12px] font-bold text-muted">نسخة احتياطية (CSV):</span>
+        {[["analytics", "التحليلات"], ["orders", "الطلبات"], ["customers", "العملاء"]].map(([t, l]) => (
+          <a key={t} href={`/api/admin/export/?type=${t}`} download
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3.5 py-1.5 text-[12px] font-bold text-olive hover:bg-bg-alt">
+            ⬇ {l}
+          </a>
+        ))}
+      </div>
 
       {/* بطاقات الزوار */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

@@ -41,6 +41,10 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
     <div>
       <PageTitle title="العملاء" sub="المعرّف = رقم الهاتف"
         action={<form action="/alikhazf25/customers/"><input name="q" defaultValue={q} placeholder="بحث: هاتف / اسم" className={`${inputCls} w-56`} /></form>} />
+      <a href="/api/admin/export/?type=customers" download
+        className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-4 py-2 text-[12.5px] font-bold text-olive hover:bg-bg-alt">
+        ⬇ تصدير العملاء (CSV)
+      </a>
 
       {/* الحسابات المسجّلة — تشمل من سجّل ولم يطلب بعد */}
       {accStats.total > 0 && (
