@@ -3,6 +3,7 @@ import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/server/db";
 import { fetchMetaInsights, fetchMetaBreakdown, USD_TO_IQD, type DateArg, type BreakRow } from "@/lib/server/meta";
+import PrintButton from "@/components/PrintButton";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,18 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
     fetchMetaBreakdown(dateArg, "age,gender"),
     fetchMetaBreakdown(dateArg, "region"),
   ]);
+  /* مبيعات الإعلان فقط: طلبات زبائن جاؤوا من إنستقرام/فيسبوك (لا كل مبيعات المتجر) */
   const store = (await db.execute(sql`
+    WITH meta_phones AS (
+      SELECT DISTINCT ac.phone FROM abandoned_carts ac
+      JOIN page_views pv ON pv.session_id = ac.session_id
+      WHERE ac.phone IS NOT NULL AND (
+        pv.referrer ILIKE '%instagram%' OR pv.referrer ILIKE '%facebook%'
+        OR pv.path ILIKE '%utm_source=instagram%' OR pv.path ILIKE '%utm_source=facebook%')
+    )
     SELECT COALESCE(SUM(total),0)::int AS revenue, count(*)::int AS orders
-    FROM orders WHERE is_test = false AND status <> 'CANCELLED' AND ${rangeSql}`)).rows[0] as { revenue: number; orders: number };
+    FROM orders WHERE is_test = false AND status <> 'CANCELLED' AND ${rangeSql}
+      AND customer_phone IN (SELECT phone FROM meta_phones)`)).rows[0] as { revenue: number; orders: number };
 
   const fmt = (n: number, d = 0) => n.toLocaleString("en", { maximumFractionDigits: d });
   const cur = m.currency || "";
@@ -62,10 +72,20 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
     );
   };
 
+  const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : `&range=${range}`}`;
+
   return (
     <div className="max-w-3xl">
-      <h1 className="text-[22px] font-bold">الإعلانات</h1>
-      <p className="mt-1 text-[12.5px] text-muted">أداء Meta + عائد متجرك الفعلي — بلا فتح Ads Manager.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-[22px] font-bold">الإعلانات</h1>
+          <p className="mt-1 text-[12.5px] text-muted">أداء Meta + مبيعات الإعلان الفعلية — بلا فتح Ads Manager.</p>
+        </div>
+        <div className="flex items-center gap-3 print:hidden">
+          <a href={exportUrl} download className="text-[12.5px] font-bold text-olive">⬇ CSV</a>
+          <PrintButton label="🖨️ PDF" className="text-[12.5px] font-bold text-accent" />
+        </div>
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {PRESETS.map(([k, label]) => (
@@ -93,9 +113,9 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
           <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
               ["الصرف", `${fmt(m.spend, 2)} ${cur}`, false],
-              ["عائد المتجر (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
-              ["مبيعات المتجر", `${fmt(store.revenue)} د.ع`, true],
-              ["طلبات المتجر", fmt(store.orders), false],
+              ["عائد الإعلان (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
+              ["مبيعات الإعلان", `${fmt(store.revenue)} د.ع`, true],
+              ["طلبات الإعلان", fmt(store.orders), false],
               ["مشتريات Meta", fmt(m.purchases)],
               ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
               ["النقرات", fmt(m.clicks)],
@@ -110,8 +130,8 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
 
           {isUsd && (
             <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
-              «عائد المتجر» = مبيعاتك بالدينار ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
-              لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر. (قد تشمل المبيعات مصادر غير الإعلان.)
+              «عائد الإعلان» = مبيعات زبائن جاؤوا من إنستقرام/فيسبوك (بالدينار) ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
+              لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر.
             </p>
           )}
 

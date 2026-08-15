@@ -143,7 +143,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
       {/* جانبي ثابت */}
-      <aside className="hidden border-e border-line bg-card lg:flex lg:flex-col">
+      <aside className="hidden border-e border-line bg-card lg:flex lg:flex-col print:!hidden">
         <div className="border-b border-line p-5">
           <p className="text-lg font-bold">لوحة خزف</p>
           <p className="font-num mt-0.5 text-[10px] tracking-[0.3em] text-muted">ADMIN</p>
@@ -160,7 +160,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* موبايل */}
-      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-3 backdrop-blur lg:hidden print:hidden">
         <button onClick={() => setOpen(true)} aria-label="القائمة" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-bg-alt"><Menu size={19} /></button>
         <p className="font-bold">لوحة خزف</p>
         {stats.pending > 0 ? (
