@@ -2,19 +2,22 @@
 import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/server/db";
-import { fetchMetaInsights, fetchMetaBreakdown, USD_TO_IQD, type DateArg, type BreakRow } from "@/lib/server/meta";
+import { fetchMetaInsights, fetchMetaBreakdown, fetchMetaCampaigns, USD_TO_IQD, type DateArg, type BreakRow } from "@/lib/server/meta";
 import PrintButton from "@/components/PrintButton";
+import CampaignSelect from "@/components/admin/CampaignSelect";
 
 export const dynamic = "force-dynamic";
 
 const PRESETS: [string, string][] = [["today", "اليوم"], ["yesterday", "أمس"], ["last_7d", "٧ أيام"], ["last_30d", "٣٠ يوم"]];
 
-export default async function AdsPage({ searchParams }: { searchParams: Promise<{ range?: string; from?: string; to?: string }> }) {
+export default async function AdsPage({ searchParams }: { searchParams: Promise<{ range?: string; from?: string; to?: string; campaign?: string }> }) {
   const sp = await searchParams;
   const custom = sp.from && sp.to;
   const range = !custom && PRESETS.find((r) => r[0] === sp.range) ? sp.range! : (custom ? "" : "last_7d");
   const todayStr = new Date().toISOString().slice(0, 10);
   const dateArg: DateArg = custom ? { since: sp.from!, until: sp.to! } : { preset: range || "last_7d" };
+  const campaign = sp.campaign?.trim() || "";
+  const campaigns = await fetchMetaCampaigns();
 
   // نطاق SQL لمبيعات المتجر بنفس المدّة
   const rangeSql = custom
@@ -24,10 +27,11 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
     : range === "last_30d" ? sql`created_at >= now() - interval '30 days'`
     : sql`created_at >= now() - interval '7 days'`;
 
+  const node = campaign || undefined;
   const [m, ageGender, region] = await Promise.all([
-    fetchMetaInsights(dateArg),
-    fetchMetaBreakdown(dateArg, "age,gender"),
-    fetchMetaBreakdown(dateArg, "region"),
+    fetchMetaInsights(dateArg, node),
+    fetchMetaBreakdown(dateArg, "age,gender", node),
+    fetchMetaBreakdown(dateArg, "region", node),
   ]);
   /* مبيعات الإعلان فقط: طلبات زبائن جاؤوا من إنستقرام/فيسبوك (لا كل مبيعات المتجر) */
   const store = (await db.execute(sql`
@@ -75,7 +79,30 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
     );
   };
 
-  const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : `&range=${range}`}`;
+  const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : `&range=${range}`}${campaign ? `&campaign=${campaign}` : ""}`;
+
+  // حملة مختارة → مؤشرات Meta الخاصة بها · كل الحملات → عائد متجرك بالدينار
+  const kpis: [string, string, boolean?][] = campaign
+    ? [
+        ["الصرف", `${fmt(m.spend, 2)} ${cur}`],
+        ["عائد Meta (ROAS)", m.roas ? `${fmt(m.roas, 2)}×` : "—", true],
+        ["مشتريات Meta", fmt(m.purchases), true],
+        ["كلفة الشراء", m.costPerPurchase ? `${fmt(m.costPerPurchase, 2)} ${cur}` : "—"],
+        ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
+        ["النقرات", fmt(m.clicks)],
+        ["مرّات الظهور", fmt(m.impressions)],
+        ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
+      ]
+    : [
+        ["الصرف", `${fmt(m.spend, 2)} ${cur}`],
+        ["عائد الإعلان (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
+        ["مبيعات الإعلان", `${fmt(store.revenue)} د.ع`, true],
+        ["طلبات الإعلان", fmt(store.orders)],
+        ["مشتريات Meta", fmt(m.purchases)],
+        ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
+        ["النقرات", fmt(m.clicks)],
+        ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
+      ];
 
   return (
     <div className="max-w-3xl">
@@ -90,14 +117,18 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         {PRESETS.map(([k, label]) => (
           <Link key={k} href={presetLink(k)}
             className={`rounded-full border px-3.5 py-1.5 text-[12px] font-bold transition-colors ${!custom && range === k ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted hover:bg-bg-alt"}`}>
             {label}
           </Link>
         ))}
+        <span className="ms-auto"><CampaignSelect campaigns={campaigns} value={campaign} /></span>
       </div>
+      {campaign && (
+        <p className="mt-2 text-[11.5px] text-accent">تعرض حملة واحدة · <Link href={presetLink(range || "last_7d")} className="font-bold underline">كل الحملات</Link></p>
+      )}
       <form className="mt-2.5 flex flex-wrap items-end gap-2.5 rounded-[8px] border border-line bg-card p-3">
         <label className="text-[11px] font-semibold text-muted">من
           <input type="date" name="from" max={todayStr} defaultValue={sp.from ?? ""} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-1.5 text-[13px]" /></label>
@@ -114,16 +145,7 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
       ) : (
         <>
           <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {[
-              ["الصرف", `${fmt(m.spend, 2)} ${cur}`, false],
-              ["عائد الإعلان (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
-              ["مبيعات الإعلان", `${fmt(store.revenue)} د.ع`, true],
-              ["طلبات الإعلان", fmt(store.orders), false],
-              ["مشتريات Meta", fmt(m.purchases)],
-              ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
-              ["النقرات", fmt(m.clicks)],
-              ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
-            ].map(([label, val, hi], i) => (
+            {kpis.map(([label, val, hi], i) => (
               <div key={i} className={`rounded-[8px] border p-3.5 ${hi ? "border-olive/40 bg-olive/5" : "border-line bg-card"}`}>
                 <p className="font-num text-[18px] font-bold leading-none text-ink">{val as string}</p>
                 <p className="mt-1.5 text-[10.5px] text-muted">{label as string}</p>
@@ -131,10 +153,15 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
             ))}
           </div>
 
-          {isUsd && (
+          {isUsd && !campaign && (
             <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
               «عائد الإعلان» = مبيعات زبائن جاؤوا من إنستقرام/فيسبوك (بالدينار) ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
               لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر.
+            </p>
+          )}
+          {campaign && (
+            <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
+              مؤشرات هذي الحملة من Meta. «عائد المتجر بالدينار» يظهر في وضع «كل الحملات» فقط (لا نقدر ننسب مبيعات المتجر لحملة بعينها بدقّة).
             </p>
           )}
 
