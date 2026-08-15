@@ -35,9 +35,12 @@ export default function VisitTracker() {
     }
     // جهاز المدير (زار اللوحة سابقاً) — لا نحسب زياراته للمتجر
     try { if (localStorage.getItem("khazf_is_admin") === "1") return; } catch {}
+    // نضمّ الـ query (?c=المنتج · وسوم UTM للإعلانات) — يُثري رحلة الزائر
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const fullPath = (pathname ?? "") + (search || "");
     const body = JSON.stringify({
       sessionId: sessionId(),
-      path: pathname,
+      path: fullPath,
       referrer: document.referrer || null,
       device: device(),
     });
