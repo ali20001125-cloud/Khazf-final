@@ -1,62 +1,104 @@
-/** الإعلانات — أداء Meta (صرف · نتائج · ROAS) داخل لوحتك، مع مقارنة بمبيعات المتجر. */
+/** الإعلانات — أداء Meta + عائد المتجر (بالدينار) + الأعمار/الجنس/المناطق. */
 import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/server/db";
-import { fetchMetaInsights } from "@/lib/server/meta";
+import { fetchMetaInsights, fetchMetaBreakdown, USD_TO_IQD, type DateArg, type BreakRow } from "@/lib/server/meta";
 
 export const dynamic = "force-dynamic";
 
-const RANGES: [string, string, string][] = [
-  ["today", "اليوم", "created_at::date = now()::date"],
-  ["yesterday", "أمس", "created_at::date = (now() - interval '1 day')::date"],
-  ["last_7d", "٧ أيام", "created_at >= now() - interval '7 days'"],
-  ["last_30d", "٣٠ يوم", "created_at >= now() - interval '30 days'"],
-];
+const PRESETS: [string, string][] = [["today", "اليوم"], ["yesterday", "أمس"], ["last_7d", "٧ أيام"], ["last_30d", "٣٠ يوم"]];
 
-export default async function AdsPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
+export default async function AdsPage({ searchParams }: { searchParams: Promise<{ range?: string; from?: string; to?: string }> }) {
   const sp = await searchParams;
-  const range = RANGES.find((r) => r[0] === sp.range) ? sp.range! : "last_7d";
-  const rangeSql = RANGES.find((r) => r[0] === range)![2];
+  const custom = sp.from && sp.to;
+  const range = !custom && PRESETS.find((r) => r[0] === sp.range) ? sp.range! : (custom ? "" : "last_7d");
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const dateArg: DateArg = custom ? { since: sp.from!, until: sp.to! } : { preset: range || "last_7d" };
 
-  const m = await fetchMetaInsights(range);
+  // نطاق SQL لمبيعات المتجر بنفس المدّة
+  const rangeSql = custom
+    ? sql`created_at::date >= ${sp.from} AND created_at::date <= ${sp.to}`
+    : range === "today" ? sql`created_at::date = now()::date`
+    : range === "yesterday" ? sql`created_at::date = (now() - interval '1 day')::date`
+    : range === "last_30d" ? sql`created_at >= now() - interval '30 days'`
+    : sql`created_at >= now() - interval '7 days'`;
+
+  const [m, ageGender, region] = await Promise.all([
+    fetchMetaInsights(dateArg),
+    fetchMetaBreakdown(dateArg, "age,gender"),
+    fetchMetaBreakdown(dateArg, "region"),
+  ]);
   const store = (await db.execute(sql`
     SELECT COALESCE(SUM(total),0)::int AS revenue, count(*)::int AS orders
-    FROM orders WHERE is_test = false AND status <> 'CANCELLED' AND ${sql.raw(rangeSql)}`)).rows[0] as { revenue: number; orders: number };
+    FROM orders WHERE is_test = false AND status <> 'CANCELLED' AND ${rangeSql}`)).rows[0] as { revenue: number; orders: number };
 
   const fmt = (n: number, d = 0) => n.toLocaleString("en", { maximumFractionDigits: d });
   const cur = m.currency || "";
+  const isUsd = cur === "USD";
+  const spendIqd = isUsd ? m.spend * USD_TO_IQD : m.spend;             // تقدير الصرف بالدينار
+  const storeRoas = spendIqd > 0 ? store.revenue / spendIqd : 0;       // عائد المتجر الحقيقي
+
+  const presetLink = (k: string) => `?range=${k}`;
+
+  const BreakCard = ({ title, data, err }: { title: string; data: BreakRow[]; err?: string }) => {
+    const top = [...data].sort((a, b) => b.spend - a.spend).slice(0, 8);
+    const max = Math.max(1, ...top.map((r) => r.spend));
+    if (err || top.length === 0) return null;
+    return (
+      <div className="rounded-[8px] border border-line bg-card p-4">
+        <p className="mb-3 text-[12px] font-bold text-muted">{title}</p>
+        <div className="space-y-1.5">
+          {top.map((r) => (
+            <div key={r.label} className="flex items-center gap-3">
+              <span className="w-28 shrink-0 truncate text-[11.5px] text-ink">{r.label}</span>
+              <div className="h-4 flex-1 overflow-hidden rounded-[3px] bg-bg-alt">
+                <div className="h-full bg-accent" style={{ width: `${Math.max((r.spend / max) * 100, 4)}%` }} />
+              </div>
+              <span className="font-num w-24 shrink-0 text-end text-[10.5px] text-muted">{fmt(r.spend, 1)} {cur} · {r.purchases} شراء</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-3xl">
       <h1 className="text-[22px] font-bold">الإعلانات</h1>
-      <p className="mt-1 text-[12.5px] text-muted">أداء إعلانات Meta داخل لوحتك — بلا فتح Ads Manager.</p>
+      <p className="mt-1 text-[12.5px] text-muted">أداء Meta + عائد متجرك الفعلي — بلا فتح Ads Manager.</p>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {RANGES.map(([k, label]) => (
-          <Link key={k} href={`?range=${k}`}
-            className={`rounded-full border px-3.5 py-1.5 text-[12px] font-bold transition-colors ${range === k ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted hover:bg-bg-alt"}`}>
+        {PRESETS.map(([k, label]) => (
+          <Link key={k} href={presetLink(k)}
+            className={`rounded-full border px-3.5 py-1.5 text-[12px] font-bold transition-colors ${!custom && range === k ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted hover:bg-bg-alt"}`}>
             {label}
           </Link>
         ))}
       </div>
+      <form className="mt-2.5 flex flex-wrap items-end gap-2.5 rounded-[8px] border border-line bg-card p-3">
+        <label className="text-[11px] font-semibold text-muted">من
+          <input type="date" name="from" max={todayStr} defaultValue={sp.from ?? ""} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-1.5 text-[13px]" /></label>
+        <label className="text-[11px] font-semibold text-muted">إلى
+          <input type="date" name="to" max={todayStr} defaultValue={sp.to ?? ""} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-1.5 text-[13px]" /></label>
+        <button className="rounded-[5px] bg-olive px-4 py-2 text-[12.5px] font-bold text-olive-text">تاريخ مخصّص</button>
+      </form>
 
       {!m.ok ? (
         <div className="mt-5 rounded-[8px] border border-accent/30 bg-accent/5 p-5 text-[13px] leading-relaxed">
           <p className="font-bold text-accent">تعذّر جلب بيانات Meta</p>
           <p className="mt-1.5 text-muted">{m.error}</p>
-          <p className="mt-2 text-[12px] text-muted">تأكّد أن <span className="font-num" dir="ltr">META_ACCESS_TOKEN</span> و<span className="font-num" dir="ltr">META_AD_ACCOUNT_ID</span> مضبوطان في هوستنجر، وأن التوكن يملك إذن <span className="font-num" dir="ltr">ads_read</span>.</p>
         </div>
       ) : (
         <>
-          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
-              ["الصرف", `${fmt(m.spend, 2)} ${cur}`, true],
-              ["مشتريات (Meta)", fmt(m.purchases)],
-              ["ROAS", m.roas ? `${fmt(m.roas, 2)}×` : "—", true],
-              ["كلفة الشراء", m.costPerPurchase ? `${fmt(m.costPerPurchase, 2)} ${cur}` : "—"],
-              ["مرّات الظهور", fmt(m.impressions)],
-              ["النقرات", fmt(m.clicks)],
+              ["الصرف", `${fmt(m.spend, 2)} ${cur}`, false],
+              ["عائد المتجر (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
+              ["مبيعات المتجر", `${fmt(store.revenue)} د.ع`, true],
+              ["طلبات المتجر", fmt(store.orders), false],
+              ["مشتريات Meta", fmt(m.purchases)],
               ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
+              ["النقرات", fmt(m.clicks)],
               ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
             ].map(([label, val, hi], i) => (
               <div key={i} className={`rounded-[8px] border p-3.5 ${hi ? "border-olive/40 bg-olive/5" : "border-line bg-card"}`}>
@@ -66,18 +108,20 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
             ))}
           </div>
 
-          {/* مقارنة بمبيعات المتجر الفعلية */}
-          <div className="mt-4 rounded-[8px] border border-line bg-card p-4">
-            <p className="mb-2 text-[12px] font-bold text-muted">الإعلان مقابل مبيعات متجرك (نفس المدّة)</p>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
-              <span>صرف الإعلان: <b className="font-num">{fmt(m.spend, 2)} {cur}</b></span>
-              <span>مبيعات المتجر: <b className="font-num">{fmt(store.revenue)} د.ع</b></span>
-              <span>طلبات المتجر: <b className="font-num">{fmt(store.orders)}</b></span>
-            </div>
+          {isUsd && (
             <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
-              ROAS ومشتريات Meta تُحسب بعملة حسابك الإعلاني وبإسناد Meta (البكسل). مبيعات المتجر بالدينار من طلباتك الفعلية — قد تشمل مصادر غير الإعلان.
+              «عائد المتجر» = مبيعاتك بالدينار ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
+              لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر. (قد تشمل المبيعات مصادر غير الإعلان.)
             </p>
+          )}
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <BreakCard title="حسب العمر والجنس" data={ageGender.rows} err={ageGender.error} />
+            <BreakCard title="حسب المنطقة" data={region.rows} err={region.error} />
           </div>
+          {(ageGender.rows.length === 0 && region.rows.length === 0) && (
+            <p className="mt-3 text-[11.5px] text-muted">التفصيل الديموغرافي يظهر عند توفّر بيانات كافية بهذي المدّة.</p>
+          )}
         </>
       )}
     </div>
