@@ -44,11 +44,26 @@ const EMPTY = (over: Partial<MetaInsights>): MetaInsights => ({
   purchases: 0, purchaseValue: 0, roas: 0, costPerPurchase: 0, currency: "", ...over,
 });
 
-export async function fetchMetaInsights(d: DateArg): Promise<MetaInsights> {
+/** قائمة الحملات لاختيار حملة واحدة */
+export async function fetchMetaCampaigns(): Promise<{ id: string; name: string }[]> {
+  const { token, id } = creds();
+  if (!token || !id) return [];
+  const url = `${API}/${id}/campaigns?fields=name&limit=100&access_token=${encodeURIComponent(token)}`;
+  try {
+    const r = await fetch(url, { cache: "no-store" });
+    const j = await r.json();
+    if (j.error) return [];
+    return (j.data ?? []).map((c: Record<string, unknown>) => ({ id: String(c.id), name: String(c.name) }));
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchMetaInsights(d: DateArg, node?: string): Promise<MetaInsights> {
   const { token, id } = creds();
   if (!token || !id) return EMPTY({ error: "غير مربوط — أضف META_ACCESS_TOKEN وMETA_AD_ACCOUNT_ID في هوستنجر" });
   const fields = "spend,impressions,clicks,ctr,cpc,reach,account_currency,actions,action_values,purchase_roas";
-  const url = `${API}/${id}/insights?fields=${fields}&${dateParam(d)}&access_token=${encodeURIComponent(token)}`;
+  const url = `${API}/${node || id}/insights?fields=${fields}&${dateParam(d)}&access_token=${encodeURIComponent(token)}`;
   try {
     const r = await fetch(url, { cache: "no-store" });
     const j = await r.json();
@@ -72,10 +87,10 @@ export async function fetchMetaInsights(d: DateArg): Promise<MetaInsights> {
 
 export type BreakRow = { label: string; spend: number; clicks: number; purchases: number };
 /** تفصيل حسب عمر/جنس/منطقة — من جمهور إعلانك */
-export async function fetchMetaBreakdown(d: DateArg, breakdowns: string): Promise<{ rows: BreakRow[]; error?: string }> {
+export async function fetchMetaBreakdown(d: DateArg, breakdowns: string, node?: string): Promise<{ rows: BreakRow[]; error?: string }> {
   const { token, id } = creds();
   if (!token || !id) return { rows: [], error: "غير مربوط" };
-  const url = `${API}/${id}/insights?fields=spend,clicks,actions&breakdowns=${breakdowns}&${dateParam(d)}&limit=200&access_token=${encodeURIComponent(token)}`;
+  const url = `${API}/${node || id}/insights?fields=spend,clicks,actions&breakdowns=${breakdowns}&${dateParam(d)}&limit=200&access_token=${encodeURIComponent(token)}`;
   try {
     const r = await fetch(url, { cache: "no-store" });
     const j = await r.json();
