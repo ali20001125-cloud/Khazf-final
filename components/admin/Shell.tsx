@@ -12,6 +12,7 @@ const navGroups: { title: string; items: { href: string; label: string; badge?: 
     title: "يومي",
     items: [
       { href: "/alikhazf25/", label: "لوحة القيادة" },
+      { href: "/alikhazf25/assistant/", label: "✨ المساعد الذكي" },
       { href: "/alikhazf25/orders/", label: "الطلبات", badge: "pending" },
       { href: "/alikhazf25/analytics/", label: "التحليلات" },
       { href: "/alikhazf25/journeys/", label: "رحلات الزوّار" },
