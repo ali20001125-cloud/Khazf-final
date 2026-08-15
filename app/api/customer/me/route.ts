@@ -51,15 +51,19 @@ export async function GET() {
     if (ord?.p) {
       const real = ord.p;
       const [row] = await db
-        .select({ auth: s.customers.authUserId })
+        .select({ auth: s.customers.authUserId, email: s.customers.email })
         .from(s.customers)
         .where(eq(s.customers.phone, real));
-      // نربط فقط إن كان الرقم غير محجوز لحساب مصادقة آخر
-      if (!row || !row.auth || row.auth === authUser.id) {
+      // نفس الإيميل = نفس الشخص (سجّل بالرمز مرّة وبـGoogle مرّة) → نوحّدهم.
+      const sameEmail = !!row?.email && row.email.toLowerCase() === authEmail;
+      // نتبنّى الرقم إن كان غير مربوط، أو مربوطاً بحسابنا، أو بحساب بنفس الإيميل
+      if (!row || !row.auth || row.auth === authUser.id || sameEmail) {
+        // نفكّ السجلّ المؤقّت لحسابنا
         await db.update(s.customers).set({ authUserId: null })
           .where(sql`${s.customers.authUserId} = ${authUser.id} AND ${s.customers.phone} LIKE 'auth:%'`)
           .catch(() => {});
-        if (row) {
+        // نربط الرقم بحسابنا فقط إن كان غير مربوط (لا ننتزعه من حساب آخر بنفس الإيميل)
+        if (row && !row.auth) {
           await db.update(s.customers).set({ authUserId: authUser.id })
             .where(eq(s.customers.phone, real)).catch(() => {});
         }
