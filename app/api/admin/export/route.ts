@@ -56,10 +56,11 @@ export async function GET(req: Request) {
     const dateArg: DateArg = custom
       ? { since: u.searchParams.get("from")!, until: u.searchParams.get("to")! }
       : { preset: u.searchParams.get("range") || "last_7d" };
+    const node = u.searchParams.get("campaign")?.trim() || undefined;
     const [m, ageGender, region] = await Promise.all([
-      fetchMetaInsights(dateArg),
-      fetchMetaBreakdown(dateArg, "age,gender"),
-      fetchMetaBreakdown(dateArg, "region"),
+      fetchMetaInsights(dateArg, node),
+      fetchMetaBreakdown(dateArg, "age,gender", node),
+      fetchMetaBreakdown(dateArg, "region", node),
     ]);
     const spendIqd = m.currency === "USD" ? m.spend * USD_TO_IQD : m.spend;
     const summary: Row[] = [
