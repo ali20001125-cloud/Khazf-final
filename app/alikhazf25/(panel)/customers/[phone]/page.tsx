@@ -18,6 +18,12 @@ export default async function CustomerDetail({ params }: { params: Promise<{ pho
   return (
     <div>
       <PageTitle title={c.name} sub={c.phone.startsWith("auth:") ? "—" : c.phone} />
+      {!c.phone.startsWith("auth:") && (
+        <Link href={`/alikhazf25/journeys/?phone=${c.phone}`}
+          className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-4 py-2 text-[12.5px] font-bold text-accent transition-colors hover:bg-bg-alt">
+          🧭 رحلات هذا الزائر ←
+        </Link>
+      )}
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           <Card className="overflow-x-auto">
