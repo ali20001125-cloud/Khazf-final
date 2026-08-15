@@ -10,7 +10,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:verify": "tsx scripts/verify-db.ts",
     "seed": "tsx scripts/seed.ts",
-    "seed:demo-stock": "tsx scripts/seed-demo-stock.ts"
+    "seed:demo-stock": "tsx scripts/seed-demo-stock.ts",
+    "compress:images": "tsx scripts/compress-storage.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
