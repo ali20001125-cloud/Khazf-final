@@ -109,6 +109,15 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
   const avgSec = fn.avg_sec as number;
   const pct = (n: number) => (funnel.visits ? Math.round((n / funnel.visits) * 100) : 0);
 
+  /* المشترون حسب المحافظة (من الطلبات — الزوّار المجهولون لا محافظة لهم) */
+  const govRows = (await db.execute(sql`
+    SELECT governorate, count(*)::int AS orders, COALESCE(SUM(total),0)::int AS revenue
+    FROM orders WHERE is_test = false AND status <> 'CANCELLED'
+      AND created_at >= ${fromISO} AND created_at <= ${toISO}
+      AND governorate IS NOT NULL AND governorate <> ''
+    GROUP BY governorate ORDER BY orders DESC LIMIT 12`)).rows as Row[];
+  const govMax = Math.max(1, ...govRows.map((g) => g.orders as number));
+
   /* الجلسات (للبطاقات) */
   const sessRows = (await db.execute(sql`
     SELECT session_id,
@@ -272,6 +281,23 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
           ))}
         </div>
       </div>
+
+      {govRows.length > 0 && (
+        <div className="mt-4 rounded-[8px] border border-line bg-card p-4">
+          <p className="mb-3 text-[12px] font-bold text-muted">المشترون حسب المحافظة <span className="font-normal">(طلبات · مبيعات)</span></p>
+          <div className="space-y-1.5">
+            {govRows.map((g) => (
+              <div key={String(g.governorate)} className="flex items-center gap-3">
+                <span className="w-20 shrink-0 truncate text-[11.5px] text-ink">{String(g.governorate)}</span>
+                <div className="h-4 flex-1 overflow-hidden rounded-[3px] bg-bg-alt">
+                  <div className="h-full bg-olive" style={{ width: `${Math.max((g.orders as number) / govMax * 100, 4)}%` }} />
+                </div>
+                <span className="font-num w-24 shrink-0 text-end text-[11px] text-muted">{g.orders as number} · {(g.revenue as number).toLocaleString("en")}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {!phoneFilter && !showAll && rawTotal > funnel.visits && (
         <p className="mt-2.5 text-[11.5px] text-muted">
