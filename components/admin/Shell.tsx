@@ -15,6 +15,7 @@ const navGroups: { title: string; items: { href: string; label: string; badge?: 
       { href: "/alikhazf25/orders/", label: "الطلبات", badge: "pending" },
       { href: "/alikhazf25/analytics/", label: "التحليلات" },
       { href: "/alikhazf25/journeys/", label: "رحلات الزوّار" },
+      { href: "/alikhazf25/ads/", label: "الإعلانات" },
     ],
   },
   {
