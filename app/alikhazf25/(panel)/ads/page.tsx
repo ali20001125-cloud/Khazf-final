@@ -97,13 +97,13 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
 
   const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : auto ? `&from=${autoFrom}&to=${autoTo}` : `&range=${range}`}${campaign ? `&campaign=${campaign}` : ""}`;
 
-  // مؤشرات موحّدة: الصرف + عائد متجرك بالدينار (لكل حملة أو للكل) + أداء Meta
+  // أداء Meta (يشتغل دائماً) + عائد متجرك بالدينار (يظهر عند ربط UTM)
   const kpis: [string, string, boolean?][] = [
     ["الصرف", `${fmt(m.spend, 2)} ${cur}`],
-    ["عائد الإعلان (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
-    ["مبيعات الإعلان", `${fmt(store.revenue)} د.ع`, true],
-    ["طلبات الإعلان", fmt(store.orders)],
-    ["مشتريات Meta", fmt(m.purchases)],
+    ["عائد Meta (ROAS)", m.roas ? `${fmt(m.roas, 2)}×` : "—", true],
+    ["مشتريات Meta", fmt(m.purchases), true],
+    ["مبيعات المتجر (دينار)", store.revenue ? `${fmt(store.revenue)} د.ع` : "—"],
+    ["عائد المتجر بالدينار", storeRoas ? `${fmt(storeRoas, 2)}×` : "—"],
     ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
     ["النقرات", fmt(m.clicks)],
     ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
@@ -163,15 +163,10 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
             ))}
           </div>
 
-          {isUsd && (
-            <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
-              «عائد الإعلان» = مبيعات المتجر الحقيقية (بالدينار) ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
-              {campaign
-                ? " تُنسب المبيعات لهذي الحملة عبر رابط UTM في إعلانك."
-                : " تُحسب مبيعات الزبائن القادمين من إنستقرام/فيسبوك."}
-              {" "}لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر.
-            </p>
-          )}
+          <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
+            «عائد Meta» من بكسل ميتا ويشتغل دائماً. «عائد المتجر بالدينار» = مبيعاتك الحقيقية ÷ الصرف بالدينار{isUsd && <> (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار)</>}،
+            {campaign ? " ويظهر بعد ربط UTM بإعلان الحملة." : " من زبائن جاؤوا من إنستقرام/فيسبوك."}
+          </p>{" "}
           {campaign && store.orders === 0 && (
             <p className="mt-2 rounded-[6px] border border-accent/25 bg-accent/5 p-2.5 text-[11px] leading-relaxed text-muted">
               لم تُنسب مبيعات لهذي الحملة بعد. لتفعيل النسب الدقيق: في مدير إعلانات Meta ← إعداد الرابط ← «مُعامِلات URL»، أضِف:
