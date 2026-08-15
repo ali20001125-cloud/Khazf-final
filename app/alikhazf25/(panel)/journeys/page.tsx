@@ -1,14 +1,14 @@
 /**
- * رحلات الزوّار — تحليلات بمستوى المتاجر الاحترافية من بيانات المتجر نفسها:
- * زوّار فريدون · عائدون · قمع تحويل · مصدر · مسار الصفحات وأوقاتها · شراء ضمن الزيارة.
- * مفلترة بالتاريخ · وبرقم زبون (?phone=).
+ * رحلات الزوّار — تحليلات احترافية من بيانات المتجر:
+ * زوّار فريدون · عائدون · قمع تحويل (على كل النطاق) · مصدر · مسار · شراء ضمن الزيارة.
+ * اختصارات تاريخ · فلترة القصيرة بالقاعدة · بطاقات درِل-داون.
  */
 import Link from "next/link";
 import { db } from "@/lib/server/db";
 import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
-const LIMIT = 400;
+const LIMIT = 800;
 
 function fmtDur(sec: number | null): string {
   if (sec == null || sec < 0) return "—";
@@ -48,6 +48,7 @@ type Row = Record<string, unknown>;
 
 export default async function JourneysPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string; phone?: string; all?: string }> }) {
   const sp = await searchParams;
+  const todayStr = new Date().toISOString().slice(0, 10);
   const toDate = sp.to ? new Date(sp.to + "T23:59:59.999Z") : new Date();
   const fromDate = sp.from ? new Date(sp.from + "T00:00:00.000Z") : new Date(Date.now() - 7 * 86400_000);
   const fromISO = fromDate.toISOString(), toISO = toDate.toISOString();
@@ -55,6 +56,7 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
   const phoneFilter = sp.phone?.trim() || null;
   const showAll = sp.all === "1";
   const engagedOnly = !showAll && !phoneFilter;
+  const engagedHaving = sql`HAVING count(*) >= 2 OR EXTRACT(EPOCH FROM (max(created_at)-min(created_at))) >= 5`;
 
   const prods = (await db.execute(sql`SELECT slug, name FROM products`)).rows as Row[];
   const prodName = new Map(prods.map((p) => [String(p.slug), String(p.name)]));
@@ -71,21 +73,43 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
     return map[p] ?? p;
   };
 
-  /* مؤشرات كليّة (كل الزيارات، لا المعروضة فقط) */
+  /* مؤشرات كليّة على كل النطاق (لا المعروض فقط) */
   const totals = (await db.execute(sql`
-    SELECT
-      count(DISTINCT session_id)::int AS sessions,
+    SELECT count(DISTINCT session_id)::int AS sessions,
       count(DISTINCT COALESCE(visitor_id, session_id))::int AS visitors,
       (SELECT count(*)::int FROM customers WHERE created_at >= ${fromISO} AND created_at <= ${toISO} AND phone NOT LIKE 'auth:%') AS new_customers
     FROM page_views WHERE created_at >= ${fromISO} AND created_at <= ${toISO}`)).rows[0] as Row;
-  // العائدون: زوّار ظهروا في المدى ولهم زيارة سابقة قبله
   const returning = ((await db.execute(sql`
     SELECT count(*)::int n FROM (
       SELECT DISTINCT visitor_id FROM page_views
       WHERE created_at >= ${fromISO} AND created_at <= ${toISO} AND visitor_id IS NOT NULL
     ) v WHERE EXISTS (SELECT 1 FROM page_views p WHERE p.visitor_id = v.visitor_id AND p.created_at < ${fromISO})`)).rows[0] as Row).n as number;
 
-  /* الجلسات — تصفية القصيرة بالقاعدة */
+  /* قمع التحويل — على كل جلسات النطاق (دقيق حتى لو البطاقات محدودة) */
+  const fn = (await db.execute(sql`
+    WITH sess AS (
+      SELECT session_id, min(created_at) started, max(created_at) ended,
+        bool_or(path LIKE '/product%') product, bool_or(path LIKE '/checkout%') checkout
+      FROM page_views WHERE created_at >= ${fromISO} AND created_at <= ${toISO}
+      GROUP BY session_id ${engagedOnly ? engagedHaving : sql``}
+    ), enr AS (
+      SELECT s.*, ac.phone cart_phone,
+        EXISTS (SELECT 1 FROM orders o WHERE o.customer_phone = ac.phone AND o.status <> 'CANCELLED'
+                AND o.created_at >= s.started AND o.created_at <= s.ended + interval '2 hours') bought
+      FROM sess s LEFT JOIN abandoned_carts ac ON ac.session_id = s.session_id
+    )
+    SELECT count(*)::int visits,
+      count(*) FILTER (WHERE product)::int product,
+      count(*) FILTER (WHERE cart_phone IS NOT NULL)::int cart,
+      count(*) FILTER (WHERE checkout)::int checkout,
+      count(*) FILTER (WHERE bought)::int bought,
+      COALESCE(round(AVG(EXTRACT(EPOCH FROM (ended-started)))),0)::int avg_sec
+    FROM enr`)).rows[0] as Row;
+  const funnel = { visits: fn.visits as number, product: fn.product as number, cart: fn.cart as number, checkout: fn.checkout as number, bought: fn.bought as number };
+  const avgSec = fn.avg_sec as number;
+  const pct = (n: number) => (funnel.visits ? Math.round((n / funnel.visits) * 100) : 0);
+
+  /* الجلسات (للبطاقات) */
   const sessRows = (await db.execute(sql`
     SELECT session_id,
       min(created_at) AS started, max(created_at) AS ended, count(*)::int AS pages,
@@ -98,8 +122,7 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
       bool_or(path LIKE '/product%') AS saw_product
     FROM page_views
     WHERE created_at >= ${fromISO} AND created_at <= ${toISO}
-    GROUP BY session_id
-    ${engagedOnly ? sql`HAVING count(*) >= 2 OR EXTRACT(EPOCH FROM (max(created_at)-min(created_at))) >= 5` : sql``}
+    GROUP BY session_id ${engagedOnly ? engagedHaving : sql``}
     ORDER BY started DESC LIMIT ${LIMIT}`)).rows as Row[];
 
   const ids = sessRows.map((r) => r.session_id as string);
@@ -125,13 +148,9 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
       const pl = sql.join(phones.map((x) => sql`${x}`), sql`, `);
       const names = (await db.execute(sql`SELECT phone, name FROM customers WHERE phone IN (${pl})`)).rows as Row[];
       for (const n of names) nameByPhone[n.phone as string] = n.name as string;
-      const ord = (await db.execute(sql`
-        SELECT customer_phone, created_at FROM orders
-        WHERE customer_phone IN (${pl}) AND status <> 'CANCELLED'`)).rows as Row[];
+      const ord = (await db.execute(sql`SELECT customer_phone, created_at FROM orders WHERE customer_phone IN (${pl}) AND status <> 'CANCELLED'`)).rows as Row[];
       for (const o of ord) (orderTimesByPhone[o.customer_phone as string] ??= []).push(new Date(o.created_at as string).getTime());
     }
-
-    // أول ظهور لكل زائر (لتحديد العائد)
     const vids = [...new Set(sessRows.map((r) => r.visitor_id as string).filter(Boolean))];
     if (vids.length) {
       const vl = sql.join(vids.map((x) => sql`${x}`), sql`, `);
@@ -156,9 +175,8 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
     const returningVisit = !!vid && firstSeenByVisitor[vid] != null && firstSeenByVisitor[vid] < startMs - 60_000;
     return {
       sid, started: new Date(r.started as string), device: (r.device as string) || "?",
-      pages: r.pages as number, source: sourceLabel(r.referrer as string | null, r.landing as string),
-      exit: pageLabel(r.exit_path as string), reachedCheckout: r.reached_checkout as boolean,
-      sawProduct: r.saw_product as boolean, steps,
+      source: sourceLabel(r.referrer as string | null, r.landing as string),
+      exit: pageLabel(r.exit_path as string), reachedCheckout: r.reached_checkout as boolean, steps,
       phone, customer: phone ? (nameByPhone[phone] ?? null) : null,
       addedToCart: !!phone, purchased, returningVisit,
       totalSec: (endMs - startMs) / 1000,
@@ -166,29 +184,26 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
   });
 
   const shown = journeys.length;
-  const funnel = {
-    visits: shown,
-    product: journeys.filter((j) => j.sawProduct).length,
-    cart: journeys.filter((j) => j.addedToCart).length,
-    checkout: journeys.filter((j) => j.reachedCheckout).length,
-    bought: journeys.filter((j) => j.purchased).length,
-  };
-  const avgSec = shown ? journeys.reduce((t, j) => t + j.totalSec, 0) / shown : 0;
-  const pct = (n: number) => (funnel.visits ? Math.round((n / funnel.visits) * 100) : 0);
+  const rawTotal = totals.sessions as number;
+  const truncated = shown >= LIMIT;
 
   const qs = (extra: Record<string, string>) => {
     const u = new URLSearchParams({ from: dateVal(fromDate), to: dateVal(toDate), ...(phoneFilter ? { phone: phoneFilter } : {}), ...extra });
     return `?${u.toString()}`;
   };
+  const preset = (fromD: string, toD: string) => `?from=${fromD}&to=${toD}${phoneFilter ? `&phone=${phoneFilter}` : ""}`;
+  const dAgo = (n: number) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10);
+  const presets: [string, string, string][] = [
+    ["اليوم", todayStr, todayStr],
+    ["أمس", dAgo(1), dAgo(1)],
+    ["٧ أيام", dAgo(7), todayStr],
+    ["٣٠ يوم", dAgo(30), todayStr],
+  ];
   const exportUrl = `/api/admin/export/?type=journeys&from=${dateVal(fromDate)}&to=${dateVal(toDate)}`;
-  const truncated = shown >= LIMIT;
-  const rawTotal = totals.sessions as number;
 
   const funnelRows: [string, number, string][] = [
-    ["زيارات", funnel.visits, "#505445"],
-    ["شافوا منتج", funnel.product, "#a66a4c"],
-    ["أضافوا للسلة", funnel.cart, "#c9a961"],
-    ["وصلوا الدفع", funnel.checkout, "#c08a6e"],
+    ["زيارات", funnel.visits, "#505445"], ["شافوا منتج", funnel.product, "#a66a4c"],
+    ["أضافوا للسلة", funnel.cart, "#c9a961"], ["وصلوا الدفع", funnel.checkout, "#c08a6e"],
     ["اشتروا", funnel.bought, "#5b8a4e"],
   ];
 
@@ -207,19 +222,31 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
-      <form className="mt-4 flex flex-wrap items-end gap-2.5 rounded-[8px] border border-line bg-card p-3.5">
+      {/* اختصارات سريعة */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {presets.map(([label, f, t]) => {
+          const active = dateVal(fromDate) === f && dateVal(toDate) === t;
+          return (
+            <Link key={label} href={preset(f, t)}
+              className={`rounded-full border px-3.5 py-1.5 text-[12px] font-bold transition-colors ${active ? "border-olive bg-olive text-olive-text" : "border-line bg-card text-muted hover:bg-bg-alt"}`}>
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <form className="mt-3 flex flex-wrap items-end gap-2.5 rounded-[8px] border border-line bg-card p-3.5">
         {phoneFilter && <input type="hidden" name="phone" value={phoneFilter} />}
         <label className="text-[11.5px] font-semibold text-muted">من
-          <input type="date" name="from" defaultValue={dateVal(fromDate)} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-2 text-[13px]" /></label>
+          <input type="date" name="from" max={todayStr} defaultValue={dateVal(fromDate)} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-2 text-[13px]" /></label>
         <label className="text-[11.5px] font-semibold text-muted">إلى
-          <input type="date" name="to" defaultValue={dateVal(toDate)} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-2 text-[13px]" /></label>
+          <input type="date" name="to" max={todayStr} defaultValue={dateVal(toDate)} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-2 text-[13px]" /></label>
         <button className="rounded-[5px] bg-olive px-5 py-2.5 text-[13px] font-bold text-olive-text">عرض</button>
       </form>
 
-      {/* مؤشرات */}
       <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
         {[
-          ["زوّار فريدون", totals.visitors as number], ["عائدون", returning], ["زيارات فعّالة", shown],
+          ["زوّار فريدون", totals.visitors as number], ["عائدون", returning], ["زيارات فعّالة", funnel.visits],
           ["عملاء جدد", totals.new_customers as number], ["اشتروا", funnel.bought], ["متوسط الوقت", fmtDur(avgSec)],
         ].map(([label, val], i) => (
           <div key={i} className="rounded-[7px] border border-line bg-card px-2 py-3 text-center">
@@ -229,7 +256,6 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      {/* قمع التحويل */}
       <div className="mt-4 rounded-[8px] border border-line bg-card p-4">
         <p className="mb-3 text-[12px] font-bold text-muted">قمع التحويل</p>
         <div className="space-y-2">
@@ -247,12 +273,12 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
-      {!phoneFilter && !showAll && rawTotal > shown && (
+      {!phoneFilter && !showAll && rawTotal > funnel.visits && (
         <p className="mt-2.5 text-[11.5px] text-muted">
-          إجمالي {rawTotal} زيارة · خُفيت {rawTotal - shown} قصيرة (ارتداد/زحف). <Link href={qs({ all: "1" })} className="font-bold text-accent">عرض الكل</Link>
+          إجمالي {rawTotal} زيارة · خُفيت {rawTotal - funnel.visits} قصيرة (ارتداد/زحف). <Link href={qs({ all: "1" })} className="font-bold text-accent">عرض الكل</Link>
         </p>
       )}
-      {truncated && <p className="mt-1 text-[11.5px] text-accent">عُرضت أحدث {LIMIT} زيارة — ضيّق التاريخ لرؤية الأقدم.</p>}
+      {truncated && <p className="mt-1 text-[11.5px] text-accent">الأرقام أعلاه لكل النطاق · البطاقات تعرض أحدث {LIMIT} — ضيّق التاريخ لرؤية الأقدم.</p>}
 
       <div className="mt-4 space-y-2.5">
         {shown === 0 && (
@@ -299,7 +325,7 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
       </div>
 
       <p className="mt-5 text-[11px] leading-relaxed text-muted">
-        «زوّار فريدون/عائدون» تُحتسب بمعرّف دائم يبدأ من الآن (الزيارات القديمة قبل التحديث بلا معرّف). أرقام الصفحة تختلف عن GA4/Pixel/Clarity (تُسجَّل فور الفتح، بلا تأخير ولا عيّنات). «اشترى» فقط لطلب أُنشئ ضمن الزيارة نفسها.
+        «فريدون/عائدون» بمعرّف دائم يبدأ من الآن. أرقام هذي الصفحة من قاعدتك (فور فتح الصفحة) فتختلف عن GA4/Pixel/Clarity (تحميل متأخّر + فلترة روبوتات + عيّنات). «اشترى» فقط لطلب ضمن الزيارة نفسها.
       </p>
     </div>
   );
