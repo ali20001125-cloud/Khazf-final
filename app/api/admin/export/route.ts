@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/server/admin-auth";
 import { db } from "@/lib/server/db";
 import { sql } from "drizzle-orm";
+import { fetchMetaInsights, fetchMetaBreakdown, USD_TO_IQD, type DateArg } from "@/lib/server/meta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,6 +50,31 @@ export async function GET(req: Request) {
       { key: "day", label: "اليوم" }, { key: "orders", label: "الطلبات" },
       { key: "revenue", label: "المبيعات" }, { key: "profit", label: "الربح" },
     ]);
+  } else if (type === "ads") {
+    const u = new URL(req.url);
+    const custom = u.searchParams.get("from") && u.searchParams.get("to");
+    const dateArg: DateArg = custom
+      ? { since: u.searchParams.get("from")!, until: u.searchParams.get("to")! }
+      : { preset: u.searchParams.get("range") || "last_7d" };
+    const [m, ageGender, region] = await Promise.all([
+      fetchMetaInsights(dateArg),
+      fetchMetaBreakdown(dateArg, "age,gender"),
+      fetchMetaBreakdown(dateArg, "region"),
+    ]);
+    const spendIqd = m.currency === "USD" ? m.spend * USD_TO_IQD : m.spend;
+    const summary: Row[] = [
+      { k: "الصرف", v: `${m.spend} ${m.currency}` },
+      { k: "الصرف (دينار)", v: Math.round(spendIqd) },
+      { k: "النقرات", v: m.clicks }, { k: "نسبة النقر٪", v: m.ctr },
+      { k: "كلفة النقرة", v: m.cpc }, { k: "مشتريات Meta", v: m.purchases },
+    ];
+    const lines: string[] = [toCsv(summary, [{ key: "k", label: "المؤشر" }, { key: "v", label: "القيمة" }])];
+    if (ageGender.rows.length)
+      lines.push("\r\n" + toCsv(ageGender.rows as unknown as Row[], [{ key: "label", label: "العمر/الجنس" }, { key: "spend", label: "الصرف" }, { key: "clicks", label: "النقرات" }, { key: "purchases", label: "شراء" }]));
+    if (region.rows.length)
+      lines.push("\r\n" + toCsv(region.rows as unknown as Row[], [{ key: "label", label: "المنطقة" }, { key: "spend", label: "الصرف" }, { key: "clicks", label: "النقرات" }, { key: "purchases", label: "شراء" }]));
+    content = lines.join("\r\n");
+    filename = `khazf-ads-${today}.csv`;
   } else if (type === "journeys") {
     const u = new URL(req.url);
     const toISO = (u.searchParams.get("to") ? new Date(u.searchParams.get("to")! + "T23:59:59.999Z") : new Date()).toISOString();
