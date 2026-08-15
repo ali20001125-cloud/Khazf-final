@@ -51,20 +51,23 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
   const presetLink = (k: string) => `?range=${k}`;
 
   const BreakCard = ({ title, data, err }: { title: string; data: BreakRow[]; err?: string }) => {
-    const top = [...data].sort((a, b) => b.spend - a.spend).slice(0, 8);
-    const max = Math.max(1, ...top.map((r) => r.spend));
+    const top = [...data].sort((a, b) => b.clicks - a.clicks).slice(0, 8);
+    const max = Math.max(1, ...top.map((r) => r.clicks));
     if (err || top.length === 0) return null;
     return (
       <div className="rounded-[8px] border border-line bg-card p-4">
-        <p className="mb-3 text-[12px] font-bold text-muted">{title}</p>
+        <p className="mb-1 text-[12px] font-bold text-muted">{title}</p>
+        <p className="mb-3 text-[10px] text-muted">عدد من ضغطوا إعلانك من كل فئة</p>
         <div className="space-y-1.5">
           {top.map((r) => (
             <div key={r.label} className="flex items-center gap-3">
               <span className="w-28 shrink-0 truncate text-[11.5px] text-ink">{r.label}</span>
               <div className="h-4 flex-1 overflow-hidden rounded-[3px] bg-bg-alt">
-                <div className="h-full bg-accent" style={{ width: `${Math.max((r.spend / max) * 100, 4)}%` }} />
+                <div className="h-full bg-accent" style={{ width: `${Math.max((r.clicks / max) * 100, 4)}%` }} />
               </div>
-              <span className="font-num w-24 shrink-0 text-end text-[10.5px] text-muted">{fmt(r.spend, 1)} {cur} · {r.purchases} شراء</span>
+              <span className="font-num w-24 shrink-0 text-end text-[10.5px] text-muted">
+                {fmt(r.clicks)} نقرة{r.purchases > 0 ? ` · ${r.purchases} شراء` : ""}
+              </span>
             </div>
           ))}
         </div>
