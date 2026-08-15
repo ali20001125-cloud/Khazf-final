@@ -33,14 +33,16 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
     fetchMetaBreakdown(dateArg, "age,gender", node),
     fetchMetaBreakdown(dateArg, "region", node),
   ]);
-  /* مبيعات الإعلان فقط: طلبات زبائن جاؤوا من إنستقرام/فيسبوك (لا كل مبيعات المتجر) */
+  /* مبيعات الإعلان: حملة مختارة → مطابقة utm_id · كل الحملات → مصدر إنستقرام/فيسبوك */
+  const attr = campaign
+    ? sql`pv.path ~ ${`utm_id=${campaign}(&|$)`}`
+    : sql`(pv.referrer ILIKE '%instagram%' OR pv.referrer ILIKE '%facebook%'
+        OR pv.path ILIKE '%utm_source=instagram%' OR pv.path ILIKE '%utm_source=facebook%')`;
   const store = (await db.execute(sql`
     WITH meta_phones AS (
       SELECT DISTINCT ac.phone FROM abandoned_carts ac
       JOIN page_views pv ON pv.session_id = ac.session_id
-      WHERE ac.phone IS NOT NULL AND (
-        pv.referrer ILIKE '%instagram%' OR pv.referrer ILIKE '%facebook%'
-        OR pv.path ILIKE '%utm_source=instagram%' OR pv.path ILIKE '%utm_source=facebook%')
+      WHERE ac.phone IS NOT NULL AND ${attr}
     )
     SELECT COALESCE(SUM(total),0)::int AS revenue, count(*)::int AS orders
     FROM orders WHERE is_test = false AND status <> 'CANCELLED' AND ${rangeSql}
@@ -81,28 +83,17 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
 
   const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : `&range=${range}`}${campaign ? `&campaign=${campaign}` : ""}`;
 
-  // حملة مختارة → مؤشرات Meta الخاصة بها · كل الحملات → عائد متجرك بالدينار
-  const kpis: [string, string, boolean?][] = campaign
-    ? [
-        ["الصرف", `${fmt(m.spend, 2)} ${cur}`],
-        ["عائد Meta (ROAS)", m.roas ? `${fmt(m.roas, 2)}×` : "—", true],
-        ["مشتريات Meta", fmt(m.purchases), true],
-        ["كلفة الشراء", m.costPerPurchase ? `${fmt(m.costPerPurchase, 2)} ${cur}` : "—"],
-        ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
-        ["النقرات", fmt(m.clicks)],
-        ["مرّات الظهور", fmt(m.impressions)],
-        ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
-      ]
-    : [
-        ["الصرف", `${fmt(m.spend, 2)} ${cur}`],
-        ["عائد الإعلان (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
-        ["مبيعات الإعلان", `${fmt(store.revenue)} د.ع`, true],
-        ["طلبات الإعلان", fmt(store.orders)],
-        ["مشتريات Meta", fmt(m.purchases)],
-        ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
-        ["النقرات", fmt(m.clicks)],
-        ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
-      ];
+  // مؤشرات موحّدة: الصرف + عائد متجرك بالدينار (لكل حملة أو للكل) + أداء Meta
+  const kpis: [string, string, boolean?][] = [
+    ["الصرف", `${fmt(m.spend, 2)} ${cur}`],
+    ["عائد الإعلان (ROAS)", storeRoas ? `${fmt(storeRoas, 2)}×` : "—", true],
+    ["مبيعات الإعلان", `${fmt(store.revenue)} د.ع`, true],
+    ["طلبات الإعلان", fmt(store.orders)],
+    ["مشتريات Meta", fmt(m.purchases)],
+    ["نسبة النقر", `${fmt(m.ctr, 2)}٪`],
+    ["النقرات", fmt(m.clicks)],
+    ["كلفة النقرة", `${fmt(m.cpc, 2)} ${cur}`],
+  ];
 
   return (
     <div className="max-w-3xl">
@@ -153,15 +144,20 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
             ))}
           </div>
 
-          {isUsd && !campaign && (
+          {isUsd && (
             <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
-              «عائد الإعلان» = مبيعات زبائن جاؤوا من إنستقرام/فيسبوك (بالدينار) ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
-              لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر.
+              «عائد الإعلان» = مبيعات المتجر الحقيقية (بالدينار) ÷ الصرف محوَّلاً للدينار (بسعر <b className="font-num">{fmt(USD_TO_IQD)}</b> د/دولار).
+              {campaign
+                ? " تُنسب المبيعات لهذي الحملة عبر رابط UTM في إعلانك."
+                : " تُحسب مبيعات الزبائن القادمين من إنستقرام/فيسبوك."}
+              {" "}لتغيير السعر: عدّل <span className="font-num" dir="ltr">META_USD_TO_IQD</span> بهوستنجر.
             </p>
           )}
-          {campaign && (
-            <p className="mt-2.5 text-[11px] leading-relaxed text-muted">
-              مؤشرات هذي الحملة من Meta. «عائد المتجر بالدينار» يظهر في وضع «كل الحملات» فقط (لا نقدر ننسب مبيعات المتجر لحملة بعينها بدقّة).
+          {campaign && store.orders === 0 && (
+            <p className="mt-2 rounded-[6px] border border-accent/25 bg-accent/5 p-2.5 text-[11px] leading-relaxed text-muted">
+              لم تُنسب مبيعات لهذي الحملة بعد. لتفعيل النسب الدقيق: في مدير إعلانات Meta ← إعداد الرابط ← «مُعامِلات URL»، أضِف:
+              <span className="font-num mt-1 block select-all rounded bg-bg-alt px-2 py-1 text-[10.5px]" dir="ltr">utm_source=facebook&utm_medium=paid&utm_campaign=&#123;&#123;campaign.name&#125;&#125;&utm_id=&#123;&#123;campaign.id&#125;&#125;</span>
+              بعدها تُنسب كل مبيعة تلقائياً للحملة الصحيحة.
             </p>
           )}
 
