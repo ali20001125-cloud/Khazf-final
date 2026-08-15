@@ -2,6 +2,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "./db";
 import { emailReviewRequest } from "./email";
+import { settleLoyalty } from "./loyalty";
 
 export async function deliverOrder(orderId: number) {
   return db.transaction(async (tx) => {
@@ -10,7 +11,7 @@ export async function deliverOrder(orderId: number) {
     if (o.status !== "CONFIRMED") throw new Error("الطلب ليس بحالة تأكيد");
     const deliveredAt = new Date();
     await tx.update(s.orders).set({ status: "DELIVERED", deliveredAt }).where(eq(s.orders.id, orderId));
-    if (o.pointsEarned > 0)
+    if (o.pointsEarned > 0) {
       await tx.insert(s.cashbackLedger).values({
         customerPhone: o.customerPhone,
         orderId,
@@ -19,6 +20,9 @@ export async function deliverOrder(orderId: number) {
         availableAt: deliveredAt, // تتفعّل فوراً مع التوصيل
         note: o.orderNumber,
       });
+      // نحدّث العمود المخزّن (points_balance) فوراً حتى يظهر الرصيد باللوحة والحساب بلا انتظار
+      await settleLoyalty(tx, o.customerPhone);
+    }
     return { ok: true, order: o };
   }).then(async (res) => {
     // إيميل طلب التقييم (بعد التوصيل) — لا يُفشل العملية إن تعذّر
