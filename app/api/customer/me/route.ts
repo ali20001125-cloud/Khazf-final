@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { getCustomerIdentity } from "@/lib/server/customer-identity";
+import { setCustomerCookie } from "@/lib/server/customer-session";
 import { getSettings } from "@/lib/server/settings";
 import { asc } from "drizzle-orm";
 import { settleLoyalty } from "@/lib/server/loyalty";
@@ -31,7 +32,44 @@ function nameFromEmail(email: string): string {
 }
 
 export async function GET() {
-  const { phone, authUser, linked } = await getCustomerIdentity();
+  const identity = await getCustomerIdentity();
+  const authUser = identity.authUser;
+  let phone = identity.phone;
+  let linked = identity.linked;
+
+  /* ═ شفاء الهوية ═
+     دخل بإيميل موثّق لكن رقمه غير مربوط (أو رقم مؤقّت auth:) — نجيب رقمه الحقيقي
+     من طلب سابق بنفس الإيميل، ونربطه تلقائياً فتظهر طلباته ونقاطه. */
+  const authEmail = authUser?.email?.trim().toLowerCase() || null;
+  if (authUser && authEmail && (!phone || phone.startsWith("auth:"))) {
+    const [ord] = await db
+      .select({ p: s.orders.customerPhone })
+      .from(s.orders)
+      .where(sql`lower(${s.orders.email}) = ${authEmail} AND ${s.orders.customerPhone} NOT LIKE 'auth:%'`)
+      .orderBy(desc(s.orders.createdAt))
+      .limit(1);
+    if (ord?.p) {
+      const real = ord.p;
+      const [row] = await db
+        .select({ auth: s.customers.authUserId })
+        .from(s.customers)
+        .where(eq(s.customers.phone, real));
+      // نربط فقط إن كان الرقم غير محجوز لحساب مصادقة آخر
+      if (!row || !row.auth || row.auth === authUser.id) {
+        await db.update(s.customers).set({ authUserId: null })
+          .where(sql`${s.customers.authUserId} = ${authUser.id} AND ${s.customers.phone} LIKE 'auth:%'`)
+          .catch(() => {});
+        if (row) {
+          await db.update(s.customers).set({ authUserId: authUser.id })
+            .where(eq(s.customers.phone, real)).catch(() => {});
+        }
+        await setCustomerCookie(real).catch(() => {});
+        phone = real;
+        linked = true;
+      }
+    }
+  }
+
   if (!phone) {
     // مسجّل بإيميل/Google بلا رقم بعد — نرجّع إيميله واسماً مشتقاً منه
     // حتى يظهرا بالحساب ويُملآ بالطلب (الرقم يُطلب عند الطلب فقط)
