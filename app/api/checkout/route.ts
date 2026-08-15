@@ -72,7 +72,7 @@ export async function POST(req: Request) {
        • الرقم مربوط بحساب Google الحاضر نفسه.
        رقم موجود لزبون آخر؟ الطلب يمشي، لكن تاريخه لا يُفتح لغيره. */
     const phone = body.phone.trim();
-    const gUser = await getSupabaseUser();
+    const gUser = authForFill; // نعيد استخدام جلسة المصادقة (بدل رحلة شبكة ثانية لـ Supabase)
     const [c] = await db.select({ auth: s.customers.authUserId }).from(s.customers).where(eq(s.customers.phone, phone));
     const cnt = await db.execute(sql`SELECT count(*)::int n FROM orders WHERE customer_phone=${phone}`);
     const firstOrder = Number((cnt.rows[0] as { n: number }).n) === 1;
