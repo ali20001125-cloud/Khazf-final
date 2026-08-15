@@ -54,7 +54,8 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
   const spendIqd = isUsd ? m.spend * USD_TO_IQD : m.spend;             // تقدير الصرف بالدينار
   const storeRoas = spendIqd > 0 ? store.revenue / spendIqd : 0;       // عائد المتجر الحقيقي
 
-  const presetLink = (k: string) => `?range=${k}`;
+  const presetLink = (k: string) => `?range=${k}${campaign ? `&campaign=${encodeURIComponent(campaign)}` : ""}`;
+  const allCampaignsLink = `?range=${range || "last_7d"}`;
 
   const BreakCard = ({ title, data, err }: { title: string; data: BreakRow[]; err?: string }) => {
     const top = [...data].sort((a, b) => b.clicks - a.clicks).slice(0, 8);
@@ -118,9 +119,10 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
         <span className="ms-auto"><CampaignSelect campaigns={campaigns} value={campaign} /></span>
       </div>
       {campaign && (
-        <p className="mt-2 text-[11.5px] text-accent">تعرض حملة واحدة · <Link href={presetLink(range || "last_7d")} className="font-bold underline">كل الحملات</Link></p>
+        <p className="mt-2 text-[11.5px] text-accent">تعرض حملة واحدة · <Link href={allCampaignsLink} className="font-bold underline">كل الحملات</Link></p>
       )}
       <form className="mt-2.5 flex flex-wrap items-end gap-2.5 rounded-[8px] border border-line bg-card p-3">
+        {campaign && <input type="hidden" name="campaign" value={campaign} />}
         <label className="text-[11px] font-semibold text-muted">من
           <input type="date" name="from" max={todayStr} defaultValue={sp.from ?? ""} className="mt-1 block rounded-[5px] border border-line bg-bg px-3 py-1.5 text-[13px]" /></label>
         <label className="text-[11px] font-semibold text-muted">إلى
