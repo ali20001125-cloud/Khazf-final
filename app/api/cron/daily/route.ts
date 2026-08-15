@@ -2,9 +2,28 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 import { notifyTelegram } from "@/lib/server/telegram";
+import { sendMail, ownerEmail } from "@/lib/server/email";
+import { askGemini, geminiConfigured } from "@/lib/server/gemini";
+import { buildSnapshot } from "@/lib/server/snapshot";
+import { assistantSystem, DAILY_PROMPT } from "@/lib/server/assistant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const escHtml = (t: string) => t.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] || c));
+
+/** تحويل رد Gemini (ماركداون بسيط) إلى HTML للإيميل */
+function aiToHtml(t: string): string {
+  return t.split("\n").map((line) => {
+    const s0 = escHtml(line.trim());
+    if (!s0) return "";
+    const clean = s0.replace(/^\s*[#*\-–•]+\s*/, "").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+    const bullet = /^\s*[*\-–•]\s/.test(line) || /^[١٢٣٤٥٦٧٨٩0-9]+[).]/.test(s0);
+    return `<p style="margin:5px 0;line-height:1.75;color:#444;font-size:13.5px">${bullet ? "• " : ""}${clean}</p>`;
+  }).join("");
+}
+/** نسخة نصّية للتيليجرام */
+const aiToPlain = (t: string) => escHtml(t.replace(/\*\*/g, "").replace(/^\s*#+\s*/gm, "").trim());
 
 /**
  * ملخّص يومي بالتيليجرام.
@@ -53,10 +72,7 @@ export async function GET(req: Request) {
 
   const conv = stats.visitors > 0 ? ((stats.orders / stats.visitors) * 100).toFixed(1) : "0";
 
-  const text =
-    `📊 <b>ملخّص خزف اليومي</b>\n` +
-    `${today}\n` +
-    `━━━━━━━━━━━━\n` +
+  const numbers =
     `👥 الزوار: <b>${m(stats.visitors)}</b> (${m(stats.views)} مشاهدة)\n` +
     `🛒 الطلبات: <b>${m(stats.orders)}</b>\n` +
     `💰 المبيعات: <b>${m(stats.revenue)} د.ع</b>\n` +
@@ -70,11 +86,51 @@ export async function GET(req: Request) {
     `🔔 سلات مهجورة: <b>${m(stats.abandoned)}</b>` +
     (stats.abandoned_value > 0 ? ` (${m(stats.abandoned_value)} د.ع معلّقة)` : "");
 
-  const sent = await notifyTelegram(text);
-  if (sent) {
-    await db.insert(s.dailyDigests).values({ digestDate: today });
-    return NextResponse.json({ ok: true, sent: true });
+  /* تحليل ذكي (ملاحظات + حلول) من المساعد — اختياري، لا يوقف الإرسال لو تعذّر */
+  let ai = "";
+  if (geminiConfigured()) {
+    try {
+      const r = await askGemini(assistantSystem(await buildSnapshot()), [{ role: "user", text: DAILY_PROMPT }]);
+      if (r.ok) ai = r.text;
+    } catch { /* تجاهل — نرسل الأرقام بلا تحليل */ }
   }
-  // فشل الإرسال — لا نسجّل اليوم (نعيد المحاولة لاحقاً) ونوضّح السبب
-  return NextResponse.json({ ok: false, sent: false, reason: "تعذّر الإرسال للتيليجرام — تحقّق من إعداد البوت" }, { status: 502 });
+
+  const text =
+    `📊 <b>ملخّص خزف اليومي</b>\n${today}\n━━━━━━━━━━━━\n` + numbers +
+    (ai ? `\n━━━━━━━━━━━━\n🧠 <b>ملاحظات وحلول</b>\n${aiToPlain(ai)}` : "");
+
+  const html = `
+<div style="font-family:'IBM Plex Sans Arabic',Tahoma,Arial;direction:rtl;background:#f4f1ea;padding:16px 8px">
+  <div style="max-width:600px;margin:auto;background:#fff;border:1px solid #e5e0d5;border-radius:14px;overflow:hidden">
+    <div style="background:#3b3a36;padding:18px 20px">
+      <p style="margin:0;font-size:18px;font-weight:bold;color:#fff">☕ ملخّص خزف اليومي</p>
+      <p style="margin:5px 0 0;font-size:12px;color:#c9a961">${today}</p>
+    </div>
+    <div style="padding:18px 20px">
+      <p style="margin:0 0 8px;font-weight:bold;font-size:14px;color:#3b3a36">أرقام آخر ٢٤ ساعة</p>
+      <div style="font-size:13.5px;line-height:2;color:#444">
+        👥 الزوار: <b>${m(stats.visitors)}</b> (${m(stats.views)} مشاهدة)<br>
+        🛒 الطلبات: <b>${m(stats.orders)}</b> · 🎯 التحويل: <b>${conv}٪</b><br>
+        💰 المبيعات: <b>${m(stats.revenue)} د.ع</b> · 📈 الربح: <b>${m(stats.profit)} د.ع</b><br>
+        🆕 عملاء جدد: <b>${m(stats.new_customers)}</b> · 📝 حسابات: <b>${m(stats.new_accounts)}</b><br>
+        ${topProduct ? `⭐ الأكثر مبيعاً: <b>${escHtml(topProduct.name)}</b> (${topProduct.qty})<br>` : ""}
+        🔔 سلات مهجورة: <b>${m(stats.abandoned)}</b>${stats.abandoned_value > 0 ? ` (${m(stats.abandoned_value)} د.ع معلّقة)` : ""}
+      </div>
+      ${ai ? `<div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
+        <p style="margin:0 0 8px;font-weight:bold;font-size:14px;color:#3b3a36">🧠 ملاحظات وحلول</p>${aiToHtml(ai)}
+      </div>` : ""}
+    </div>
+  </div>
+</div>`;
+
+  const [tg, email] = await Promise.all([
+    notifyTelegram(text),
+    (async () => { const to = await ownerEmail(); return to ? sendMail(to, `☕ ملخّص خزف اليومي — ${today}`, html, "daily_report") : false; })(),
+  ]);
+
+  if (tg || email) {
+    await db.insert(s.dailyDigests).values({ digestDate: today });
+    return NextResponse.json({ ok: true, telegram: tg, email });
+  }
+  return NextResponse.json({ ok: false, sent: false, reason: "لم يُضبط تيليجرام ولا بريد المالك (SMTP + ADMIN_EMAIL)" }, { status: 502 });
 }

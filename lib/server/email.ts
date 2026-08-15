@@ -29,8 +29,8 @@ function transport() {
   });
 }
 
-export async function sendMail(to: string, subject: string, html: string, kind = "other") {
-  if (!configured() || !to) return;
+export async function sendMail(to: string, subject: string, html: string, kind = "other"): Promise<boolean> {
+  if (!configured() || !to) return false;
   let ok = true;
   try {
     await transport().sendMail({
@@ -45,6 +45,17 @@ export async function sendMail(to: string, subject: string, html: string, kind =
   try {
     await db.insert(s.emailLog).values({ kind, recipient: to.slice(0, 160), ok });
   } catch { /* تجاهل */ }
+  return ok;
+}
+
+/** بريد المالك للتقارير — من ADMIN_EMAIL أو أول مدير مسجّل */
+export async function ownerEmail(): Promise<string> {
+  const env = process.env.ADMIN_EMAIL?.trim();
+  if (env) return env;
+  try {
+    const [a] = await db.select({ email: s.admins.email }).from(s.admins).limit(1);
+    return a?.email ?? "";
+  } catch { return ""; }
 }
 
 const wrap = (inner: string, logoUrl?: string | null) => `
