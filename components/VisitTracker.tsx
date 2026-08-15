@@ -17,6 +17,21 @@ function sessionId(): string {
   }
 }
 
+/** معرّف دائم للزائر — يبقى عبر الجلسات (localStorage) لقياس العائدين والفريدين */
+function visitorId(): string {
+  const KEY = "khz_vid";
+  try {
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      id = "v" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    return "anon";
+  }
+}
+
 function device(): string {
   if (typeof navigator === "undefined") return "unknown";
   const ua = navigator.userAgent;
@@ -40,6 +55,7 @@ export default function VisitTracker() {
     const fullPath = (pathname ?? "") + (search || "");
     const body = JSON.stringify({
       sessionId: sessionId(),
+      visitorId: visitorId(),
       path: fullPath,
       referrer: document.referrer || null,
       device: device(),

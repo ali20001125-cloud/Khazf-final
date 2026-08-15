@@ -495,6 +495,7 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 export const pageViews = pgTable("page_views", {
   id: serial("id").primaryKey(),
   sessionId: text("session_id").notNull(),
+  visitorId: text("visitor_id"),               // معرّف دائم للزائر عبر زياراته (عائد/فريد)
   path: text("path").notNull(),
   referrer: text("referrer"),
   device: text("device"),
