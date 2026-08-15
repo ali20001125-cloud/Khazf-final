@@ -13,15 +13,27 @@ const PRESETS: [string, string][] = [["today", "اليوم"], ["yesterday", "أ�
 export default async function AdsPage({ searchParams }: { searchParams: Promise<{ range?: string; from?: string; to?: string; campaign?: string }> }) {
   const sp = await searchParams;
   const custom = sp.from && sp.to;
-  const range = !custom && PRESETS.find((r) => r[0] === sp.range) ? sp.range! : (custom ? "" : "last_7d");
+  const hasPreset = !custom && !!PRESETS.find((r) => r[0] === sp.range);
   const todayStr = new Date().toISOString().slice(0, 10);
-  const dateArg: DateArg = custom ? { since: sp.from!, until: sp.to! } : { preset: range || "last_7d" };
   const campaign = sp.campaign?.trim() || "";
   const campaigns = await fetchMetaCampaigns();
+  const selected = campaigns.find((c) => c.id === campaign);
+
+  /* وضع تلقائي: حملة مختارة بلا اختيار تاريخ → من بداية الحملة لنهايتها (أو لليوم) */
+  const auto = !!campaign && !custom && !hasPreset && !!selected?.start;
+  const autoFrom = auto ? selected!.start! : "";
+  const autoTo = auto ? (selected!.stop && selected!.stop! < todayStr ? selected!.stop! : todayStr) : "";
+  const range = hasPreset ? sp.range! : (custom || auto ? "" : "last_7d");
+
+  const dateArg: DateArg =
+    custom ? { since: sp.from!, until: sp.to! }
+    : auto ? { since: autoFrom, until: autoTo }
+    : { preset: range || "last_7d" };
 
   // نطاق SQL لمبيعات المتجر بنفس المدّة
   const rangeSql = custom
     ? sql`created_at::date >= ${sp.from} AND created_at::date <= ${sp.to}`
+    : auto ? sql`created_at::date >= ${autoFrom} AND created_at::date <= ${autoTo}`
     : range === "today" ? sql`created_at::date = now()::date`
     : range === "yesterday" ? sql`created_at::date = (now() - interval '1 day')::date`
     : range === "last_30d" ? sql`created_at >= now() - interval '30 days'`
@@ -56,6 +68,7 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
 
   const presetLink = (k: string) => `?range=${k}${campaign ? `&campaign=${encodeURIComponent(campaign)}` : ""}`;
   const allCampaignsLink = `?range=${range || "last_7d"}`;
+  const dateLabel = custom ? `${sp.from} ← ${sp.to}` : auto ? `${autoFrom} ← ${autoTo}` : "";
 
   const BreakCard = ({ title, data, err }: { title: string; data: BreakRow[]; err?: string }) => {
     const top = [...data].sort((a, b) => b.clicks - a.clicks).slice(0, 8);
@@ -82,7 +95,7 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
     );
   };
 
-  const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : `&range=${range}`}${campaign ? `&campaign=${campaign}` : ""}`;
+  const exportUrl = `/api/admin/export/?type=ads${custom ? `&from=${sp.from}&to=${sp.to}` : auto ? `&from=${autoFrom}&to=${autoTo}` : `&range=${range}`}${campaign ? `&campaign=${campaign}` : ""}`;
 
   // مؤشرات موحّدة: الصرف + عائد متجرك بالدينار (لكل حملة أو للكل) + أداء Meta
   const kpis: [string, string, boolean?][] = [
@@ -119,7 +132,11 @@ export default async function AdsPage({ searchParams }: { searchParams: Promise<
         <span className="ms-auto"><CampaignSelect campaigns={campaigns} value={campaign} /></span>
       </div>
       {campaign && (
-        <p className="mt-2 text-[11.5px] text-accent">تعرض حملة واحدة · <Link href={allCampaignsLink} className="font-bold underline">كل الحملات</Link></p>
+        <p className="mt-2 text-[11.5px] text-accent">
+          تعرض حملة واحدة
+          {auto && <> · <span className="font-num" dir="ltr">{dateLabel}</span> <span className="text-muted">(مدّة الحملة تلقائياً)</span></>}
+          {" "}· <Link href={allCampaignsLink} className="font-bold underline">كل الحملات</Link>
+        </p>
       )}
       <form className="mt-2.5 flex flex-wrap items-end gap-2.5 rounded-[8px] border border-line bg-card p-3">
         {campaign && <input type="hidden" name="campaign" value={campaign} />}

@@ -44,16 +44,20 @@ const EMPTY = (over: Partial<MetaInsights>): MetaInsights => ({
   purchases: 0, purchaseValue: 0, roas: 0, costPerPurchase: 0, currency: "", ...over,
 });
 
-/** قائمة الحملات لاختيار حملة واحدة */
-export async function fetchMetaCampaigns(): Promise<{ id: string; name: string }[]> {
+export type Campaign = { id: string; name: string; start?: string; stop?: string };
+/** قائمة الحملات — مع تاريخ البداية/النهاية لاختيار المدّة تلقائياً */
+export async function fetchMetaCampaigns(): Promise<Campaign[]> {
   const { token, id } = creds();
   if (!token || !id) return [];
-  const url = `${API}/${id}/campaigns?fields=name&limit=100&access_token=${encodeURIComponent(token)}`;
+  const url = `${API}/${id}/campaigns?fields=name,start_time,stop_time&limit=100&access_token=${encodeURIComponent(token)}`;
   try {
     const r = await fetch(url, { cache: "no-store" });
     const j = await r.json();
     if (j.error) return [];
-    return (j.data ?? []).map((c: Record<string, unknown>) => ({ id: String(c.id), name: String(c.name) }));
+    const day = (v: unknown) => (v ? String(v).slice(0, 10) : undefined);
+    return (j.data ?? []).map((c: Record<string, unknown>) => ({
+      id: String(c.id), name: String(c.name), start: day(c.start_time), stop: day(c.stop_time),
+    }));
   } catch {
     return [];
   }
