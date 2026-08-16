@@ -3,7 +3,7 @@
 import WelcomeSheet from "@/components/WelcomeSheet";
 import ExitCapture from "@/components/ExitCapture";
 import { useMotion } from "@/lib/motion";
-import { HeroX, StripX, CropsX, BoxX, WhyX, ReviewsX, CtaX } from "@/components/scenes/home-v2";
+import { HeroX, StripX, BoxFeatureX, CropsX, CategoriesX, WhyX, ReviewsX, CtaX } from "@/components/scenes/home-v2";
 
 export default function Home() {
   const scope = useMotion();
@@ -13,8 +13,9 @@ export default function Home() {
       <ExitCapture />
       <HeroX />
       <StripX />
+      <BoxFeatureX />
       <CropsX />
-      <BoxX />
+      <CategoriesX />
       <WhyX />
       <ReviewsX />
       <CtaX />

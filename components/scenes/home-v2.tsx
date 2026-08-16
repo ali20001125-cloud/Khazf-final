@@ -1,7 +1,7 @@
 "use client";
 /**
- * الرئيسية V2 — واجهة جديدة من الصفر (تجريبي staging).
- * الهوية: مستوحاة من 48 East — نظيف عصري، برتقالي ناري #FF6C0E، بس بوضع نهاري فاتح دافئ.
+ * الرئيسية V2 — واجهة جديدة (تجريبي staging).
+ * الهوية: نظيف عصري بوضع نهاري فاتح دافئ + ألوان البراند (طيني #8E574C · زيتوني #4E5443).
  * كل قسم يمرّ باختبار الـ٥ ثوان ويخدم الطلب. لوحة الألوان محلية ومستقلّة.
  */
 import Link from "next/link";
@@ -9,18 +9,18 @@ import { useCatalog } from "@/lib/catalog-context";
 import { useSiteConfig, useStore } from "@/lib/store";
 import { formatIQD } from "@/lib/data";
 
-/* ═══ لوحة الألوان (فاتح + برتقالي 48e) ═══ */
+/* ═══ لوحة الألوان (فاتح + ألوان البراند) ═══ */
 const C = {
   bg: "#f4f1ec",       // كريمي دافئ (الخلفية الأساسية)
-  alt: "#ece7df",      // بديل
+  alt: "#ebe6dd",      // بديل
   card: "#ffffff",     // البطاقات
-  ink: "#181410",      // نص أساسي (أسود دافئ)
+  ink: "#241e19",      // نص أساسي (بنّي داكن دافئ)
   dim: "#6f665a",      // نص ثانوي
   line: "#e3ddd2",     // خطوط
-  accent: "#FF6C0E",   // برتقالي 48e
-  accentSoft: "#fff1e6",
+  clay: "#8E574C",     // طيني — الأساسي (أزرار/تمييز)
+  claySoft: "#f2e9e5", // طيني فاتح جداً
+  olive: "#4E5443",    // زيتوني — الأقسام الداكنة
 };
-const addBtn = (name: string) => `أضِف ${name}`;
 
 const FEATURED_SLUG = "dorado";
 
@@ -44,7 +44,7 @@ export function HeroX() {
     <section style={{ background: C.bg, color: C.ink }}>
       <div className="mx-auto grid max-w-5xl items-center gap-7 px-5 py-9 md:grid-cols-2 md:gap-10 md:px-8 md:py-14">
         <div className="order-2 md:order-1">
-          <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.accent }}>قهوة مختصّة · العراق</span>
+          <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.clay }}>قهوة مختصّة · العراق</span>
           <h1 className="mt-3 text-[38px] font-black leading-[1.05] tracking-tight md:text-[58px]">
             اكتشف<br />قهوتك.
           </h1>
@@ -63,7 +63,7 @@ export function HeroX() {
             {pick && (
               <Link href={`/product/?c=${pick.slug}`}
                 className="flex min-h-[52px] items-center justify-center px-8 text-[15px] font-extrabold transition-transform active:scale-[0.98]"
-                style={{ background: C.accent, color: "#fff", borderRadius: 999 }}>
+                style={{ background: C.clay, color: "#fff", borderRadius: 999 }}>
                 اطلب {pick.name}
               </Link>
             )}
@@ -83,12 +83,12 @@ export function HeroX() {
               <img src={pick.image!} alt={pick.name}
                 className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
               <span className="absolute right-4 top-4 rounded-full px-3.5 py-1.5 text-[11px] font-extrabold"
-                style={{ background: C.accent, color: "#fff" }}>اختيار خزف لك</span>
+                style={{ background: C.clay, color: "#fff" }}>اختيار خزف لك</span>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5"
-                style={{ background: "linear-gradient(to top, rgba(20,16,12,0.88), transparent)" }}>
+                style={{ background: "linear-gradient(to top, rgba(30,24,20,0.9), transparent)" }}>
                 <p className="text-[27px] font-black leading-none text-white">{pick.name}</p>
                 {pick.notes?.length > 0 && (
-                  <p className="mt-1.5 text-[12.5px] font-bold" style={{ color: "#ffd9bd" }}>{pick.notes.slice(0, 3).join(" · ")}</p>
+                  <p className="mt-1.5 text-[12.5px] font-bold" style={{ color: "#e7c9bd" }}>{pick.notes.slice(0, 3).join(" · ")}</p>
                 )}
                 <div className="mt-2 flex items-center gap-3 text-white">
                   <span className="font-num text-[19px] font-extrabold">{formatIQD(pick.prices.g250)}</span>
@@ -101,7 +101,7 @@ export function HeroX() {
             <button
               onClick={() => { addToCart({ slug: pick.slug, variant: "G250", grind: "حبوب كاملة", name: pick.name, meta: "٢٥٠غ · حبوب كاملة", priceShown: pick.prices.g250 }); showToast(`أُضيف ${pick.name} — جاهز بسلّتك`); }}
               className="mt-3 flex min-h-[48px] w-full items-center justify-center text-[14px] font-extrabold transition-colors active:scale-[0.99]"
-              style={{ background: C.accentSoft, color: C.accent, border: `1px solid ${C.accent}`, borderRadius: 999 }}>
+              style={{ background: C.claySoft, color: C.clay, border: `1px solid ${C.clay}`, borderRadius: 999 }}>
               أضِفه لسلّتك مباشرة ←
             </button>
           </div>
@@ -114,11 +114,11 @@ export function HeroX() {
 /* ═══ ٢) شريط الثقة ═══ */
 export function StripX() {
   return (
-    <section style={{ background: C.ink, color: "#f4f1ec" }}>
+    <section style={{ background: C.olive, color: "#f4f1ec" }}>
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-7 gap-y-2 px-5 py-3.5 text-[12.5px] font-bold md:px-8">
         {["تُحمَّص بطلبك", "توصيل ١–٢ يوم", "الدفع عند الاستلام", "محدّدة المصدر"].map((t, i) => (
           <span key={t} className="flex items-center gap-2.5">
-            {i > 0 && <span style={{ color: C.accent }}>•</span>}{t}
+            {i > 0 && <span style={{ color: "#c9b79f" }}>•</span>}{t}
           </span>
         ))}
       </div>
@@ -126,7 +126,48 @@ export function StripX() {
   );
 }
 
-/* ═══ ٣) المحاصيل ═══ */
+/* ═══ ٣) البوكس — أهم قسم (مرفوع للأعلى) ═══ */
+export function BoxFeatureX() {
+  const config = useSiteConfig();
+  const tiers = (config.boxTiers ?? []).slice().sort((a, b) => a.bags - b.bags);
+  const reward = (t: { rewardType: string; value?: number }) =>
+    t.rewardType === "PERCENT" ? `خصم ${t.value ?? 0}٪` : t.rewardType === "FREE_DELIVERY" ? "توصيل مجاني" : "هدية";
+
+  return (
+    <section style={{ background: C.clay, color: "#fff" }}>
+      <div className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-10">
+          <div className="md:max-w-md">
+            <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: "#f0d9cf" }}>BUILD YOUR BOX</span>
+            <h2 className="mt-2 text-[30px] font-black leading-tight md:text-[42px]">ابنِ بوكسك الخاص</h2>
+            <p className="mt-3 text-[14.5px] leading-[1.85]" style={{ color: "rgba(255,255,255,0.9)" }}>
+              اختر محاصيلك المفضّلة معاً — وكل ما زدت كِسبت أكثر: خصم يكبر مع البوكس، توصيل مجاني، وهدية بانتظارك.
+            </p>
+            <Link href="/box/" className="mt-6 inline-flex min-h-[54px] items-center justify-center px-10 text-[16px] font-black transition-transform active:scale-[0.98]"
+              style={{ background: "#fff", color: C.clay, borderRadius: 999 }}>
+              ابدأ بناء بوكسك ←
+            </Link>
+          </div>
+
+          {/* درجات المكافأة — تصاعدي */}
+          {tiers.length > 0 && (
+            <div className="grid grid-cols-2 gap-2.5 md:w-[300px]">
+              {tiers.map((t) => (
+                <div key={t.bags} className="rounded-2xl p-4 text-center" style={{ background: "rgba(255,255,255,0.12)" }}>
+                  <p className="font-num text-[26px] font-black leading-none">{t.bags}</p>
+                  <p className="mt-1 text-[11px]" style={{ color: "rgba(255,255,255,0.8)" }}>أكياس</p>
+                  <p className="mt-2 text-[12.5px] font-extrabold">{reward(t)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══ ٤) المحاصيل ═══ */
 export function CropsX() {
   const { coffees } = useCatalog();
   const { addToCart, showToast } = useStore();
@@ -144,10 +185,10 @@ export function CropsX() {
       <div className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.accent }}>THE CROPS</span>
+            <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.clay }}>THE CROPS</span>
             <h2 className="mt-2 text-[30px] font-black tracking-tight md:text-[40px]">المحاصيل</h2>
           </div>
-          <Link href="/products/?cat=coffee" className="shrink-0 text-[13px] font-extrabold" style={{ color: C.accent }}>الكل ←</Link>
+          <Link href="/products/?cat=coffee" className="shrink-0 text-[13px] font-extrabold" style={{ color: C.clay }}>الكل ←</Link>
         </div>
 
         <div className="mt-7 grid grid-cols-2 gap-3.5 md:grid-cols-3 md:gap-5">
@@ -160,7 +201,7 @@ export function CropsX() {
                   <img src={c.image!} alt={c.name} className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
                   {(best || c.badge) && (
                     <span className="absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold"
-                      style={{ background: C.accent, color: "#fff" }}>{best ? "الأكثر مبيعاً" : c.badge}</span>
+                      style={{ background: C.clay, color: "#fff" }}>{best ? "الأكثر مبيعاً" : c.badge}</span>
                   )}
                   {c.soldOut && (
                     <span className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold" style={{ background: C.ink, color: "#fff" }}>نفد</span>
@@ -171,7 +212,7 @@ export function CropsX() {
                     <h3 className="text-[18px] font-black leading-tight">{c.name}</h3>
                   </Link>
                   {c.notes?.length > 0 && (
-                    <p className="mt-1 line-clamp-1 text-[11.5px] font-bold" style={{ color: C.accent }}>{c.notes.slice(0, 3).join(" · ")}</p>
+                    <p className="mt-1 line-clamp-1 text-[11.5px] font-bold" style={{ color: C.clay }}>{c.notes.slice(0, 3).join(" · ")}</p>
                   )}
                   <div className="mt-auto flex items-center justify-between gap-2 pt-3">
                     <span className="font-num text-[15px] font-extrabold">{formatIQD(c.prices.g250)}</span>
@@ -180,9 +221,9 @@ export function CropsX() {
                     ) : (
                       <button
                         onClick={() => { addToCart({ slug: c.slug, variant: "G250", grind: "حبوب كاملة", name: c.name, meta: "٢٥٠غ · حبوب كاملة", priceShown: c.prices.g250 }); showToast(`أُضيف ${c.name} — جاهز بسلّتك`); }}
-                        aria-label={addBtn(c.name)}
+                        aria-label={`أضف ${c.name}`}
                         className="flex h-9 items-center justify-center px-4 text-[12.5px] font-extrabold transition-transform active:scale-[0.96]"
-                        style={{ background: C.accent, color: "#fff", borderRadius: 999 }}>
+                        style={{ background: C.clay, color: "#fff", borderRadius: 999 }}>
                         أضِف
                       </button>
                     )}
@@ -197,27 +238,46 @@ export function CropsX() {
   );
 }
 
-/* ═══ ٤) ابنِ بوكسك ═══ */
-export function BoxX() {
+/* ═══ ٥) تسوّق حسب الفئة (الأدوات والأكواب) ═══ */
+export function CategoriesX() {
+  const { tools, toolsEnabled } = useCatalog();
+  if (!toolsEnabled || tools.length === 0) return null;
+
+  const pickImg = (match: (t: (typeof tools)[number]) => boolean) =>
+    tools.find((t) => match(t) && t.images && t.images.length > 0)?.images?.[0] ?? null;
+
+  const cats = [
+    { label: "أدوات التقطير", href: "/products/?cat=drip", img: pickImg((t) => t.cats?.includes("تقطير")) },
+    { label: "أدوات الإسبريسو", href: "/products/?cat=espresso", img: pickImg((t) => t.cats?.includes("إسبريسو")) },
+    { label: "الأكواب", href: "/products/?cat=cups", img: pickImg((t) => t.cats?.includes("أكواب")) },
+  ].filter((c) => c.img);
+  if (cats.length === 0) return null;
+
   return (
-    <section style={{ background: C.accent, color: "#fff" }}>
-      <div className="mx-auto flex max-w-5xl flex-col items-start gap-4 px-5 py-11 md:flex-row md:items-center md:justify-between md:px-8 md:py-14">
-        <div>
-          <h2 className="text-[27px] font-black leading-tight md:text-[36px]">ابنِ بوكسك الخاص</h2>
-          <p className="mt-2 max-w-md text-[14px] leading-[1.8]" style={{ color: "rgba(255,255,255,0.9)" }}>
-            اختر محاصيلك المفضّلة، وكل ما زدت كِسبت أكثر — خصم يكبر مع البوكس وهدية بانتظارك.
-          </p>
+    <section style={{ background: C.alt, color: C.ink }}>
+      <div className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16">
+        <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.clay }}>SHOP BY CATEGORY</span>
+        <h2 className="mt-2 text-[30px] font-black tracking-tight md:text-[40px]">تسوّق حسب الفئة</h2>
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-5">
+          {cats.map((cat) => (
+            <Link key={cat.label} href={cat.href} className="group relative block overflow-hidden shadow-sm"
+              style={{ borderRadius: 16, background: C.card }} aria-label={cat.label}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cat.img!} alt={cat.label} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-4"
+                style={{ background: "linear-gradient(to top, rgba(30,24,20,0.85), transparent)" }}>
+                <span className="text-[17px] font-black text-white">{cat.label}</span>
+                <span className="text-[13px] font-extrabold" style={{ color: "#f0d9cf" }}>تسوّق ←</span>
+              </div>
+            </Link>
+          ))}
         </div>
-        <Link href="/box/" className="flex min-h-[52px] shrink-0 items-center justify-center px-9 text-[15px] font-black transition-transform active:scale-[0.98]"
-          style={{ background: "#fff", color: C.accent, borderRadius: 999 }}>
-          ابدأ بوكسك ←
-        </Link>
       </div>
     </section>
   );
 }
 
-/* ═══ ٥) ليش خزف ═══ */
+/* ═══ ٦) ليش خزف ═══ */
 export function WhyX() {
   const items = [
     ["دفعات صغيرة", "نحمّص قليل ونبيعه طازج — ما تشرب قهوة قديمة."],
@@ -225,14 +285,14 @@ export function WhyX() {
     ["اختيار سهل", "لكل ذوق قهوة تشبهه — نرشّح لك الي يناسبك."],
   ];
   return (
-    <section style={{ background: C.alt, color: C.ink }}>
+    <section style={{ background: C.bg, color: C.ink }}>
       <div className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16">
-        <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.accent }}>WHY KHAZF</span>
+        <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.clay }}>WHY KHAZF</span>
         <h2 className="mt-2 text-[30px] font-black tracking-tight md:text-[38px]">ليش خزف</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-6">
           {items.map(([t, d], i) => (
             <div key={t} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16 }} className="p-6">
-              <span className="font-num text-[15px] font-black" style={{ color: C.accent }}>{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-num text-[15px] font-black" style={{ color: C.clay }}>{String(i + 1).padStart(2, "0")}</span>
               <h3 className="mt-2 text-[19px] font-black">{t}</h3>
               <p className="mt-1.5 text-[13.5px] leading-[1.8]" style={{ color: C.dim }}>{d}</p>
             </div>
@@ -243,20 +303,20 @@ export function WhyX() {
   );
 }
 
-/* ═══ ٦) التقييمات ═══ */
+/* ═══ ٧) التقييمات ═══ */
 export function ReviewsX() {
   const { brandReviews } = useCatalog();
   const list = (brandReviews ?? []).filter((r) => r.quote).slice(0, 6);
   if (list.length === 0) return null;
   return (
-    <section style={{ background: C.bg, color: C.ink }}>
+    <section style={{ background: C.alt, color: C.ink }}>
       <div className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16">
-        <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.accent }}>REVIEWS</span>
+        <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{ color: C.clay }}>REVIEWS</span>
         <h2 className="mt-2 text-[30px] font-black tracking-tight md:text-[38px]">شنو يقولون عنّا</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
           {list.map((r, i) => (
             <div key={i} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16 }} className="flex flex-col p-5">
-              <span className="text-[13px]" style={{ color: C.accent }}>{"★".repeat(Math.max(1, Math.min(5, r.rating || 5)))}</span>
+              <span className="text-[13px]" style={{ color: C.clay }}>{"★".repeat(Math.max(1, Math.min(5, r.rating || 5)))}</span>
               <p className="mt-2.5 flex-1 text-[13.5px] leading-[1.85]">“{r.quote}”</p>
               <p className="mt-3 text-[12px] font-bold" style={{ color: C.dim }}>{r.author}{r.context ? ` · ${r.context}` : ""}</p>
             </div>
@@ -267,17 +327,17 @@ export function ReviewsX() {
   );
 }
 
-/* ═══ ٧) دعوة ختامية ═══ */
+/* ═══ ٨) دعوة ختامية ═══ */
 export function CtaX() {
   return (
-    <section style={{ background: C.ink, color: "#f4f1ec" }}>
+    <section style={{ background: C.olive, color: "#f4f1ec" }}>
       <div className="mx-auto max-w-5xl px-5 py-14 text-center md:px-8 md:py-20">
         <h2 className="text-[30px] font-black leading-tight tracking-tight md:text-[44px]">جاهز تكتشف قهوتك؟</h2>
-        <p className="mx-auto mt-3 max-w-md text-[14px] leading-[1.85]" style={{ color: "rgba(244,241,236,0.68)" }}>
+        <p className="mx-auto mt-3 max-w-md text-[14px] leading-[1.85]" style={{ color: "rgba(244,241,236,0.72)" }}>
           محاصيل مختارة، توصلك طازجة خلال يوم–يومين، والدفع عند الاستلام.
         </p>
         <Link href="/products/?cat=coffee" className="mt-7 inline-flex min-h-[54px] items-center justify-center px-10 text-[15px] font-black transition-transform active:scale-[0.98]"
-          style={{ background: C.accent, color: "#fff", borderRadius: 999 }}>
+          style={{ background: "#f4f1ec", color: C.olive, borderRadius: 999 }}>
           تصفّح المحاصيل الآن ←
         </Link>
       </div>
