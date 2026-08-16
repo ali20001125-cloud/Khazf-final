@@ -283,3 +283,18 @@ img { background-color: var(--bg-alt); }
 
 /* استجابة أسرع للمس */
 button, a, [role="button"] { touch-action: manipulation; }
+
+
+/* ── خط بديل مضبوط المقاسات — يمنع قفز التخطيط عند تبدّل الخط ── */
+@font-face {
+  font-family: "khz-fallback";
+  src: local("Segoe UI"), local("Tahoma"), local("Arial");
+  size-adjust: 96%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+body { font-family: "IBM Plex Sans Arabic", "khz-fallback", system-ui, sans-serif; }
+
+/* الصور تحجز مساحتها قبل التحميل */
+img { height: auto; }
