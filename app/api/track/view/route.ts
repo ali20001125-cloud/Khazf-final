@@ -23,6 +23,11 @@ export async function POST(req: Request) {
 
     const b = await req.json();
     if (!b.sessionId || !b.path) return NextResponse.json({ ok: false });
+
+    // استبعاد الزواحف — تفتح الصفحة لجلب المعاينة ثم تخرج فوراً فتُظهر جلسات بصفر ثانية
+    const ua = req.headers.get("user-agent") ?? "";
+    if (/bot|crawl|spider|facebookexternalhit|facebookcatalog|instagram|whatsapp|telegram|preview|slurp|bingpreview|headless|lighthouse|gtmetrix|pingdom|monitor|python-requests|curl|wget/i.test(ua))
+      return NextResponse.json({ ok: true, skipped: "bot" });
     await db.insert(s.pageViews).values({
       sessionId: String(b.sessionId).slice(0, 60),
       visitorId: b.visitorId ? String(b.visitorId).slice(0, 60) : null,
