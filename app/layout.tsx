@@ -10,7 +10,8 @@ import VisitTracker from "@/components/VisitTracker";
 import DeferredAnalytics from "@/components/DeferredAnalytics";
 import { CatalogProvider } from "@/lib/catalog-context";
 
-export const dynamic = "force-dynamic"; // متجر حي من القاعدة — لا تصيير مسبق
+/* المتجر حيّ لكن يُعاد بناؤه كل دقيقة بدل كل زيارة — يقلّل زمن أول بايت كثيراً */
+export const revalidate = 60;
 
 const FALLBACK: SiteConfig = {
   deliveryPrice: 3000, freeDeliveryThreshold: 0, pointValue: 30, cashbackPerAmount: 1000,
