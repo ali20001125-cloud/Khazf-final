@@ -195,36 +195,54 @@ export function CropsX() {
           {shown.map((c) => {
             const best = bestSlug && c.slug.toLowerCase() === bestSlug;
             return (
-              <div key={c.slug} className="flex flex-col overflow-hidden" style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16 }}>
-                <Link href={`/product/?c=${c.slug}`} className="group relative block overflow-hidden" style={{ background: C.alt }} aria-label={c.name}>
+              <div key={c.slug} className="group flex flex-col overflow-hidden transition-shadow hover:shadow-md"
+                style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 18 }}>
+                <Link href={`/product/?c=${c.slug}`} className="relative block overflow-hidden" style={{ background: C.alt }} aria-label={c.name}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={c.image!} alt={c.name} className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
                   {(best || c.badge) && (
-                    <span className="absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold"
+                    <span className="absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold shadow-sm"
                       style={{ background: C.clay, color: "#fff" }}>{best ? "الأكثر مبيعاً" : c.badge}</span>
                   )}
                   {c.soldOut && (
-                    <span className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold" style={{ background: C.ink, color: "#fff" }}>نفد</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-[13px] font-extrabold text-white"
+                      style={{ background: "rgba(36,30,25,0.55)" }}>نفد مؤقتاً</span>
                   )}
                 </Link>
+
                 <div className="flex flex-1 flex-col p-3.5">
-                  <Link href={`/product/?c=${c.slug}`}>
+                  {c.country && (
+                    <p className="text-[9.5px] font-bold uppercase tracking-[0.14em]" style={{ color: C.dim }}>{c.country}</p>
+                  )}
+                  <Link href={`/product/?c=${c.slug}`} className="mt-0.5">
                     <h3 className="text-[18px] font-black leading-tight">{c.name}</h3>
                   </Link>
                   {c.notes?.length > 0 && (
                     <p className="mt-1 line-clamp-1 text-[11.5px] font-bold" style={{ color: C.clay }}>{c.notes.slice(0, 3).join(" · ")}</p>
                   )}
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-                    <span className="font-num text-[15px] font-extrabold">{formatIQD(c.prices.g250)}</span>
+                  {c.reviewsCount > 0 && (
+                    <p className="mt-1.5 flex items-center gap-1 text-[11px]" style={{ color: C.dim }}>
+                      <span style={{ color: C.clay }}>★</span>
+                      <span className="font-num font-bold" style={{ color: C.ink }}>{c.rating.toFixed(1)}</span>
+                      <span>· {c.reviewsCount}</span>
+                    </p>
+                  )}
+
+                  <div className="mt-auto pt-3">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="font-num text-[17px] font-black">{formatIQD(c.prices.g250)}</span>
+                      <span className="text-[10.5px] font-bold" style={{ color: C.dim }}>/ ٢٥٠غ</span>
+                    </div>
                     {c.soldOut ? (
-                      <span className="text-[12px] font-bold" style={{ color: C.dim }}>غير متوفّر</span>
+                      <div className="mt-2 flex min-h-[42px] items-center justify-center text-[12.5px] font-bold"
+                        style={{ background: C.alt, color: C.dim, borderRadius: 999 }}>غير متوفّر حالياً</div>
                     ) : (
                       <button
                         onClick={() => { addToCart({ slug: c.slug, variant: "G250", grind: "حبوب كاملة", name: c.name, meta: "٢٥٠غ · حبوب كاملة", priceShown: c.prices.g250 }); showToast(`أُضيف ${c.name} — جاهز بسلّتك`); }}
-                        aria-label={`أضف ${c.name}`}
-                        className="flex h-9 items-center justify-center px-4 text-[12.5px] font-extrabold transition-transform active:scale-[0.96]"
+                        aria-label={`أضف ${c.name} للسلة`}
+                        className="mt-2 flex min-h-[42px] w-full items-center justify-center gap-1.5 text-[13px] font-extrabold transition-transform active:scale-[0.98]"
                         style={{ background: C.clay, color: "#fff", borderRadius: 999 }}>
-                        أضِف
+                        أضِف للسلّة
                       </button>
                     )}
                   </div>
