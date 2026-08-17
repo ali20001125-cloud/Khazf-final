@@ -482,7 +482,7 @@ function SignedOutView() {
   // التحقق من الرمز — دخول مباشر (الرقم والمحافظة تُطلب عند الطلب)
   const verify = async () => {
     setErr("");
-    if (code.trim().length < 6) return setErr("اكتب الرمز المكوّن من ٦ أرقام");
+    if (code.trim().length < 6) return setErr("اكتب الرمز كما وصلك");
     setBusy(true);
     try {
       const { supabaseBrowser } = await import("@/lib/supabase-browser");
@@ -547,10 +547,10 @@ function SignedOutView() {
           <p className="text-center text-[13px] text-muted">
             أرسلنا رمزاً إلى<br/><b dir="ltr" className="text-ink">{email}</b>
           </p>
-          <input dir="ltr" inputMode="numeric" maxLength={6} value={code}
+          <input dir="ltr" inputMode="numeric" maxLength={8} value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            placeholder="______"
-            className={`font-num ${inp} text-center !text-2xl tracking-[0.5em]`} />
+            placeholder="________"
+            className={`font-num ${inp} text-center !text-2xl tracking-[0.32em]`} />
           {err && <p className="rounded-[4px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
           <button onClick={verify} disabled={busy}
             className="w-full rounded-[4px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
