@@ -21,7 +21,13 @@ export async function GET(req: Request) {
         },
       }
     );
-    await sb.auth.exchangeCodeForSession(code);
+    const { error: exErr } = await sb.auth.exchangeCodeForSession(code);
+    if (exErr) {
+      // نُظهر السبب بدل الرجوع الصامت
+      const u = new URL("/account/", url.origin);
+      u.searchParams.set("authError", exErr.message.slice(0, 120));
+      return NextResponse.redirect(u);
+    }
 
     /* ينشئ سجلّ العميل ويرسل الترحيب فوراً — بلا انتظار هاتف */
     try {

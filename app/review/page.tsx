@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+
 import { useSearchParams } from "next/navigation";
 import { Star, Check, Coffee, Truck, User, Sparkles } from "lucide-react";
 
@@ -32,7 +33,7 @@ function StarRow({ value, onChange, size = 30 }: { value: number; onChange: (n: 
   );
 }
 
-export default function ReviewPage() {
+function ReviewPageInner() {
   const token = useSearchParams().get("token");
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<OrderInfo | null>(null);
@@ -230,5 +231,14 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[#F4F1EA] text-[#1C1A18]" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>
       <div className="mx-auto max-w-md px-5 py-10">{children}</div>
     </div>
+  );
+}
+
+
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[60svh]" />}>
+      <ReviewPageInner />
+    </Suspense>
   );
 }

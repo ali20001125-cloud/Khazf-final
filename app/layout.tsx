@@ -10,7 +10,8 @@ import VisitTracker from "@/components/VisitTracker";
 import DeferredAnalytics from "@/components/DeferredAnalytics";
 import { CatalogProvider } from "@/lib/catalog-context";
 
-export const dynamic = "force-dynamic"; // متجر حي من القاعدة — لا تصيير مسبق
+/* المتجر حيّ لكن يُعاد بناؤه كل دقيقة بدل كل زيارة — يقلّل زمن أول بايت كثيراً */
+export const revalidate = 60;
 
 const FALLBACK: SiteConfig = {
   deliveryPrice: 3000, freeDeliveryThreshold: 0, pointValue: 30, cashbackPerAmount: 1000,
@@ -102,10 +103,21 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* الخطوط تُحمَّل بلا حجب العرض — النصّ يظهر فوراً بخط النظام ثم يتبدّل */}
         <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Tajawal:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
+          rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
         />
+        <link
+          rel="stylesheet" media="print"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        />
+        <noscript>
+          <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+        </noscript>
+        <script dangerouslySetInnerHTML={{ __html:
+          `document.querySelectorAll('link[media="print"]').forEach(function(l){l.media='all'})` }} />
       </head>
       <body className="min-h-screen antialiased">
         <CatalogProvider
