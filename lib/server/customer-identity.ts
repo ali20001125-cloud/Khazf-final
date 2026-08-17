@@ -52,8 +52,21 @@ export async function getCustomerIdentity(): Promise<{
         return { phone: byEmail.phone, authUser, linked: true };
       }
     }
-    /* جلسة بلا ربط بعد — الكوكي القديم قد يكمّل */
-    return { phone: await getCustomerPhone(), authUser, linked: false };
+    /* ربط بالهاتف من الكوكي — لمن طلب سابقاً بلا بريد */
+    const cookiePhone = await getCustomerPhone();
+    if (cookiePhone) {
+      const [byPhone] = await db
+        .select({ phone: s.customers.phone, authUserId: s.customers.authUserId })
+        .from(s.customers)
+        .where(eq(s.customers.phone, cookiePhone));
+      if (byPhone && !byPhone.authUserId) {
+        await db.update(s.customers)
+          .set({ authUserId: authUser.id, email: authUser.email ?? undefined })
+          .where(eq(s.customers.phone, byPhone.phone));
+        return { phone: byPhone.phone, authUser, linked: true };
+      }
+    }
+    return { phone: cookiePhone, authUser, linked: false };
   }
   return { phone: await getCustomerPhone(), authUser: null, linked: false };
 }
