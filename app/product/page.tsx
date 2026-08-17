@@ -317,7 +317,8 @@ function CoffeeView({ coffee }: { coffee: Coffee }) {
           {gallery.map((src, i) => (
             <div key={src + i} className="h-full w-full shrink-0 snap-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="coffee.name" width={600} height={600} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <img src={src} alt={coffee.name} width={600} height={600}
+                loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} decoding="async" className="h-full w-full object-cover" />
             </div>
           ))}
           {slides.map((sl) => (
@@ -921,7 +922,8 @@ function ToolView({ tool }: { tool: Tool }) {
           {gallery.length > 0 ? gallery.map((src, i) => (
             <div key={src + i} className="h-full w-full shrink-0 snap-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="tool.name" width={600} height={600} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <img src={src} alt={tool.name} width={600} height={600}
+                loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} decoding="async" className="h-full w-full object-cover" />
             </div>
           )) : (
             <div className="flex h-full w-full items-center justify-center">
