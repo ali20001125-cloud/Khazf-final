@@ -300,3 +300,6 @@ body { font-family: "IBM Plex Sans Arabic", "khz-fallback", system-ui, sans-seri
 /* الصور داخل حاويات النسبة تملؤها بلا قفز */
 [class*="aspect-"] > img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 [class*="aspect-"] { position:relative; overflow:hidden; }
+
+/* عناصر الظهور تحجز مساحتها من البداية — لا إزاحة */
+.reveal, .reveal-group > * { will-change: opacity; }
