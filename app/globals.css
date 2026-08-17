@@ -295,6 +295,3 @@ button, a, [role="button"] { touch-action: manipulation; }
   line-gap-override: 0%;
 }
 body { font-family: "IBM Plex Sans Arabic", "khz-fallback", system-ui, sans-serif; }
-
-/* الصور تحجز مساحتها قبل التحميل */
-img { height: auto; }
