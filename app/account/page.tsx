@@ -403,7 +403,7 @@ async function startGoogle() {
   const { supabaseBrowser, supabaseEnabled } = await import("@/lib/supabase-browser");
   if (!supabaseEnabled) return;
   const sb = supabaseBrowser();
-  await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback/?next=/account/` } });
+  await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback?next=/account/` } });
 }
 
 function GoogleBtn({ label = "المتابعة عبر Google" }: { label?: string }) {
@@ -446,7 +446,7 @@ function SignedOutView() {
     if (!supabaseEnabled) return setErr("دخول Google غير متاح حالياً");
     setBusy(true);
     const sb = supabaseBrowser();
-    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback/?next=/account/` } });
+    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback?next=/account/` } });
   };
 
   // إرسال الرمز للإيميل (تسجيل ودخول موحّد — بلا رقم ولا محافظة)
