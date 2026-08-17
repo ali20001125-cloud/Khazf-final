@@ -5,6 +5,7 @@ import { getCustomerPhone } from "@/lib/server/customer-session";
 import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /** GET ?slug= — المنشورة فقط */
 export async function GET(req: Request) {

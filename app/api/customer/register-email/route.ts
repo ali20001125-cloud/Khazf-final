@@ -14,6 +14,7 @@ import { db, schema as s } from "@/lib/server/db";
 import { setCustomerCookie } from "@/lib/server/customer-session";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { authUserId?: string; email?: string };

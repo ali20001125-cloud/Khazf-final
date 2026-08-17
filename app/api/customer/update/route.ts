@@ -12,6 +12,7 @@ import { getCustomerPhone } from "@/lib/server/customer-session";
 import { setCustomerCookie } from "@/lib/server/customer-session";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   // هوية الزبون الحالي من جلسته (لا يعدّل غيره)

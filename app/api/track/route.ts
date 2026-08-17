@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/server/db";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const { orderNumber, phone } = (await req.json().catch(() => ({}))) as {

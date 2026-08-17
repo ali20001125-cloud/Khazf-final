@@ -6,6 +6,7 @@ import { getAdmin } from "@/lib/server/admin-auth";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 const BUCKET = "khazf";
 
 export async function POST(req: Request) {

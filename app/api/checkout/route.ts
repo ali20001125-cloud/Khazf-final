@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm";
 import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   // حدّ سخيّ ضد الطلبات الوهمية المبرمَجة (٢٥ كل ٥ دقائق لكل IP) —

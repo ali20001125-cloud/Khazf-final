@@ -8,6 +8,7 @@ import { asc } from "drizzle-orm";
 import { settleLoyalty } from "@/lib/server/loyalty";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * يشتق اسماً معقولاً من الإيميل:

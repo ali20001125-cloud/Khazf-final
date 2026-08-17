@@ -1,5 +1,7 @@
 "use client";
 
+/* تعتمد على جلسة الزبون — لا تُخزَّن */
+
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
