@@ -4,6 +4,7 @@ import { db } from "@/lib/server/db";
 import { getAdmin } from "@/lib/server/admin-auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!(await getAdmin())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });

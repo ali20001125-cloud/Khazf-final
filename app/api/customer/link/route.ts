@@ -10,6 +10,7 @@ import { getSupabaseUser } from "@/lib/server/customer-identity";
 import { setCustomerCookie } from "@/lib/server/customer-session";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const user = await getSupabaseUser();

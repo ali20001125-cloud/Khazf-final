@@ -4,6 +4,7 @@ import { db, schema as s } from "@/lib/server/db";
 import { rateLimit, clientIp } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /** فحص كود للعرض بالسلة — التحقق النهائي الملزم يتم داخل createOrder */
 export async function POST(req: Request) {

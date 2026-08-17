@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { devLogin } from "@/lib/server/admin-auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const { password } = (await req.json().catch(() => ({}))) as { password?: string };

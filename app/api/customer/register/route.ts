@@ -14,6 +14,7 @@ import { notifyNewCustomerTelegram } from "@/lib/server/telegram";
 import { sql as sqlRaw } from "drizzle-orm";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {

@@ -1,5 +1,7 @@
 "use client";
 
+/* تعتمد على جلسة الزبون — لا تُخزَّن */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchMe } from "@/lib/me";
 import Link from "next/link";
