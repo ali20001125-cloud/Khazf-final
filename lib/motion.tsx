@@ -30,9 +30,10 @@ export function useMotion() {
       gsap.utils.toArray<HTMLElement>(".reveal", root).forEach((el) => {
         gsap.fromTo(
           el,
-          { autoAlpha: 0 },
+          { autoAlpha: 0, y: 6 },
           {
             autoAlpha: 1,
+            y: 0,
             duration: 0.85,
             ease: "power3.out",
             scrollTrigger: { trigger: el, start: "top 85%" },
@@ -43,9 +44,10 @@ export function useMotion() {
       gsap.utils.toArray<HTMLElement>(".reveal-group", root).forEach((g) => {
         gsap.fromTo(
           g.children,
-          { autoAlpha: 0 },
+          { autoAlpha: 0, y: 6 },
           {
             autoAlpha: 1,
+            y: 0,
             duration: 0.75,
             ease: "power3.out",
             stagger: 0.09,
