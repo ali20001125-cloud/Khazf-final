@@ -426,6 +426,12 @@ function SignedOutView() {
   const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const [suggest, setSuggest] = useState("");
+  const [authError, setAuthError] = useState("");
+
+  useEffect(() => {
+    const e = new URLSearchParams(window.location.search).get("authError");
+    if (e) setAuthError(e);
+  }, []);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -524,6 +530,7 @@ function SignedOutView() {
               <p className="mt-1.5 text-[11px] text-muted">اضغط للتصحيح، أو تابع بإيميلك الحالي</p>
             </div>
           )}
+          {authError && <p className="rounded-[4px] border border-accent/40 bg-accent/8 px-4 py-3 text-center text-[12px] font-bold text-accent">تعذّر الدخول: {authError}</p>}
           {err && <p className="rounded-[4px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
           <button onClick={sendCode} disabled={busy}
             className="w-full rounded-[4px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
