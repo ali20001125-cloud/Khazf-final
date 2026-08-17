@@ -87,12 +87,12 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: "IBM Plex Sans Arabic", sans-serif;
+  font-family: "Segoe UI", "Noto Sans Arabic", "Helvetica Neue", system-ui, -apple-system, sans-serif;
   font-weight: 700;
 }
 
 .font-num {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "SF Mono", "Segoe UI Mono", monospace;
 }
 
 ::selection {
@@ -294,7 +294,7 @@ button, a, [role="button"] { touch-action: manipulation; }
   descent-override: 24%;
   line-gap-override: 0%;
 }
-body { font-family: "IBM Plex Sans Arabic", "khz-fallback", system-ui, sans-serif; }
+body { font-family: "Segoe UI", "Noto Sans Arabic", "Helvetica Neue", system-ui, -apple-system, sans-serif; }
 
 
 /* الصور داخل حاويات النسبة تملؤها بلا قفز */
