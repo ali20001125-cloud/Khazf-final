@@ -69,10 +69,11 @@ export async function GET(req: Request) {
   const fwdHost = req.headers.get("x-forwarded-host");
   const host = req.headers.get("host");
   const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  /* النطاق الذي جاء منه الطلب فعلاً — وإلا حُوّل زائر staging للموقع الأصلي فتضيع جلسته */
   const base =
-    process.env.SITE_URL ??
     (fwdHost ? `${proto}://${fwdHost}` : null) ??
     (host && !host.includes("0.0.0.0") && !host.includes("localhost") ? `${proto}://${host}` : null) ??
+    process.env.SITE_URL ??
     "https://khazf.shop";
   return NextResponse.redirect(new URL(next, base));
 }
