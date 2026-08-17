@@ -103,21 +103,15 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        {/* الخطوط تُحمَّل بلا حجب العرض — النصّ يظهر فوراً بخط النظام ثم يتبدّل */}
-        <link
-          rel="preload" as="style"
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-        />
-        <link
-          rel="stylesheet" media="print"
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-        />
-        <noscript>
-          <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
-        </noscript>
-        <script dangerouslySetInnerHTML={{ __html:
-          `document.querySelectorAll('link[media="print"]').forEach(function(l){l.media='all'})` }} />
+        {/* الخطوط تُحمَّل بعد رسم الصفحة — لا تحجب أول ظهور إطلاقاً */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.addEventListener('load', function () {
+            var l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap';
+            document.head.appendChild(l);
+          });
+        ` }} />
       </head>
       <body className="min-h-screen antialiased">
         <CatalogProvider
