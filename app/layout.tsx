@@ -97,21 +97,6 @@ export default async function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem("khazf-theme")||"light";var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");}catch(e){}})();`,
           }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* الخطوط تُحمَّل بعد رسم الصفحة — لا تحجب أول ظهور إطلاقاً */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          window.addEventListener('load', function () {
-            var l = document.createElement('link');
-            l.rel = 'stylesheet';
-            l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap';
-            document.head.appendChild(l);
-          });
-        ` }} />
       </head>
       <body className="min-h-screen antialiased">
         <CatalogProvider
