@@ -121,7 +121,7 @@ export function Crops() {
               <div className="relative aspect-square overflow-hidden bg-bg-alt">
                 {c.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                  <img src={c.image} alt="c.name" width={600} height={600} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
                 ) : (
                   <span className="flex h-full items-center justify-center">
                     <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
@@ -228,7 +228,7 @@ export function BuildBox() {
               {shots.map((c) => (
                 <div key={c.slug} className="h-14 w-14 overflow-hidden border-2 border-olive bg-bg-alt" style={{ borderRadius: 4 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={c.image!} alt="" className="h-full w-full object-cover" />
+                  <img src={c.image!} alt="" width={600} height={600} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </div>
               ))}
             </div>
