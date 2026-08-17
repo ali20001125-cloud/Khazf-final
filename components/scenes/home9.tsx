@@ -121,7 +121,8 @@ export function Crops() {
               <div className="relative aspect-square overflow-hidden bg-bg-alt">
                 {c.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.image} alt="c.name" width={600} height={600} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                  <img src={c.image} alt={c.name} width={600} height={600}
+                    loading={i < 2 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
                 ) : (
                   <span className="flex h-full items-center justify-center">
                     <span className="font-[Amiri,serif] text-[15px] text-muted">{c.name}</span>
