@@ -288,6 +288,18 @@ export async function createOrder(input: CheckoutInput) {
       throw new Error(`DUPLICATE:${(dup.rows[0] as { order_number: string }).order_number}`);
 
     /* دمج سجلّ التسجيل المؤقّت (auth:) مع الرقم الحقيقي — قبل أي شيء */
+    /* الحساب يُربط بالرقم الذي يطلب به — حتى لو لم يكتب بريداً */
+    if (input.authUserId) {
+      const [mine] = await tx.select().from(s.customers).where(eq(s.customers.phone, phone));
+      if (mine && !mine.authUserId) {
+        // نفكّ أي ارتباط آخر لنفس الحساب ثم نربطه بهذا الرقم
+        await tx.update(s.customers).set({ authUserId: null })
+          .where(eq(s.customers.authUserId, input.authUserId));
+        await tx.update(s.customers).set({ authUserId: input.authUserId })
+          .where(eq(s.customers.phone, phone));
+      }
+    }
+
     if (input.authUserId) {
       const [ph] = await tx.select().from(s.customers)
         .where(and(eq(s.customers.authUserId, input.authUserId), sql`${s.customers.phone} LIKE 'auth:%'`));
