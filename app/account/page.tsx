@@ -9,6 +9,7 @@ import { Package, Heart, Wallet, ChevronLeft, Eye, EyeOff, RotateCcw, Check, Arr
 import { fmtDate } from "@/lib/datetime";
 import { checkEmail } from "@/lib/email-check";
 import OrderTimeline from "@/components/OrderTimeline";
+import OtpInput from "@/components/OtpInput";
 import { formatIQD, governorates } from "@/lib/data";
 import { normalizeIqPhone } from "@/lib/phone";
 import { useStore } from "@/lib/store";
@@ -480,14 +481,15 @@ function SignedOutView() {
   };
 
   // التحقق من الرمز — دخول مباشر (الرقم والمحافظة تُطلب عند الطلب)
-  const verify = async () => {
+  const verify = async (token?: string) => {
+    const otp = (token ?? code).trim();
     setErr("");
-    if (code.trim().length < 6) return setErr("اكتب الرمز كما وصلك");
+    if (otp.length < 6) return setErr("اكتب الرمز كما وصلك");
     setBusy(true);
     try {
       const { supabaseBrowser } = await import("@/lib/supabase-browser");
       const sb = supabaseBrowser();
-      const { data, error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: "email" });
+      const { data, error } = await sb.auth.verifyOtp({ email, token: otp, type: "email" });
       // ينشئ العميل ويرسل الترحيب فوراً
       if (!error) fetch("/api/customer/welcome/", { method: "POST" }).catch(() => {});
       if (error) { setErr("الرمز غير صحيح أو منتهٍ — أعد الإرسال"); setBusy(false); return; }
@@ -547,12 +549,9 @@ function SignedOutView() {
           <p className="text-center text-[13px] text-muted">
             أرسلنا رمزاً إلى<br/><b dir="ltr" className="text-ink">{email}</b>
           </p>
-          <input dir="ltr" inputMode="numeric" maxLength={6} value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            placeholder="______"
-            className={`font-num ${inp} text-center !text-2xl tracking-[0.4em]`} />
+          <OtpInput value={code} onChange={setCode} onComplete={(v) => verify(v)} disabled={busy} />
           {err && <p className="rounded-[4px] bg-accent/10 px-4 py-2.5 text-center text-[12.5px] font-bold text-accent">{err}</p>}
-          <button onClick={verify} disabled={busy}
+          <button onClick={() => verify()} disabled={busy}
             className="w-full rounded-[4px] bg-olive py-4 text-[14.5px] font-bold text-olive-text active:scale-[0.98] disabled:opacity-60">
             {busy ? "لحظة…" : "دخول"}
           </button>
