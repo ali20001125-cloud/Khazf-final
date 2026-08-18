@@ -90,6 +90,18 @@ export default async function InvoicePage({ searchParams }: { searchParams: Prom
             </div>
           </div>
         )}
+        {o.email && (
+          <a href="/account/"
+            className="mt-4 flex items-center justify-between gap-3 border border-olive/30 bg-olive/5 p-4 print:hidden"
+            style={{ borderRadius: 4 }}>
+            <span className="min-w-0">
+              <span className="block text-[13px] font-bold">تابع نقاطك ورحلتك</span>
+              <span className="mt-0.5 block text-[11.5px] text-muted">سجّل بنفس بريدك وستجد طلباتك ونقاطك جاهزة</span>
+            </span>
+            <span className="shrink-0 text-[15px] text-olive">←</span>
+          </a>
+        )}
+
         <p className="mt-6 text-center text-[11px] text-muted">شكراً لاختيارك خزف — قهوة مختصة، توصيل لكل العراق</p>
       </div>
       <PrintButton />

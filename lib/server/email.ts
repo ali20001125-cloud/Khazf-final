@@ -218,6 +218,17 @@ export async function emailOrderCustomer(o: {
     </table>
         <a href="${o.invoiceUrl}" style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 22px;border-radius:10px;font-size:13px;text-decoration:none;margin-top:6px">عرض الفاتورة على الموقع</a>
     ${rewardsCard}
+
+    <div style="background:#F4F1EA;border-radius:12px;padding:16px;margin-top:18px;text-align:center">
+      <p style="font-size:14px;font-weight:bold;color:#332b24;margin:0 0 6px">تابع نقاطك ورحلتك</p>
+      <p style="font-size:12.5px;color:#6e6459;line-height:1.85;margin:0 0 12px">
+        سجّل بنفس هذا البريد — وستجد كل طلباتك ونقاطك جاهزة في حسابك.
+      </p>
+      <a href="${(process.env.SITE_URL ?? "https://khazf.shop")}/account/"
+         style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none">
+        افتح حسابك
+      </a>
+    </div>
   `, logo), "order_confirm");
 }
 
@@ -232,6 +243,17 @@ export async function emailReviewRequest(o: { email: string | null; name: string
     </p>
     <a href="${o.reviewUrl}" style="display:inline-block;background:#A66A4C;color:#fff;padding:11px 26px;border-radius:10px;font-size:14px;font-weight:bold;text-decoration:none">قيّم تجربتك</a>
     <p style="font-size:11px;color:#8A7F70;margin-top:14px">أو انسخ الرابط: ${o.reviewUrl}</p>
+
+    <div style="background:#F4F1EA;border-radius:12px;padding:16px;margin-top:20px;text-align:center">
+      <p style="font-size:13.5px;font-weight:bold;color:#332b24;margin:0 0 6px">نقاطك تنتظرك</p>
+      <p style="font-size:12.5px;color:#6e6459;line-height:1.85;margin:0 0 12px">
+        سجّل بنفس هذا البريد لترى رصيدك ورحلتك وتستخدمها في طلبك القادم.
+      </p>
+      <a href="${(process.env.SITE_URL ?? "https://khazf.shop")}/account/"
+         style="display:inline-block;background:#505445;color:#F4F1EA;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none">
+        افتح حسابك
+      </a>
+    </div>
   `, logo), "review");
 }
 
