@@ -40,9 +40,11 @@ export default function CheckoutPage() {
   const [emailHint, setEmailHint] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", email: "", governorate: "", address: "", note: "" });
 
-  /* حدث بدء الدفع (مرة واحدة عند فتح الصفحة مع سلة غير فارغة) */
+  /* حدث بدء الدفع — ينتظر استعادة السلة ويرسل مرة واحدة فقط */
+  const initiateCheckoutSent = useRef(false);
   useEffect(() => {
-    if (cart.length === 0) return;
+    if (initiateCheckoutSent.current || cart.length === 0) return;
+    initiateCheckoutSent.current = true;
     fbTrack("InitiateCheckout", {
       content_ids: cart.map((i) => i.slug),
       content_type: "product",
@@ -50,8 +52,7 @@ export default function CheckoutPage() {
       value: cart.reduce((t, i) => t + i.priceShown * i.qty, 0),
       currency: "IQD",
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cart]);
 
   /* الزبون المعروف: بياناته تتعبأ لحالها */
   useEffect(() => {
