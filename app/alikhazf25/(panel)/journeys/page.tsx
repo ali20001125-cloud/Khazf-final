@@ -295,7 +295,7 @@ export default async function JourneysPage({ searchParams }: { searchParams: Pro
               {j.customer && (
                 <Link href={`/alikhazf25/customers/${j.phone}/`} className="rounded-full bg-olive/10 px-2 py-0.5 font-bold text-olive">{j.customer}</Link>
               )}
-              <span className="font-num text-muted">{j.started.toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+              <span className="font-num text-muted">{j.started.toLocaleString("en-GB", { timeZone: "Asia/Baghdad", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
               <span className="ms-auto font-num font-bold text-ink">⏱ {fmtDur(j.totalSec)}</span>
             </div>
 
